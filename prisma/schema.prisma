@@ -1,240 +1,230 @@
-// STREAMING_CHUNK:Defining database generator and datasource settings...
 generator client {
-provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-provider = "postgresql"
-url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// STREAMING_CHUNK:Defining Subscription Status Enum...
 enum SubscriptionStatus {
-ACTIVE
-INACTIVE
-EXPIRED
-TRIAL
-SUSPENDED
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  TRIAL
+  SUSPENDED
 }
 
 enum CommissionType {
-PERCENTAGE
-FIXED
+  PERCENTAGE
+  FIXED
 }
 
 enum AttendanceStatus {
-PRESENT
-ABSENT
-LATE
-EXCUSED
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
 }
 
-// STREAMING_CHUNK:Defining User Model for Authentication and Role Management...
 model User {
-id        String   @id @default(uuid())
-username  String   @unique
-password  String
-role      String   // "SUPER_ADMIN" أو "CENTER_ADMIN"
-centerId  String?  @map("center_id")
-center    Center?  @relation(fields: [centerId], references: [id], onDelete: Cascade)
-createdAt DateTime @default(now()) @map("created_at")
+  id        String   @id @default(uuid())
+  username  String   @unique
+  password  String
+  role      String   // "SUPER_ADMIN" أو "CENTER_ADMIN"
+  centerId  String?  @map("center_id")
+  center    Center?  @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
 
-@@index([username])
-@@map("users")
+  @@index([username])
+  @@map("users")
 }
 
-// STREAMING_CHUNK:Defining Center Model linked with User relations...
 model Center {
-id                  String             @id @default(uuid())
-name                String
-email               String             @unique
-phone               String?
-password_hash       String
-subscription_status SubscriptionStatus @default(TRIAL)
-expires_at          DateTime?
-whatsapp_template   String?            @db.Text
-createdAt           DateTime           @default(now()) @map("created_at")
-updatedAt           DateTime           @updatedAt @map("updated_at")
+  id                  String             @id @default(uuid())
+  name                String
+  email               String             @unique
+  phone               String?
+  password_hash       String
+  subscription_status SubscriptionStatus @default(TRIAL)
+  expires_at          DateTime?
+  whatsapp_template   String?            @db.Text
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
 
-// العلاقات
-users               User[]
-teachers            Teacher[]
-students            Student[]
-groups              Group[]
-serviceSales        ServiceSale[]
-systemLogsMessages  SystemLogMessage[]
+  users               User[]
+  teachers            Teacher[]
+  students            Student[]
+  groups              Group[]
+  serviceSales        ServiceSale[]
+  systemLogsMessages  SystemLogMessage[]
 
-@@index([email])
-@@map("centers")
+  @@index([email])
+  @@map("centers")
 }
 
-// STREAMING_CHUNK:Defining Teacher Model...
 model Teacher {
-id               String         @id @default(uuid())
-center_id        String         @map("center_id")
-name             String
-subject          String
-phone            String
-commission_type  CommissionType @default(PERCENTAGE) @map("commission_type")
-commission_value Decimal        @map("commission_value") @db.Decimal(10, 2)
-createdAt        DateTime       @default(now()) @map("created_at")
-updatedAt        DateTime       @updatedAt @map("updated_at")
+  id               String         @id @default(uuid())
+  center_id        String         @map("center_id")
+  name             String
+  subject          String
+  phone            String
+  stage            String?        @map("stage")
+  grades           Json?          @map("grades")
+  commission_type  CommissionType @default(PERCENTAGE) @map("commission_type")
+  commission_value Decimal        @default(0.00) @map("commission_value") @db.Decimal(10, 2)
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
-center           Center         @relation(fields: [center_id], references: [id], onDelete: Cascade)
-services         TeacherService[]
-groups           Group[]
+  center           Center         @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  services         TeacherService[]
+  groups           Group[]
 
-@@index([center_id])
-@@map("teachers")
+  @@index([center_id])
+  @@map("teachers")
 }
 
-// STREAMING_CHUNK:Defining TeacherService Model...
 model TeacherService {
-id             String        @id @default(uuid())
-teacher_id     String        @map("teacher_id")
-service_name   String        @map("service_name")
-price          Decimal       @db.Decimal(10, 2)
-stock_quantity Int           @default(0) @map("stock_quantity")
-createdAt      DateTime      @default(now()) @map("created_at")
-updatedAt      DateTime      @updatedAt @map("updated_at")
+  id             String        @id @default(uuid())
+  teacher_id     String        @map("teacher_id")
+  service_name   String        @map("service_name")
+  price          Decimal       @db.Decimal(10, 2)
+  stock_quantity Int           @default(0) @map("stock_quantity")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
 
-teacher        Teacher       @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
-sales          ServiceSale[]
+  teacher        Teacher       @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  sales          ServiceSale[]
 
-@@index([teacher_id])
-@@map("teacher_services")
+  @@index([teacher_id])
+  @@map("teacher_services")
 }
 
-// STREAMING_CHUNK:Defining Student Model...
 model Student {
-id            String        @id @default(uuid())
-center_id     String        @map("center_id")
-student_code  String        @map("student_code")
-name          String
-student_phone String?       @map("student_phone")
-parent_phone  String        @map("parent_phone")
-alert_status  Boolean       @default(false) @map("alert_status")
-alert_note    String?       @db.Text @map("alert_note")
-createdAt     DateTime      @default(now()) @map("created_at")
-updatedAt     DateTime      @updatedAt @map("updated_at")
+  id            String        @id @default(uuid())
+  center_id     String        @map("center_id")
+  student_code  String        @map("student_code")
+  name          String
+  student_phone String?       @map("student_phone")
+  parent_phone  String        @map("parent_phone")
+  alert_status  Boolean       @default(false) @map("alert_status")
+  alert_note    String?       @db.Text @map("alert_note")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
-center        Center        @relation(fields: [center_id], references: [id], onDelete: Cascade)
-attendances   Attendance[]
-grades        Grade[]
-sales         ServiceSale[]
+  center        Center        @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  attendances   Attendance[]
+  grades        Grade[]
+  sales         ServiceSale[]
 
-@@unique([center_id, student_code])
-@@index([center_id])
-@@index([student_code])
-@@map("students")
+  @@unique([center_id, student_code])
+  @@index([center_id])
+  @@index([student_code])
+  @@map("students")
 }
 
-// STREAMING_CHUNK:Defining Group Model...
 model Group {
-id            String       @id @default(uuid())
-center_id     String       @map("center_id")
-teacher_id    String       @map("teacher_id")
-name          String
-schedule_days Json         @map("schedule_days")
-price         Decimal      @db.Decimal(10, 2)
-createdAt     DateTime     @default(now()) @map("created_at")
-updatedAt     DateTime     @updatedAt @map("updated_at")
+  id            String       @id @default(uuid())
+  center_id     String       @map("center_id")
+  teacher_id    String       @map("teacher_id")
+  name          String
+  schedule_days Json         @map("schedule_days")
+  price         Decimal      @db.Decimal(10, 2)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
 
-center        Center       @relation(fields: [center_id], references: [id], onDelete: Cascade)
-teacher       Teacher      @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
-attendances   Attendance[]
-evaluations   Evaluation[]
+  center        Center       @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  teacher       Teacher      @relation(fields: [teacher_id], references: [id], onDelete: Cascade)
+  attendances   Attendance[]
+  evaluations   Evaluation[]
 
-@@index([center_id])
-@@index([teacher_id])
-@@map("groups")
+  @@index([center_id])
+  @@index([teacher_id])
+  @@map("groups")
 }
 
-// STREAMING_CHUNK:Defining Attendance Model...
 model Attendance {
-id         String           @id @default(uuid())
-student_id String           @map("student_id")
-group_id   String           @map("group_id")
-date       DateTime         @db.Date
-status     AttendanceStatus @default(PRESENT)
-createdAt  DateTime         @default(now()) @map("created_at")
-updatedAt  DateTime         @updatedAt @map("updated_at")
+  id         String           @id @default(uuid())
+  student_id String           @map("student_id")
+  group_id   String           @map("group_id")
+  date       DateTime         @db.Date
+  status     AttendanceStatus @default(PRESENT)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
 
-student    Student          @relation(fields: [student_id], references: [id], onDelete: Cascade)
-group      Group            @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  student    Student          @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  group      Group            @relation(fields: [group_id], references: [id], onDelete: Cascade)
 
-@@unique([student_id, group_id, date])
-@@index([student_id])
-@@index([group_id])
-@@map("attendance")
+  @@unique([student_id, group_id, date])
+  @@index([student_id])
+  @@index([group_id])
+  @@map("attendance")
 }
 
-// STREAMING_CHUNK:Defining Evaluation and Grade Models...
 model Evaluation {
-id         String         @id @default(uuid())
-group_id   String         @map("group_id")
-type       String
-title      String
-max_score  Float          @map("max_score")
-date       DateTime       @db.Date
-createdAt  DateTime       @default(now()) @map("created_at")
-updatedAt  DateTime       @updatedAt @map("updated_at")
+  id         String         @id @default(uuid())
+  group_id   String         @map("group_id")
+  type       String
+  title      String
+  max_score  Float          @map("max_score")
+  date       DateTime       @db.Date
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
 
-group      Group          @relation(fields: [group_id], references: [id], onDelete: Cascade)
-grades     Grade[]
+  group      Group          @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  grades     Grade[]
 
-@@index([group_id])
-@@map("evaluations")
+  @@index([group_id])
+  @@map("evaluations")
 }
 
 model Grade {
-id            String     @id @default(uuid())
-evaluation_id String     @map("evaluation_id")
-student_id    String     @map("student_id")
-score         Float
-is_submitted  Boolean    @default(true) @map("is_submitted")
-createdAt     DateTime   @default(now()) @map("created_at")
-updatedAt     DateTime   @updatedAt @map("updated_at")
+  id            String     @id @default(uuid())
+  evaluation_id String     @map("evaluation_id")
+  student_id    String     @map("student_id")
+  score         Float
+  is_submitted  Boolean    @default(true) @map("is_submitted")
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
 
-evaluation    Evaluation @relation(fields: [evaluation_id], references: [id], onDelete: Cascade)
-student       Student    @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  evaluation    Evaluation @relation(fields: [evaluation_id], references: [id], onDelete: Cascade)
+  student       Student    @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
-@@unique([evaluation_id, student_id])
-@@index([evaluation_id])
-@@index([student_id])
-@@map("grades")
+  @@unique([evaluation_id, student_id])
+  @@index([evaluation_id])
+  @@index([student_id])
+  @@map("grades")
 }
 
-// STREAMING_CHUNK:Defining ServiceSale and SystemLogMessage Models...
 model ServiceSale {
-id          String         @id @default(uuid())
-center_id   String         @map("center_id")
-student_id  String         @map("student_id")
-service_id  String         @map("service_id")
-amount_paid Decimal        @map("amount_paid") @db.Decimal(10, 2)
-date        DateTime       @default(now())
-createdAt   DateTime       @default(now()) @map("created_at")
-updatedAt   DateTime       @updatedAt @map("updated_at")
+  id          String         @id @default(uuid())
+  center_id   String         @map("center_id")
+  student_id  String         @map("student_id")
+  service_id  String         @map("service_id")
+  amount_paid Decimal        @map("amount_paid") @db.Decimal(10, 2)
+  date        DateTime       @default(now())
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
 
-center      Center         @relation(fields: [center_id], references: [id], onDelete: Cascade)
-student     Student        @relation(fields: [student_id], references: [id], onDelete: Cascade)
-service     TeacherService @relation(fields: [service_id], references: [id], onDelete: Cascade)
+  center      Center         @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  student     Student        @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  service     TeacherService @relation(fields: [service_id], references: [id], onDelete: Cascade)
 
-@@index([center_id])
-@@index([student_id])
-@@index([service_id])
-@@map("service_sales")
+  @@index([center_id])
+  @@index([student_id])
+  @@index([service_id])
+  @@map("service_sales")
 }
 
 model SystemLogMessage {
-id            String   @id @default(uuid())
-center_id     String   @map("center_id")
-message_count Int      @default(1) @map("message_count")
-date          DateTime @default(now())
-createdAt     DateTime @default(now()) @map("created_at")
+  id            String   @id @default(uuid())
+  center_id     String   @map("center_id")
+  message_count Int      @default(1) @map("message_count")
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now()) @map("created_at")
 
-center        Center   @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  center        Center   @relation(fields: [center_id], references: [id], onDelete: Cascade)
 
-@@index([center_id])
-@@map("system_logs_messages")
+  @@index([center_id])
+  @@map("system_logs_messages")
 }

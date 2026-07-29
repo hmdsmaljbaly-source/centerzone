@@ -17,25 +17,22 @@ try {
 
 const app = express();
 
-// إيقاف ContentSecurityPolicy لضمان تشغيل واجهات المستخدم والسكربتات بدون حظر
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// تحديد مجلد public الموحد لقراءة الملفات الثابتة
 const publicDir = path.resolve(__dirname, '../public');
 app.use(express.static(publicDir));
 app.use(express.static(path.resolve('public')));
 
-// Multi-tenant context middleware
 app.use((req, res, next) => {
   req.centerId = req.headers['x-center-id'] || 'center-101';
   next();
 });
 
-// HTML Routes Direct Mapping (توجيه الرابط الرئيسي والصفحات)
+// HTML Routes Direct Mapping
 app.get('/', (req, res) => res.redirect('/login.html'));
 app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
@@ -311,6 +308,30 @@ apiRouter.get('/groups/today', async (req, res) => {
   }
 });
 
+apiRouter.post('/groups', async (req, res) => {
+  try {
+    const { teacher_id, name, price, days } = req.body;
+
+    if (!teacher_id || !name) {
+      return res.status(400).json({ success: false, message: 'المدرس واسم المجموعة مطلوبان' });
+    }
+
+    const group = await prisma.group.create({
+      data: {
+        center_id: req.centerId,
+        teacher_id,
+        name: name.trim(),
+        price: price || 0,
+        schedule_days: days || []
+      }
+    });
+
+    res.status(201).json({ success: true, message: 'تم إنشاء المجموعة بنجاح', data: group });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 apiRouter.get('/teachers', async (req, res) => {
   try {
     const teachers = await prisma.teacher.findMany({
@@ -325,17 +346,25 @@ apiRouter.get('/teachers', async (req, res) => {
 
 apiRouter.post('/teachers', async (req, res) => {
   try {
-    const { name, subject, phone, commission_type, commission_value } = req.body;
+    const { name, subject, phone, stage, grades, commission_type, commission_value } = req.body;
+
+    if (!name || !subject || !phone) {
+      return res.status(400).json({ success: false, message: 'اسم المدرس والمادة ورقم الهاتف بيانات مطلوبة' });
+    }
+
     const teacher = await prisma.teacher.create({
       data: {
         center_id: req.centerId,
-        name,
-        subject,
-        phone,
+        name: name.trim(),
+        subject: subject.trim(),
+        phone: phone.trim(),
+        stage: stage || null,
+        grades: grades || [],
         commission_type: commission_type || 'PERCENTAGE',
-        commission_value: commission_value || 20
+        commission_value: commission_value || 0
       }
     });
+
     res.status(201).json({ success: true, message: 'تم حفظ بيانات المدرس بنجاح', data: teacher });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -386,13 +415,11 @@ apiRouter.post('/inventory/pos-sale', async (req, res) => {
 
 app.use('/api', apiRouter);
 
-// Catch-All Handler
 app.use((req, res) => {
   if (req.accepts('html')) return res.status(404).sendFile(path.join(publicDir, 'login.html'));
   res.status(404).json({ success: false, message: 'المسار غير موجود' });
 });
 
-// تشغيل السيرفر تلقائياً عند استدعاء الملف بشكل مباشر في البيئة السحابية (Railway/Runway)
 const PORT = process.env.PORT || 5000;
 if (require.main === module) {
   app.listen(PORT, () => {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المدرسين والمجموعات والتسويات المالية - نظام إدارة السناتر</title>
+    <title>إدارة المدرسين والمجموعات - نظام إدارة السناتر</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,6 +24,7 @@
 </head>
 <body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 
+    <!-- Header -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-3 space-x-reverse">
@@ -33,7 +34,7 @@
                     </div>
                 </a>
                 <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المدرسين والتسويات المالية</h1>
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المدرسين والمجموعات</h1>
                     <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
                 </div>
             </div>
@@ -49,53 +50,125 @@
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-xl flex items-center justify-between flex-wrap gap-2">
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl flex items-center justify-between flex-wrap gap-3">
             <h3 class="text-sm font-bold text-white pr-3">قائمة المدرسين والمجموعات الدراسية</h3>
-            <button onclick="openAddTeacherModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md">
-                <i class="fa-solid fa-user-plus ml-1"></i> إضافة مدرس جديد
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openAddGroupModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-plus ml-1"></i> إضافة مجموعة جديدة
+                </button>
+                <button onclick="openAddTeacherModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-user-plus ml-1"></i> إضافة مدرس جديد
+                </button>
+            </div>
         </section>
 
+        <!-- Grid Cards -->
         <div id="teachersCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             <!-- Dynamically populated via API -->
         </div>
 
     </main>
 
+    <!-- Modal: إضافة مدرس جديد -->
     <div id="addTeacherModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
                 <h3 class="text-sm font-bold text-white">إضافة مدرس جديد</h3>
                 <button onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <form id="addTeacherForm" onsubmit="handleCreateTeacher(event)" class="space-y-4">
+            <form id="addTeacherForm" onsubmit="handleCreateTeacher(event)" class="space-y-3">
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">اسم المدرس *</label>
-                    <input type="text" id="teacherNameInput" required placeholder="أ. محمد عبد المعبود" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
+                    <input type="text" id="teacherNameInput" required placeholder="أ. ياسين عادل" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">المادة الدراسية *</label>
-                        <input type="text" id="teacherSubjectInput" required placeholder="الفيزياء" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
+                        <input type="text" id="teacherSubjectInput" required placeholder="الدراسات" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">رقم الهاتف *</label>
-                        <input type="text" id="teacherPhoneInput" required placeholder="010XXXXXXXX" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none">
+                        <input type="text" id="teacherPhoneInput" required placeholder="01000025XXX" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
                     </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">المرحلة التعليمية *</label>
+                    <select id="teacherStageSelect" onchange="handleStageChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                        <option value="">-- اختر المرحلة --</option>
+                        <option value="PRIMARY">الابتدائية</option>
+                        <option value="PREP">الإعدادية</option>
+                        <option value="SECONDARY">الثانوية</option>
+                    </select>
+                </div>
+
+                <div id="gradesContainer" class="hidden">
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">الصفوف التي يدرس لها *</label>
+                    <div id="gradesCheckboxes" class="grid grid-cols-2 gap-2 bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
                     <button type="button" onclick="closeAddTeacherModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold">حفظ بالداتابيز</button>
+                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-purple-600/20">حفظ بالداتابيز</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal: إضافة مجموعة جديدة -->
+    <div id="addGroupModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">إضافة مجموعة جديدة</h3>
+                <button onclick="closeAddGroupModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="addGroupForm" onsubmit="handleCreateGroup(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">المدرس *</label>
+                    <select id="groupTeacherSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم المجموعة *</label>
+                    <input type="text" id="groupNameInput" required placeholder="مجموعة السبت والأربعاء - 4 عصراً" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">أيام الحضور *</label>
+                    <div class="grid grid-cols-3 gap-2 text-xs bg-slate-950 border border-slate-800 p-2.5 rounded-xl">
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="السبت"> السبت</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="الأحد"> الأحد</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="الإثنين"> الإثنين</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="الثلاثاء"> الثلاثاء</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="الأربعاء"> الأربعاء</label>
+                        <label class="flex items-center gap-1.5"><input type="checkbox" name="days" value="الخميس"> الخميس</label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">سعر الحصة / الشهر (ج.م)</label>
+                        <input type="number" id="groupPriceInput" placeholder="150" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeAddGroupModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-sky-600/20">حفظ المجموعة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
     <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
@@ -104,6 +177,12 @@
         const centerId = localStorage.getItem('centerId') || 'center-101';
         let masterTeachers = [];
         let masterGroups = [];
+
+        const stageGrades = {
+            'PRIMARY': ['الصف الرابع', 'الصف الخامس', 'الصف السادس'],
+            'PREP': ['الصف الأول الإعدادي', 'الصف الثاني الإعدادي', 'الصف الثالث الإعدادي'],
+            'SECONDARY': ['الصف الأول الثانوي', 'الصف الثاني الثانوي', 'الصف الثالث الثانوي']
+        };
 
         window.onload = function() {
             fetchTeachersFromApi();
@@ -119,8 +198,7 @@
                 if (resData.success && Array.isArray(resData.data)) {
                     masterTeachers = resData.data;
                     renderTeachersCards();
-                    populateCalcTeacherDropdowns();
-                    updateMetricsSummary();
+                    populateGroupTeacherDropdown();
                 }
             } catch (e) {
                 console.error("Error fetching teachers:", e);
@@ -135,61 +213,48 @@
                 const resData = await response.json();
                 if (resData.success && Array.isArray(resData.data)) {
                     masterGroups = resData.data;
-                    renderGroupsTable();
-                    updateMetricsSummary();
+                    renderTeachersCards();
                 }
             } catch (e) {
                 console.error("Error fetching groups:", e);
             }
         }
 
-        function switchTab(tab) {
-            const teachersView = document.getElementById('tabTeachersView');
-            const settlementsView = document.getElementById('tabSettlementsView');
-            const btnTeachers = document.getElementById('tabBtnTeachers');
-            const btnSettlements = document.getElementById('tabBtnSettlements');
+        function handleStageChange() {
+            const stage = document.getElementById('teacherStageSelect').value;
+            const container = document.getElementById('gradesContainer');
+            const checkboxesDiv = document.getElementById('gradesCheckboxes');
 
-            if (tab === 'teachers') {
-                teachersView.classList.remove('hidden');
-                settlementsView.classList.add('hidden');
-                btnTeachers.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/20';
-                btnSettlements.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
-            } else {
-                settlementsView.classList.remove('hidden');
-                teachersView.classList.add('hidden');
-                btnSettlements.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/20';
-                btnTeachers.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
+            if (!stage || !stageGrades[stage]) {
+                container.classList.add('hidden');
+                return;
             }
+
+            checkboxesDiv.innerHTML = stageGrades[stage].map(grade => `
+                <label class="flex items-center gap-1.5 cursor-pointer">
+                    <input type="checkbox" name="teacherGrades" value="${grade}" class="rounded accent-purple-500">
+                    <span>${grade}</span>
+                </label>
+            `).join('');
+
+            container.classList.remove('hidden');
         }
 
-        function updateMetricsSummary() {
-            document.getElementById('metricTotalTeachers').textContent = masterTeachers.length;
-            document.getElementById('metricTotalGroups').textContent = masterGroups.length;
-        }
-
-        function renderTeachersCards(filterQuery = '') {
+        function renderTeachersCards() {
             const grid = document.getElementById('teachersCardsGrid');
             grid.innerHTML = '';
 
-            const filtered = masterTeachers.filter(t => 
-                !filterQuery || 
-                t.name.toLowerCase().includes(filterQuery.toLowerCase()) || 
-                t.subject.toLowerCase().includes(filterQuery.toLowerCase())
-            );
-
-            if (filtered.length === 0) {
+            if (masterTeachers.length === 0) {
                 grid.innerHTML = `<div class="col-span-3 text-center py-8 text-slate-500 text-xs">لا يوجد مدرسون مسجلون بقاعدة البيانات.</div>`;
                 return;
             }
 
-            filtered.forEach(teacher => {
+            masterTeachers.forEach(teacher => {
                 const teacherGroups = masterGroups.filter(g => g.teacher_id === teacher.id);
-                const commText = teacher.commission_type === 'PERCENTAGE' 
-                    ? `نسبة السنتر: ${teacher.commission_value}%` 
-                    : `خصم ثابت: ${teacher.commission_value} ج.م / طالب`;
+                const gradesList = Array.isArray(teacher.grades) ? teacher.grades.join(' - ') : (teacher.grades || 'جميع الصفوف');
 
                 const cardHtml = `
-                    <div class="teacher-card bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden flex flex-col justify-between">
+                    <div class="teacher-card bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
                         <div>
                             <div class="flex items-start justify-between mb-3">
                                 <div>
@@ -209,8 +274,8 @@
                                     <span class="font-mono text-slate-200">${teacher.phone}</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span class="text-slate-400">نظام العمولة:</span>
-                                    <span class="font-bold text-emerald-400">${commText}</span>
+                                    <span class="text-slate-400">الصفوف:</span>
+                                    <span class="text-purple-300 font-bold truncate max-w-[150px]">${gradesList}</span>
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">المجموعات:</span>
@@ -220,11 +285,7 @@
                         </div>
 
                         <div class="flex items-center justify-between pt-1">
-                            <button onclick="selectTeacherForSettlement('${teacher.id}')" class="px-3.5 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                                <i class="fa-solid fa-calculator"></i>
-                                <span>تقفيل حساب</span>
-                            </button>
-                            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-circle text-[8px] text-emerald-500 ml-1"></i>مسجل</span>
+                            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-circle text-[8px] text-emerald-500 ml-1"></i>نشط</span>
                         </div>
                     </div>
                 `;
@@ -232,86 +293,26 @@
             });
         }
 
-        function filterTeachersList() {
-            const q = document.getElementById('searchTeacherInput').value.trim();
-            renderTeachersCards(q);
-        }
-
-        function renderGroupsTable() {
-            const tbody = document.getElementById('groupsTableBody');
-            tbody.innerHTML = '';
-            document.getElementById('groupsCountTag').textContent = `${masterGroups.length} مجموعة مسجلة`;
-
-            if (masterGroups.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">لا توجد مجموعات دراسية مسجلة حالياً.</td></tr>`;
+        function populateGroupTeacherDropdown() {
+            const select = document.getElementById('groupTeacherSelect');
+            if (masterTeachers.length === 0) {
+                select.innerHTML = '<option value="">لا يوجد مدرسين - أضف مدرس أولاً</option>';
                 return;
             }
-
-            masterGroups.forEach(grp => {
-                const teacher = masterTeachers.find(t => t.id === grp.teacher_id) || grp.teacher;
-
-                const rowHtml = `
-                    <tr class="hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 font-bold text-white">${grp.name}</td>
-                        <td class="p-3 text-purple-300 font-medium">${teacher ? teacher.name : '--'}</td>
-                        <td class="p-3 text-slate-400">--</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono text-[11px] border border-slate-700">مجدولة</span></td>
-                        <td class="p-3 font-mono font-bold text-emerald-400">${grp.price || 0} ج.م</td>
-                        <td class="p-3 font-mono text-slate-300">--</td>
-                        <td class="p-3 text-center">
-                            <button onclick="showToast('مجموعة ${grp.name}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">
-                                <i class="fa-solid fa-eye"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', rowHtml);
-            });
+            select.innerHTML = masterTeachers.map(t => `<option value="${t.id}">${t.name} (${t.subject})</option>`).join('');
         }
 
-        function populateCalcTeacherDropdowns() {
-            const select = document.getElementById('calcTeacherSelect');
-            select.innerHTML = '<option value="">-- اختر مدرس للحساب --</option>';
-            masterTeachers.forEach(t => {
-                select.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} (${t.subject})</option>`);
-            });
-
-            const grpTeacherSelect = document.getElementById('groupTeacherSelect');
-            grpTeacherSelect.innerHTML = masterTeachers.map(t => `<option value="${t.id}">${t.name} - ${t.subject}</option>`).join('');
-        }
-
-        function selectTeacherForSettlement(teacherId) {
-            switchTab('settlements');
-            document.getElementById('calcTeacherSelect').value = teacherId;
-            handleCalcTeacherChange();
-        }
-
-        function handleCalcTeacherChange() {
-            const teacherId = document.getElementById('calcTeacherSelect').value;
-            const groupSelect = document.getElementById('calcGroupSelect');
-
-            if (!teacherId) {
-                groupSelect.innerHTML = '<option value="ALL">جميع مجموعات المدرس الحالية</option>';
-                return;
-            }
-
-            const teacherGroups = masterGroups.filter(g => g.teacher_id === teacherId);
-            groupSelect.innerHTML = '<option value="ALL">جميع مجموعات المدرس الحالية</option>';
-            teacherGroups.forEach(g => {
-                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name}</option>`);
-            });
-        }
-
-        function openAddTeacherModal() {
-            document.getElementById('addTeacherModal').classList.remove('hidden');
-        }
-        function closeAddTeacherModal() {
-            document.getElementById('addTeacherModal').classList.add('hidden');
+        function openAddTeacherModal() { document.getElementById('addTeacherModal').classList.remove('hidden'); }
+        function closeAddTeacherModal() { 
+            document.getElementById('addTeacherModal').classList.add('hidden'); 
             document.getElementById('addTeacherForm').reset();
+            document.getElementById('gradesContainer').classList.add('hidden');
         }
 
-        function updateCommLabel(suffix) {
-            document.getElementById('commValueLabel').textContent = `قيمة الخصم (${suffix}):`;
+        function openAddGroupModal() { document.getElementById('addGroupModal').classList.remove('hidden'); }
+        function closeAddGroupModal() { 
+            document.getElementById('addGroupModal').classList.add('hidden'); 
+            document.getElementById('addGroupForm').reset();
         }
 
         async function handleCreateTeacher(e) {
@@ -319,8 +320,9 @@
             const name = document.getElementById('teacherNameInput').value.trim();
             const subject = document.getElementById('teacherSubjectInput').value.trim();
             const phone = document.getElementById('teacherPhoneInput').value.trim();
-            const commType = document.querySelector('input[name="commissionType"]:checked').value;
-            const commVal = parseFloat(document.getElementById('teacherCommValueInput').value);
+            const stage = document.getElementById('teacherStageSelect').value;
+
+            const selectedGrades = Array.from(document.querySelectorAll('input[name="teacherGrades"]:checked')).map(cb => cb.value);
 
             try {
                 const response = await fetch('/api/teachers', {
@@ -330,36 +332,53 @@
                         name,
                         subject,
                         phone,
-                        commission_type: commType,
-                        commission_value: commVal
+                        stage,
+                        grades: selectedGrades,
+                        commission_type: 'PERCENTAGE',
+                        commission_value: 0
                     })
                 });
 
                 const resData = await response.json();
-                if (resData.success) {
+                if (response.ok || resData.success) {
                     closeAddTeacherModal();
-                    showToast(`تم حفظ بيانات المدرس ${name} بنجاح`);
+                    showToast(`تم حفظ المدرس ${name} بنجاح`);
                     fetchTeachersFromApi();
                 } else {
                     showToast(resData.message || 'حدث خطأ أثناء الحفظ');
                 }
             } catch (err) {
-                showToast('خطأ في الاتصال بالسيرفر');
+                closeAddTeacherModal();
+                showToast('حدث خطأ في الاتصال بالسيرفر');
             }
         }
 
-        function openAddGroupModal() {
-            document.getElementById('addGroupModal').classList.remove('hidden');
-        }
-        function closeAddGroupModal() {
-            document.getElementById('addGroupModal').classList.add('hidden');
-            document.getElementById('addGroupForm').reset();
-        }
-
-        function handleCreateGroup(e) {
+        async function handleCreateGroup(e) {
             e.preventDefault();
-            closeAddGroupModal();
-            showToast('تم حفظ المجموعة بنجاح');
+            const teacherId = document.getElementById('groupTeacherSelect').value;
+            const name = document.getElementById('groupNameInput').value.trim();
+            const price = parseFloat(document.getElementById('groupPriceInput').value) || 0;
+            const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
+
+            try {
+                const response = await fetch('/api/groups', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    body: JSON.stringify({
+                        teacher_id: teacherId,
+                        name,
+                        price,
+                        days: selectedDays
+                    })
+                });
+
+                closeAddGroupModal();
+                showToast(`تم حفظ مجموعة (${name}) بنجاح`);
+                fetchGroupsFromApi();
+            } catch (err) {
+                closeAddGroupModal();
+                showToast('حدث خطأ أثناء حفظ المجموعة');
+            }
         }
 
         function showToast(message) {
