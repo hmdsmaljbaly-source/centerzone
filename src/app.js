@@ -375,7 +375,9 @@ apiRouter.post('/teachers', async (req, res) => {
 apiRouter.get('/inventory', async (req, res) => {
   try {
     const services = await prisma.teacherService.findMany({
-      include: { teacher: true }
+      where: { center_id: req.centerId },
+      include: { teacher: true },
+      orderBy: { createdAt: 'desc' }
     });
     res.status(200).json({ success: true, count: services.length, data: services });
   } catch (error) {
@@ -383,14 +385,50 @@ apiRouter.get('/inventory', async (req, res) => {
   }
 });
 
+apiRouter.post('/inventory', async (req, res) => {
+  try {
+    const { title, teacher_id, price, stock_quantity } = req.body;
+
+    if (!title || !teacher_id || price === undefined || stock_quantity === undefined) {
+      return res.status(400).json({ success: false, message: 'جميع بيانات الملزمة مطلوبة (الاسم، المدرس، السعر، والكمية)' });
+    }
+
+    const newBook = await prisma.teacherService.create({
+      data: {
+        center_id: req.centerId,
+        service_name: title.trim(),
+        price: parseFloat(price),
+        stock_quantity: parseInt(stock_quantity),
+        teacher_id: teacher_id
+      },
+      include: { teacher: true }
+    });
+
+    res.status(201).json({ success: true, message: 'تمت إضافة الملزمة للمخزن بنجاح', data: newBook });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.delete('/inventory/:id', async (req, res) => {
+  try {
+    await prisma.teacherService.delete({
+      where: { id: req.params.id }
+    });
+    res.status(200).json({ success: true, message: 'تم حذف الملزمة من المخزن بنجاح' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'حدث خطأ أثناء حذف الملزمة' });
+  }
+});
+
 apiRouter.post('/inventory/pos-sale', async (req, res) => {
   try {
     const { student_id, service_id, quantity } = req.body;
-    const qty = quantity || 1;
+    const qty = parseInt(quantity) || 1;
 
     const service = await prisma.teacherService.findUnique({ where: { id: service_id } });
     if (!service || service.stock_quantity < qty) {
-      return res.status(400).json({ success: false, message: 'الكمية غير متاحة بالمخزن' });
+      return res.status(400).json({ success: false, message: 'الكمية المطلوب بيعها غير متاحة بالمخزن' });
     }
 
     await prisma.teacherService.update({

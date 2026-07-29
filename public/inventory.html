@@ -105,7 +105,7 @@
                             <th class="p-3.5">السعر</th>
                             <th class="p-3.5">الكمية المتبقية</th>
                             <th class="p-3.5">حالة المخزون</th>
-                            <th class="p-3.5 text-center">الإجراء</th>
+                            <th class="p-3.5 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60">
@@ -328,16 +328,43 @@
                                 ${statusLabel}
                             </span>
                         </td>
-                        <td class="p-3.5 text-center">
+                        <td class="p-3.5 text-center flex items-center justify-center gap-2">
                             <button onclick="openPosModal('${bk.id}')" ${stock === 0 ? 'disabled' : ''} 
                                 class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all">
                                 🛒 بيع سريع
+                            </button>
+                            <button onclick="deleteBook('${bk.id}', '${bk.service_name || bk.title}')" 
+                                class="p-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-400 hover:text-white border border-rose-500/30 rounded-xl text-xs font-bold transition-all" title="حذف الملزمة">
+                                <i class="fa-solid fa-trash-can"></i>
                             </button>
                         </td>
                     </tr>
                 `;
                 tbody.insertAdjacentHTML('beforeend', rowHtml);
             });
+        }
+
+        async function deleteBook(bookId, bookTitle) {
+            if (!confirm(`هل أنت تأكد من رغبتك في مسح الملزمة "${bookTitle}" نهائياً من المخزن؟`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/inventory/${bookId}`, {
+                    method: 'DELETE',
+                    headers: { 'x-center-id': centerId }
+                });
+
+                const resData = await response.json();
+                if (resData.success) {
+                    showToast('تم حذف الملزمة بنجاح!');
+                    fetchInventoryFromApi();
+                } else {
+                    showToast(resData.message || 'خطأ أثناء حذف الملزمة');
+                }
+            } catch (err) {
+                showToast('تعذر الاتصال بالسيرفر');
+            }
         }
 
         function updateInventoryMetrics() {
