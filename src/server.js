@@ -16,6 +16,11 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
+// توجيه تلقائي عند فتح رابط السيرفر الرئيسي إلى صفحة/مسار تسجيل الدخول
+app.get('/', (req, res) => {
+  res.redirect('/api/auth/login'); // يوجه الزائر تلقائيًا إلى مسار تسجيل الدخول
+});
+
 // فحص سلامة التطبيق (Health Check Endpoint)
 app.get('/health', async (req, res) => {
   try {
