@@ -17,13 +17,14 @@ try {
 
 const app = express();
 
-app.use(helmet({ contentSecurityPolicy: false }));
+// إيقاف ContentSecurityPolicy لضمان تشغيل واجهات المستخدم والسكربتات بدون حظر
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static dashboard files
+// تحديد مجلد public الموحد لقراءة الملفات الثابتة
 const publicDir = path.resolve(__dirname, '../public');
 app.use(express.static(publicDir));
 app.use(express.static(path.resolve('public')));
@@ -359,6 +360,7 @@ apiRouter.post('/inventory/pos-sale', async (req, res) => {
 
 app.use('/api', apiRouter);
 
+// HTML Routes Direct Mapping
 app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
 app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
 app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
@@ -384,9 +386,18 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// Catch-All Handler
 app.use((req, res) => {
-  if (req.accepts('html')) return res.status(404).sendFile(path.join(publicDir, 'index.html'));
+  if (req.accepts('html')) return res.status(404).sendFile(path.join(publicDir, 'login.html'));
   res.status(404).json({ success: false, message: 'المسار غير موجود' });
 });
+
+// تشغيل السيرفر تلقائياً عند استدعاء الملف بشكل مباشر في البيئة السحابية (Railway/Runway)
+const PORT = process.env.PORT || 5000;
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
 module.exports = app;
