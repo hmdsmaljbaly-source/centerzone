@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-purple-500 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم السوبر أدمن - إدارة السنترات والاشتراكات (Center SaaS)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* Background Grid Pattern */
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+
+    <!-- Top Super Admin Header -->
+    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-purple-400 p-0.5 shadow-lg shadow-purple-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-purple-400 font-black text-lg">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="font-bold text-lg text-white leading-tight">لوحة تحكم السوبر أدمن (Super Admin SaaS)</h1>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                            Multi-Tenant Engine
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">إدارة السنترات والاشتراكات وتكاويد الحسابات</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <a href="login.html" onclick="localStorage.clear()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>تسجيل الخروج</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top SaaS Metrics Overview -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium">إجمالي السنترات المشتركة</span>
+                    <span id="metricTotalCenters" class="text-2xl font-black text-white font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium">السنترات النشطة</span>
+                    <span id="metricActiveCenters" class="text-2xl font-black text-emerald-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium">الاشتراكات الموقوفة/المنتهية</span>
+                    <span id="metricSuspendedCenters" class="text-2xl font-black text-rose-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-ban"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium">تقدير الإيراد الشهري</span>
+                    <span id="metricMonthlyRevenue" class="text-2xl font-black text-amber-400 font-mono">0 ج.م</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Filter & Action Controls Toolbar -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between flex-wrap gap-3">
+            <div class="flex items-center gap-3 flex-1">
+                <div class="relative w-full max-w-xs">
+                    <input type="text" id="centerSearchInput" onkeyup="filterCentersTable()" placeholder="بحث باسم السنتر، المدير، أو الهاتف..." 
+                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                </div>
+
+                <select id="statusFilterSelect" onchange="filterCentersTable()" class="bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs outline-none cursor-pointer">
+                    <option value="ALL">جميع الحالات</option>
+                    <option value="ACTIVE">🟢 نشط</option>
+                    <option value="SUSPENDED">🔴 موقوف</option>
+                    <option value="TRIAL">🟡 فترة تجريبية</option>
+                </select>
+            </div>
+
+            <button onclick="openAddCenterModal()" class="px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-purple-500/20 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i>
+                <span>إضافة سنتر جديد + حساب مدير السنتر</span>
+            </button>
+        </section>
+
+        <!-- Centers Master Data Table -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-right text-slate-300">
+                    <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="p-3.5">كود السنتر (Tenant ID)</th>
+                            <th class="p-3.5">اسم السنتر التعليمي</th>
+                            <th class="p-3.5">حساب مدير السنتر (Username)</th>
+                            <th class="p-3.5">رقم التواصل</th>
+                            <th class="p-3.5">نوع الباقة</th>
+                            <th class="p-3.5">حالة الخدمة</th>
+                            <th class="p-3.5">تاريخ الانتهاء</th>
+                            <th class="p-3.5 text-center">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="centersTableBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Add New Center & Center Admin Account -->
+    <div id="addCenterModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-building-circle-check"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">إضافة سنتر جديد وتكاويد حساب المدير</h3>
+                </div>
+                <button onclick="closeAddCenterModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="addCenterForm" onsubmit="handleCreateCenter(event)" class="space-y-3.5">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">اسم السنتر التعليمي *</label>
+                        <input type="text" id="inputCenterName" required placeholder="مثال: سنتر الأوائل" 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">رقم الهاتف *</label>
+                        <input type="text" id="inputCenterPhone" required placeholder="010XXXXXXXX" 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl space-y-3">
+                    <span class="text-xs font-bold text-purple-400 block">بيانات دخول مدير السنتر (Center Admin Credentials):</span>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">اسم المستخدم (Username) *</label>
+                            <input type="text" id="inputAdminUsername" required placeholder="مثال: awael_admin" 
+                                class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-3 py-1.5 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-400 mb-1">كلمة السر (Password) *</label>
+                            <input type="password" id="inputAdminPassword" required placeholder="••••••••" 
+                                class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-3 py-1.5 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">نوع الاشتراك *</label>
+                        <select id="inputSubscriptionPlan" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="PRO">باقة السنتر برو (Pro Plan)</option>
+                            <option value="ENTERPRISE">باقة إنتربرايز (Enterprise)</option>
+                            <option value="TRIAL">تجريبي 14 يوم (Free Trial)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">تاريخ انتهاء الاشتراك *</label>
+                        <input type="date" id="inputExpiryDate" required value="2026-12-31" 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="closeAddCenterModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold shadow-md">إنشاء وحفظ السنتر</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let centersList = [
+            { id: 'center-101', name: 'سنتر النخبة التعليمي', username: 'center101', phone: '01099998888', plan: 'PRO', status: 'ACTIVE', expiry: '2026-12-31' },
+            { id: 'center-102', name: 'أكاديمية التفوق - فرع الدقي', username: 'tafawok_duqqi', phone: '01222223333', plan: 'ENTERPRISE', status: 'ACTIVE', expiry: '2026-10-15' },
+            { id: 'center-103', name: 'سنتر المستقبل الحديث', username: 'future_center', phone: '01555554444', plan: 'TRIAL', status: 'SUSPENDED', expiry: '2026-06-01' }
+        ];
+
+        window.onload = function() {
+            renderCentersTable(centersList);
+            updateMetrics();
+        };
+
+        function updateMetrics() {
+            document.getElementById('metricTotalCenters').textContent = centersList.length;
+            document.getElementById('metricActiveCenters').textContent = centersList.filter(c => c.status === 'ACTIVE').length;
+            document.getElementById('metricSuspendedCenters').textContent = centersList.filter(c => c.status === 'SUSPENDED').length;
+            document.getElementById('metricMonthlyRevenue').textContent = (centersList.filter(c => c.status === 'ACTIVE').length * 1500).toLocaleString() + ' ج.م';
+        }
+
+        function renderCentersTable(data) {
+            const tbody = document.getElementById('centersTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(center => {
+                let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                let statusLabel = '🟢 نشط';
+                if (center.status === 'SUSPENDED') {
+                    badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                    statusLabel = '🔴 موقوف';
+                } else if (center.status === 'TRIAL') {
+                    badgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+                    statusLabel = '🟡 فترة تجريبية';
+                }
+
+                const rowHtml = `
+                    <tr class="hover:bg-slate-800/40 transition-colors">
+                        <td class="p-3.5 font-mono font-bold text-purple-400">${center.id}</td>
+                        <td class="p-3.5 font-bold text-white">${center.name}</td>
+                        <td class="p-3.5 font-mono text-sky-400">${center.username}</td>
+                        <td class="p-3.5 font-mono text-slate-300">${center.phone}</td>
+                        <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[10px]">${center.plan}</span></td>
+                        <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${badgeClass}">${statusLabel}</span></td>
+                        <td class="p-3.5 font-mono text-slate-400">${center.expiry}</td>
+                        <td class="p-3.5 text-center">
+                            <button onclick="toggleCenterStatus('${center.id}')" class="px-3 py-1.5 ${center.status === 'ACTIVE' ? 'bg-rose-600/20 hover:bg-rose-600 text-rose-300' : 'bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300'} hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all">
+                                ${center.status === 'ACTIVE' ? 'إيقاف الخدمة 🔴' : 'تفعيل الخدمة 🟢'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            });
+        }
+
+        function filterCentersTable() {
+            const query = document.getElementById('centerSearchInput').value.trim().toLowerCase();
+            const status = document.getElementById('statusFilterSelect').value;
+
+            const filtered = centersList.filter(c => {
+                const matchQ = !query || c.name.toLowerCase().includes(query) || c.username.toLowerCase().includes(query) || c.phone.includes(query);
+                const matchStatus = status === 'ALL' || c.status === status;
+                return matchQ && matchStatus;
+            });
+
+            renderCentersTable(filtered);
+        }
+
+        function toggleCenterStatus(centerId) {
+            const center = centersList.find(c => c.id === centerId);
+            if (center) {
+                center.status = center.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
+                filterCentersTable();
+                updateMetrics();
+            }
+        }
+
+        function openAddCenterModal() {
+            document.getElementById('addCenterModal').classList.remove('hidden');
+        }
+        function closeAddCenterModal() {
+            document.getElementById('addCenterModal').classList.add('hidden');
+            document.getElementById('addCenterForm').reset();
+        }
+
+        function handleCreateCenter(e) {
+            e.preventDefault();
+            const name = document.getElementById('inputCenterName').value.trim();
+            const phone = document.getElementById('inputCenterPhone').value.trim();
+            const username = document.getElementById('inputAdminUsername').value.trim();
+            const plan = document.getElementById('inputSubscriptionPlan').value;
+            const expiry = document.getElementById('inputExpiryDate').value;
+
+            const newCenter = {
+                id: 'center-' + Math.floor(100 + Math.random() * 900),
+                name,
+                username,
+                phone,
+                plan,
+                status: 'ACTIVE',
+                expiry
+            };
+
+            centersList.unshift(newCenter);
+            filterCentersTable();
+            updateMetrics();
+            closeAddCenterModal();
+        }
+    </script>
+</body>
+</html>
