@@ -8,6 +8,7 @@ const prisma = require('./config/prisma');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const HOST = '0.0.0.0'; // مهم جداً ليعمل السيرفر بشكل صحيح على منصات مثل Railway
 
 // Middleware الأساسية للأمان والأداء
 app.use(helmet());
@@ -45,8 +46,8 @@ app.use((err, req, res, next) => {
 });
 
 // تشغيل السيرفر مع Graceful Shutdown للإغلاق الآمن لدعم Prisma
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Center SaaS Backend Server is running on port ${PORT}`);
+const server = app.listen(PORT, HOST, () => {
+  console.log(`🚀 Center SaaS Backend Server is running on http://${HOST}:${PORT}`);
 });
 
 const gracefulShutdown = async () => {
