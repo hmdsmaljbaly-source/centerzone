@@ -1,13 +1,62 @@
-<!-- ... existing code ... -->
-            <!-- Controls & Mode Selector -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام تسجيل الحضور السريع - CenterZone</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        @keyframes pulse-success {
+            0%, 100% { border-color: rgba(16, 185, 129, 0.8); }
+            50% { border-color: rgba(16, 185, 129, 0.3); }
+        }
+        @keyframes pulse-danger {
+            0%, 100% { border-color: rgba(244, 63, 94, 0.9); }
+            50% { border-color: rgba(244, 63, 94, 0.3); }
+        }
+        .pulse-success { animation: pulse-success 1.5s infinite; }
+        .pulse-danger { animation: pulse-danger 1.5s infinite; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Top Navigation / Header -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <!-- Sound FX Toggle -->
+                <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+                    <i class="fa-solid fa-barcode text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-bold text-white leading-tight">محطة تسجيل الحضور السريع</h1>
+                    <p class="text-xs text-slate-400">وضع الإدخال المباشر (Hardware Scanner)</p>
+                </div>
+            </div>
+
+            <!-- Controls Widget -->
+            <div class="flex items-center gap-3">
                 <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sky-400 hover:text-white transition-all text-sm flex items-center gap-1.5" title="تشغيل/كتم الصوت">
                     <i id="soundIcon" class="fa-solid fa-volume-high"></i>
                     <span id="soundLabel" class="hidden sm:inline text-xs text-slate-300">الصوت فعّال</span>
                 </button>
 
-                <!-- Time Clock Widget -->
                 <div class="hidden lg:flex items-center gap-2 bg-slate-800/60 border border-slate-700/50 px-3.5 py-1.5 rounded-xl text-xs text-slate-300">
                     <i class="fa-regular fa-clock text-sky-400"></i>
                     <span id="liveClock" class="font-mono text-white font-semibold">--:--:--</span>
@@ -16,10 +65,10 @@
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
+    <!-- Main Workspace -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        <!-- RIGHT/PRIMARY PANEL: Group Selection & Scanner Controls (7 cols) -->
+        <!-- RIGHT PANEL: Group Selector & Scanner Input (7 cols) -->
         <section class="lg:col-span-7 flex flex-col gap-5">
             
             <!-- Group Selector Card -->
@@ -29,7 +78,7 @@
                 <div class="flex items-center justify-between mb-3">
                     <label for="groupSelect" class="block text-sm font-bold text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-users-rectangle text-sky-400"></i>
-                        اختر المجموعة الدراسية لليوم:
+                        اختر المجموعة الدراسية:
                     </label>
                     <button onclick="fetchTodaysGroups()" class="text-xs text-sky-400 hover:text-sky-300 flex items-center gap-1 transition-colors">
                         <i class="fa-solid fa-rotate-right"></i> تحديث
@@ -46,85 +95,83 @@
                 </div>
             </div>
 
-            <!-- QR Camera Scanner Box -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col items-center justify-center relative">
+            <!-- Scanner Main Terminal Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center relative min-h-[260px]">
                 
-                <div class="w-full flex items-center justify-between mb-4">
+                <div class="w-full flex items-center justify-between mb-6">
                     <div class="flex items-center gap-2">
                         <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span class="text-sm font-bold text-slate-200">كاميرا المسح الضوئي المباشر</span>
+                        <span class="text-sm font-bold text-slate-200">وحدة مسح الباركوود / QR جاهزة</span>
+                    </div>
+                    <span class="text-xs text-slate-500 font-mono">Status: ACTIVE</span>
+                </div>
+
+                <div class="w-full max-w-lg space-y-4 text-center">
+                    <div class="w-16 h-16 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 mx-auto flex items-center justify-center text-2xl shadow-inner">
+                        <i class="fa-solid fa-barcode animate-pulse"></i>
                     </div>
                     
-                    <button id="toggleCameraBtn" onclick="toggleCamera()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5">
-                        <i class="fa-solid fa-video"></i>
-                        <span id="cameraBtnText">تشغيل الكاميرا</span>
-                    </button>
-                </div>
-
-                <div class="relative w-full aspect-video sm:aspect-[4/3] bg-slate-950 border-2 border-dashed border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group">
-                    <div id="scannerLaser" class="scanner-laser hidden"></div>
-                    <div id="qr-reader" class="w-full h-full"></div>
-
-                    <div id="cameraPlaceholder" class="flex flex-col items-center justify-center p-6 text-center z-10 space-y-3">
-                        <div class="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-500 text-2xl group-hover:text-sky-400 group-hover:scale-105 transition-all">
-                            <i class="fa-solid fa-camera-retro"></i>
-                        </div>
-                        <div>
-                            <p class="text-sm font-semibold text-slate-300">الكاميرا متوقفة حالياً</p>
-                            <p class="text-xs text-slate-500 mt-1 max-w-xs">اضغط على زر تشغيل الكاميرا أعلاه للبدء في قراءة أكواد QR تلقائياً</p>
-                        </div>
+                    <div>
+                        <h3 class="text-base font-bold text-slate-200">قم بمسح كود الطالب الآن</h3>
+                        <p class="text-xs text-slate-400 mt-1">النظام محفّز تلقائياً لاستقبال القراءة من قارئ الباركوود</p>
                     </div>
+
+                    <form onsubmit="handleManualSubmit(event)" class="pt-2">
+                        <div class="relative">
+                            <i class="fa-solid fa-barcode absolute right-4 top-1/2 -translate-y-1/2 text-sky-400 text-lg"></i>
+                            <input type="text" id="manualStudentCode" placeholder="أدخل الكود أو وجه قوارئ الباركوود..." autocomplete="off" autofocus
+                                class="w-full bg-slate-950 border-2 border-sky-500/40 text-slate-100 rounded-xl pr-12 pl-4 py-3.5 text-base placeholder-slate-500 focus:ring-4 focus:ring-sky-500/20 focus:border-sky-500 outline-none transition-all font-mono tracking-wider text-center">
+                        </div>
+                        <button type="submit" class="hidden">تسجيل</button>
+                    </form>
                 </div>
 
-                <div class="w-full mt-4 pt-4 border-t border-slate-800">
-                    <form onsubmit="handleManualSubmit(event)" class="flex flex-col sm:flex-row gap-2">
-                        <div class="relative flex-1">
-                            <i class="fa-solid fa-barcode absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-                            <input type="text" id="manualStudentCode" placeholder="أدخل كود الطالب يدوياً (مثال: STU-1001)..." autocomplete="off"
-                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-10 pl-4 py-2.5 text-sm placeholder-slate-500 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all">
-                        </div>
-                        <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-paper-plane text-sky-400"></i>
-                            <span>تسجيل الحضور</span>
-                        </button>
-                    </form>
+                <div class="w-full mt-6 pt-4 border-t border-slate-800/80 text-center">
+                    <p class="text-[11px] text-slate-500">
+                        <i class="fa-solid fa-circle-info ml-1 text-sky-400"></i>
+                        يتم التركيز على الحقل تلقائياً لضمان السرعة الفائقة عند تسليم المجموعات الكبيرة.
+                    </p>
                 </div>
             </div>
 
-            <!-- Quick Session Stats Cards -->
+            <!-- Quick Session Stats -->
             <div class="grid grid-cols-3 gap-3">
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
                     <span class="text-xs text-slate-400 block mb-1">إجمالي الحضور</span>
-                    <span id="statSuccessCount" class="text-xl font-bold text-emerald-400">0</span>
+                    <span id="statSuccessCount" class="text-xl font-bold text-emerald-400 font-mono">0</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
                     <span class="text-xs text-slate-400 block mb-1">التنبيهات الماليّة</span>
-                    <span id="statWarningCount" class="text-xl font-bold text-amber-400">0</span>
+                    <span id="statWarningCount" class="text-xl font-bold text-amber-400 font-mono">0</span>
                 </div>
                 <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 text-center">
                     <span class="text-xs text-slate-400 block mb-1">حالات الحظر</span>
-                    <span id="statBlockedCount" class="text-xl font-bold text-rose-400">0</span>
+                    <span id="statBlockedCount" class="text-xl font-bold text-rose-400 font-mono">0</span>
                 </div>
             </div>
 
         </section>
 
-        <!-- LEFT/SECONDARY PANEL -->
+        <!-- LEFT PANEL: Results & History Log (5 cols) -->
         <section class="lg:col-span-5 flex flex-col gap-5">
-            <div id="resultCard" class="bg-slate-900 border-2 border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[340px] justify-between">
+            
+            <!-- Attendance Result Display Card -->
+            <div id="resultCard" class="bg-slate-900 border-2 border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[320px] justify-between">
                 
                 <div id="resultCardGlow" class="absolute -top-12 -left-12 w-40 h-40 bg-slate-800/30 rounded-full blur-3xl pointer-events-none transition-all"></div>
 
-                <div id="resultIdleState" class="flex flex-col items-center justify-center my-auto py-12 text-center text-slate-500 space-y-3">
+                <!-- Idle State -->
+                <div id="resultIdleState" class="flex flex-col items-center justify-center my-auto py-10 text-center text-slate-500 space-y-3">
                     <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl text-slate-600">
                         <i class="fa-solid fa-id-card"></i>
                     </div>
                     <div>
                         <p class="text-base font-bold text-slate-300">في انتظار قراءة الطالب...</p>
-                        <p class="text-xs text-slate-500 mt-1">قم بمسح QR Code الطالب أو أدخل كوده يدوياً لعرض بياناته وحالة الحضور فوراً من قاعدة البيانات</p>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs">مرر كود الطالب عبر الماسح الضوئي لعرض كافة بياناته وحالة الحضور فوراً</p>
                     </div>
                 </div>
 
+                <!-- Active State -->
                 <div id="resultActiveState" class="hidden space-y-5">
                     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                         <div id="statusBadge" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm shadow-md">
@@ -166,6 +213,7 @@
                     </div>
                 </div>
 
+                <!-- Footer Result Card -->
                 <div id="resultFooter" class="hidden border-t border-slate-800 pt-3 flex items-center justify-between text-xs text-slate-400">
                     <span id="targetGroupName" class="truncate max-w-[200px]"><i class="fa-solid fa-chalkboard-user ml-1 text-slate-500"></i> المجموعة: --</span>
                     <button onclick="clearResultCard()" class="text-slate-400 hover:text-white transition-colors">
@@ -174,13 +222,14 @@
                 </div>
             </div>
 
+            <!-- History Log -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
                         <i class="fa-solid fa-clock-rotate-left text-sky-400"></i>
                         سجل العمليات الأخيرة
                     </h3>
-                    <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-slate-300">مسح السجل</button>
+                    <button onclick="clearHistory()" class="text-xs text-slate-500 hover:text-slate-300 transition-colors">مسح السجل</button>
                 </div>
 
                 <div id="historyList" class="space-y-2 overflow-y-auto max-h-[220px] pr-1">
@@ -195,8 +244,6 @@
     <script>
         const centerId = localStorage.getItem('centerId') || 'center-101';
         let audioEnabled = true;
-        let html5QrCode = null;
-        let isCameraScanning = false;
         let audioCtx = null;
 
         let stats = { success: 0, warning: 0, blocked: 0 };
@@ -205,8 +252,18 @@
             setInterval(updateClock, 1000);
             updateClock();
             fetchTodaysGroups();
-            document.body.addEventListener('click', initAudioContext, { once: true });
+            focusInput();
+
+            document.body.addEventListener('click', () => {
+                initAudioContext();
+                focusInput();
+            });
         };
+
+        function focusInput() {
+            const input = document.getElementById('manualStudentCode');
+            if (input) input.focus();
+        }
 
         function updateClock() {
             const now = new Date();
@@ -227,18 +284,18 @@
             const now = audioCtx.currentTime;
 
             if (type === 'success') {
-                const osc1 = audioCtx.createOscillator();
-                const gain1 = audioCtx.createGain();
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(880, now);
-                osc1.frequency.setValueAtTime(1200, now + 0.08);
-                gain1.gain.setValueAtTime(0.3, now);
-                gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                osc.frequency.setValueAtTime(1200, now + 0.08);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
 
-                osc1.connect(gain1);
-                gain1.connect(audioCtx.destination);
-                osc1.start(now);
-                osc1.stop(now + 0.25);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
 
             } else if (type === 'warning') {
                 const osc = audioCtx.createOscillator();
@@ -254,7 +311,7 @@
                 osc.start(now);
                 osc.stop(now + 0.4);
 
-            } else if (type === 'blocked') {
+            } else if (type === 'blocked' || type === 'error') {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
@@ -281,6 +338,7 @@
                 icon.className = 'fa-solid fa-volume-xmark text-slate-500';
                 label.textContent = 'الصوت مكتوم';
             }
+            focusInput();
         }
 
         async function fetchTodaysGroups() {
@@ -303,6 +361,7 @@
             } catch (err) {
                 selectEl.innerHTML = '<option value="">تعذر جلب مجموعات اليوم</option>';
             }
+            focusInput();
         }
 
         async function processAttendance(codeOrPayload) {
@@ -310,6 +369,7 @@
             
             if (!groupId) {
                 alert('يرجى اختيار المجموعة الدراسية أولاً من القائمة أعلاه!');
+                focusInput();
                 return;
             }
 
@@ -348,13 +408,15 @@
                     stats.blocked++;
                 } else {
                     renderScanResult('error', { name: 'غير مسجل بالسنتر', code: codeOrPayload }, resData.message || 'كود الطالب غير موجود بقاعدة البيانات');
-                    playSound('blocked');
+                    playSound('error');
                 }
             } catch (error) {
                 renderScanResult('error', { name: 'خطأ اتصال', code: codeOrPayload }, 'تعذر الاتصال بالسيرفر');
+                playSound('error');
             }
 
             updateStatsUI();
+            focusInput();
         }
 
         function handleManualSubmit(e) {
@@ -403,7 +465,7 @@
             const groupText = groupSelect.options[groupSelect.selectedIndex]?.text || 'المجموعة الحالية';
             document.getElementById('targetGroupName').innerHTML = `<i class="fa-solid fa-chalkboard-user ml-1 text-slate-500"></i> ${groupText}`;
 
-            card.className = 'bg-slate-900 border-2 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[340px] justify-between ';
+            card.className = 'bg-slate-900 border-2 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[320px] justify-between ';
 
             if (type === 'success') {
                 card.classList.add('border-emerald-500/80', 'pulse-success');
@@ -435,13 +497,13 @@
 
                 badge.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm bg-rose-500/20 text-rose-300 border border-rose-500/40';
                 icon.className = 'fa-solid fa-ban text-rose-400';
-                statusText.textContent = 'ممنوع من دخول الحصّة!';
+                statusText.textContent = type === 'blocked' ? 'ممنوع من دخول الحصّة!' : 'كود غير مسجل!';
 
                 alertBox.classList.remove('hidden');
                 alertBox.className = 'p-3.5 rounded-xl text-xs flex items-start gap-3 bg-rose-500/15 border border-rose-500/40 text-rose-200';
                 alertIcon.className = 'fa-solid fa-circle-xmark text-rose-400 text-base mt-0.5';
-                alertTitle.textContent = 'سبب المنع:';
-                alertBody.textContent = alertNote || 'الطالب محظور من دخول الحصص';
+                alertTitle.textContent = type === 'blocked' ? 'سبب المنع:' : 'تنبيـه:';
+                alertBody.textContent = alertNote || 'البيانات غير مطابقة بقاعدة البيانات';
             }
 
             addToHistoryFeed(type, student, timeStr);
@@ -452,7 +514,8 @@
             document.getElementById('resultActiveState').classList.add('hidden');
             document.getElementById('resultFooter').classList.add('hidden');
             const card = document.getElementById('resultCard');
-            card.className = 'bg-slate-900 border-2 border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[340px] justify-between';
+            card.className = 'bg-slate-900 border-2 border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[320px] justify-between';
+            focusInput();
         }
 
         function addToHistoryFeed(type, student, timeStr) {
@@ -494,6 +557,7 @@
                     لا توجد عمليات تحضير مسجلة في هذه الجلسة بعد.
                 </div>
             `;
+            focusInput();
         }
 
         function updateStatsUI() {
@@ -501,58 +565,6 @@
             document.getElementById('statWarningCount').textContent = stats.warning;
             document.getElementById('statBlockedCount').textContent = stats.blocked;
         }
-
-        function toggleCamera() {
-            if (isCameraScanning) stopCamera();
-            else startCamera();
-        }
-
-        function startCamera() {
-            if (!html5QrCode) html5QrCode = new Html5Qrcode("qr-reader");
-
-            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-
-            html5QrCode.start(
-                { facingMode: "environment" },
-                config,
-                onQrCodeSuccess,
-                onQrCodeError
-            ).then(() => {
-                isCameraScanning = true;
-                document.getElementById('cameraPlaceholder').classList.add('hidden');
-                document.getElementById('scannerLaser').classList.remove('hidden');
-                document.getElementById('cameraBtnText').textContent = 'إيقاف الكاميرا';
-                document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5';
-            }).catch(err => {
-                alert("لم نتمكن من الوصول لكاميرا الجهاز. يرجى التأكد من السماح لصلاحية الكاميرا بالمتصفح.");
-            });
-        }
-
-        function stopCamera() {
-            if (html5QrCode && isCameraScanning) {
-                html5QrCode.stop().then(() => {
-                    isCameraScanning = false;
-                    document.getElementById('cameraPlaceholder').classList.remove('hidden');
-                    document.getElementById('scannerLaser').classList.add('hidden');
-                    document.getElementById('cameraBtnText').textContent = 'تشغيل الكاميرا';
-                    document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5';
-                });
-            }
-        }
-
-        let lastScannedCode = null;
-        let lastScanTime = 0;
-
-        function onQrCodeSuccess(decodedText) {
-            const now = Date.now();
-            if (decodedText === lastScannedCode && (now - lastScanTime) < 3000) return;
-
-            lastScannedCode = decodedText;
-            lastScanTime = now;
-            processAttendance(decodedText);
-        }
-
-        function onQrCodeError(errorMessage) {}
     </script>
 </body>
 </html>
