@@ -35,6 +35,32 @@ app.use((req, res, next) => {
   next();
 });
 
+// HTML Routes Direct Mapping (توجيه الرابط الرئيسي والصفحات)
+app.get('/', (req, res) => res.redirect('/login.html'));
+app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
+app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
+
+app.get('/dashboard', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+
+app.get('/super-admin', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
+app.get('/super-admin.html', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
+
+app.get('/students.html', (req, res) => res.sendFile(path.join(publicDir, 'students.html')));
+app.get('/teachers.html', (req, res) => res.sendFile(path.join(publicDir, 'teachers.html')));
+app.get('/inventory.html', (req, res) => res.sendFile(path.join(publicDir, 'inventory.html')));
+app.get('/scanner.html', (req, res) => res.sendFile(path.join(publicDir, 'scanner.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.join(publicDir, 'settings.html')));
+
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: 'UP', database: 'CONNECTED', timestamp: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ status: 'DOWN', database: 'DISCONNECTED', error: e.message });
+  }
+});
+
 const apiRouter = express.Router();
 
 // Authentication Endpoint
@@ -359,32 +385,6 @@ apiRouter.post('/inventory/pos-sale', async (req, res) => {
 });
 
 app.use('/api', apiRouter);
-
-// HTML Routes Direct Mapping
-app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
-app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
-app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
-
-app.get('/dashboard', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
-app.get('/index.html', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
-
-app.get('/super-admin', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
-app.get('/super-admin.html', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
-
-app.get('/students.html', (req, res) => res.sendFile(path.join(publicDir, 'students.html')));
-app.get('/teachers.html', (req, res) => res.sendFile(path.join(publicDir, 'teachers.html')));
-app.get('/inventory.html', (req, res) => res.sendFile(path.join(publicDir, 'inventory.html')));
-app.get('/scanner.html', (req, res) => res.sendFile(path.join(publicDir, 'scanner.html')));
-app.get('/settings.html', (req, res) => res.sendFile(path.join(publicDir, 'settings.html')));
-
-app.get('/health', async (req, res) => {
-  try {
-    await prisma.$queryRaw`SELECT 1`;
-    res.status(200).json({ status: 'UP', database: 'CONNECTED', timestamp: new Date().toISOString() });
-  } catch (e) {
-    res.status(500).json({ status: 'DOWN', database: 'DISCONNECTED', error: e.message });
-  }
-});
 
 // Catch-All Handler
 app.use((req, res) => {
