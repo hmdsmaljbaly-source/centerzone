@@ -1,15 +1,10 @@
-/**
- * ============================================================================
- * Center System SaaS - Core Node.js & Express Application Entry Point
- * ============================================================================
- */
-
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const morgan = require('morgan');
 const path = require('path');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const bcrypt = require('bcryptjs');
+const prisma = require('./config/prisma');
 
 let QRCode;
 try {
@@ -22,41 +17,38 @@ try {
 
 const app = express();
 
-// ============================================================================
-// 1. MIDDLEWARES & STATIC FILES CONFIGURATION
-// ============================================================================
+app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors());
+app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const publicDir = path.resolve('public');
+// Serve static dashboard files
+const publicDir = path.resolve(__dirname, '../public');
 app.use(express.static(publicDir));
+app.use(express.static(path.resolve('public')));
 
+// Multi-tenant context middleware
 app.use((req, res, next) => {
   req.centerId = req.headers['x-center-id'] || 'center-101';
   next();
 });
 
-// ============================================================================
-// 2. API ENDPOINTS
-// ============================================================================
 const apiRouter = express.Router();
 
-// ----------------------------------------------------------------------------
-// AUTH & SUPER ADMIN
-// ----------------------------------------------------------------------------
+// Authentication Endpoint
 apiRouter.post('/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await prisma.user.findUnique({
-      where: { username }
-    });
+    const user = await prisma.user.findUnique({ where: { username } });
 
-    if (!user || user.password !== password) {
-      return res.status(401).json({
-        success: false,
-        message: 'اسم المستخدم أو كلمة السر غير صحيحة'
-      });
+    if (!user) {
+      return res.status(401).json({ success: false, message: 'اسم المستخدم أو كلمة السر غير صحيحة' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password).catch(() => user.password === password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: 'اسم المستخدم أو كلمة السر غير صحيحة' });
     }
 
     return res.status(200).json({
@@ -66,82 +58,87 @@ apiRouter.post('/auth/login', async (req, res) => {
         id: user.id,
         username: user.username,
         role: user.role,
-        centerId: user.centerId
+        centerId: user.centerId || 'center-101'
       }
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
+// Super Admin Management
 apiRouter.get('/super-admin/centers', async (req, res) => {
   try {
     const centers = await prisma.center.findMany({
-      include: {
-        users: true
-      }
+      include: { users: { select: { username: true } } }
     });
-
-    return res.status(200).json({
-      success: true,
-      count: centers.length,
-      data: centers
-    });
+    res.status(200).json({ success: true, count: centers.length, data: centers });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 apiRouter.post('/super-admin/centers', async (req, res) => {
   try {
-    const { name, email, phone, username, password, subscription_status } = req.body;
+    const { name, phone, username, password, plan, expiry } = req.body;
+    const plainPassword = password || '123456';
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    const newCenter = await prisma.center.create({
+    const center = await prisma.center.create({
       data: {
         name,
-        email: email || `${username}@center.com`,
-        phone: phone || '',
-        password_hash: password || '123456',
-        subscription_status: subscription_status || 'ACTIVE',
-        users: {
-          create: {
-            username,
-            password: password || '123456',
-            role: 'CENTER_ADMIN'
-          }
-        }
-      },
-      include: {
-        users: true
+        phone,
+        email: `${username}@saas-center.com`,
+        password_hash: hashedPassword,
+        subscription_status: plan || 'ACTIVE',
+        expires_at: expiry ? new Date(expiry) : new Date('2026-12-31')
       }
     });
 
-    return res.status(201).json({
-      success: true,
-      message: 'تم إضافة السنتر وتكاويد المدير بنجاح',
-      data: newCenter
+    await prisma.user.create({
+      data: {
+        username,
+        password: hashedPassword,
+        role: 'CENTER_ADMIN',
+        centerId: center.id
+      }
     });
+
+    res.status(201).json({ success: true, message: 'تم إنشاء السنتر وتكاويد حساب المدير', data: center });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ----------------------------------------------------------------------------
-// STUDENTS
-// ----------------------------------------------------------------------------
+// Students API Endpoints
 apiRouter.get('/students', async (req, res) => {
   try {
+    const { alert_status } = req.query;
+    const where = { center_id: req.centerId };
+
+    if (alert_status && alert_status !== 'ALL') {
+      if (alert_status === 'NORMAL') where.alert_status = false;
+      else if (alert_status === 'WARNING' || alert_status === 'BLOCKED') where.alert_status = true;
+    }
+
     const students = await prisma.student.findMany({
-      where: { center_id: req.centerId }
+      where,
+      orderBy: { createdAt: 'desc' }
     });
 
-    return res.status(200).json({
-      success: true,
-      count: students.length,
-      data: students
-    });
+    const formatted = students.map(s => ({
+      id: s.id,
+      code: s.student_code,
+      name: s.name,
+      student_phone: s.student_phone || '',
+      parent_phone: s.parent_phone,
+      alert_status: s.alert_status ? (s.alert_note && s.alert_note.includes('محظور') ? 'BLOCKED' : 'WARNING') : 'NORMAL',
+      alert_note: s.alert_note || ''
+    }));
+
+    res.status(200).json({ success: true, count: formatted.length, data: formatted });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -150,114 +147,57 @@ apiRouter.post('/students', async (req, res) => {
     const { name, student_phone, parent_phone, alert_note, alert_status } = req.body;
 
     if (!name || !parent_phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'اسم الطالب ورقم ولي الأمر مطلوبان'
-      });
+      return res.status(400).json({ success: false, message: 'اسم الطالب ورقم ولي الأمر مطلوبان' });
     }
 
     const newCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-    let qrDataUrl = '';
-    try {
-      qrDataUrl = await QRCode.toDataURL(JSON.stringify({ code: newCode, centerId: req.centerId }));
-    } catch (e) {
-      qrDataUrl = '';
-    }
-
-    const newStudent = await prisma.student.create({
+    const student = await prisma.student.create({
       data: {
         center_id: req.centerId,
         student_code: newCode,
         name: name.trim(),
-        student_phone: student_phone || '',
+        student_phone: student_phone || null,
         parent_phone: parent_phone.trim(),
-        alert_status: Boolean(alert_status),
-        alert_note: alert_note || ''
+        alert_status: alert_status === 'WARNING' || alert_status === 'BLOCKED',
+        alert_note: alert_note || null
       }
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       success: true,
-      message: 'تم إضافة الطالب بنجاح وتوليد رمز الـ QR',
+      message: 'تم إضافة الطالب بنجاح وتوليد الكود والباركوود',
       data: {
-        ...newStudent,
-        qr_code: qrDataUrl
+        id: student.id,
+        code: student.student_code,
+        name: student.name,
+        parent_phone: student.parent_phone,
+        student_phone: student.student_phone,
+        alert_status: student.alert_status ? 'WARNING' : 'NORMAL',
+        alert_note: student.alert_note
       }
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-});
-
-apiRouter.get('/students/:id/profile', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const student = await prisma.student.findFirst({
-      where: {
-        OR: [
-          { id: id },
-          { student_code: id }
-        ]
-      },
-      include: {
-        attendances: true,
-        grades: true
-      }
-    });
-
-    if (!student) {
-      return res.status(404).json({ success: false, message: 'الطالب غير موجود' });
-    }
-
-    return res.status(200).json({ success: true, data: student });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 apiRouter.patch('/students/:id/alert', async (req, res) => {
   try {
-    const { id } = req.params;
     const { alert_status, alert_note } = req.body;
+    const isAlert = alert_status === 'WARNING' || alert_status === 'BLOCKED';
 
-    const updatedStudent = await prisma.student.update({
-      where: { id },
-      data: {
-        alert_status: alert_status !== undefined ? Boolean(alert_status) : undefined,
-        alert_note: alert_note !== undefined ? alert_note : undefined
-      }
+    const updated = await prisma.student.update({
+      where: { id: req.params.id },
+      data: { alert_status: isAlert, alert_note: alert_note }
     });
 
-    return res.status(200).json({ success: true, message: 'تم تحديث التنبيه بنجاح', data: updatedStudent });
+    res.status(200).json({ success: true, message: 'تم تحديث تنبيه الطالب', data: updated });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ----------------------------------------------------------------------------
-// GROUPS & ATTENDANCE
-// ----------------------------------------------------------------------------
-apiRouter.get('/groups/today', async (req, res) => {
-  try {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayName = days[new Date().getDay()];
-
-    const groups = await prisma.group.findMany({
-      where: { center_id: req.centerId },
-      include: { teacher: true }
-    });
-
-    return res.status(200).json({
-      success: true,
-      today: todayName,
-      count: groups.length,
-      data: groups
-    });
-  } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
-  }
-});
-
+// Attendance Scanning Endpoint
 apiRouter.post('/attendance/scan-qr', async (req, res) => {
   try {
     const { qr_payload, student_code, group_id } = req.body;
@@ -273,136 +213,180 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
     }
 
     const student = await prisma.student.findFirst({
-      where: { student_code: code, center_id: req.centerId }
+      where: { center_id: req.centerId, OR: [{ student_code: code }, { id: code }] }
     });
 
     if (!student) {
-      return res.status(404).json({
-        success: false,
-        is_allowed: false,
-        message: 'كود الطالب غير مسجل بالسنتر'
-      });
+      return res.status(404).json({ success: false, is_allowed: false, message: 'كود الطالب غير مسجل بالسنتر' });
     }
 
-    if (student.alert_status) {
+    if (student.alert_status && student.alert_note && student.alert_note.includes('محظور')) {
       return res.status(403).json({
         success: false,
         is_allowed: false,
-        message: 'يوجد تنبيه/حظر على الطالب!',
-        student: student
+        message: 'طالب محظور من دخول القاعة!',
+        student: { id: student.id, name: student.name, code: student.student_code }
       });
     }
 
     if (group_id) {
-      const attendance = await prisma.attendance.create({
-        data: {
+      await prisma.attendance.upsert({
+        where: {
+          student_id_group_id_date: {
+            student_id: student.id,
+            group_id: group_id,
+            date: new Date()
+          }
+        },
+        update: { status: 'PRESENT' },
+        create: {
           student_id: student.id,
           group_id: group_id,
           date: new Date(),
           status: 'PRESENT'
         }
-      });
-
-      return res.status(200).json({
-        success: true,
-        is_allowed: true,
-        message: `تم تسجيل حضور الطالب/ة ${student.name}`,
-        data: {
-          attendance_id: attendance.id,
-          student: student
-        }
-      });
+      }).catch(() => {});
     }
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       is_allowed: true,
-      message: `تم التحقق من الطالب/ة ${student.name}`,
-      data: { student }
+      message: `تم تسجيل حضور الطالب/ة ${student.name}`,
+      data: {
+        student: {
+          id: student.id,
+          code: student.student_code,
+          name: student.name,
+          parent_phone: student.parent_phone,
+          student_phone: student.student_phone
+        },
+        alert_notice: student.alert_status ? {
+          has_warning: true,
+          note: student.alert_note || 'يوجد تنبيه مالي على الطالب'
+        } : null
+      }
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// ----------------------------------------------------------------------------
-// TEACHERS & INVENTORY
-// ----------------------------------------------------------------------------
+// Groups & Teachers Endpoints
+apiRouter.get('/groups/today', async (req, res) => {
+  try {
+    const groups = await prisma.group.findMany({
+      where: { center_id: req.centerId },
+      include: { teacher: true }
+    });
+    res.status(200).json({ success: true, count: groups.length, data: groups });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 apiRouter.get('/teachers', async (req, res) => {
   try {
     const teachers = await prisma.teacher.findMany({
       where: { center_id: req.centerId },
-      include: { groups: true, services: true }
+      include: { groups: true }
     });
-
-    return res.status(200).json({
-      success: true,
-      count: teachers.length,
-      data: teachers
-    });
+    res.status(200).json({ success: true, count: teachers.length, data: teachers });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
+apiRouter.post('/teachers', async (req, res) => {
+  try {
+    const { name, subject, phone, commission_type, commission_value } = req.body;
+    const teacher = await prisma.teacher.create({
+      data: {
+        center_id: req.centerId,
+        name,
+        subject,
+        phone,
+        commission_type: commission_type || 'PERCENTAGE',
+        commission_value: commission_value || 20
+      }
+    });
+    res.status(201).json({ success: true, message: 'تم حفظ بيانات المدرس بنجاح', data: teacher });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Inventory POS Endpoints
 apiRouter.get('/inventory', async (req, res) => {
   try {
     const services = await prisma.teacherService.findMany({
-      where: {
-        teacher: { center_id: req.centerId }
-      },
       include: { teacher: true }
     });
-
-    return res.status(200).json({
-      success: true,
-      count: services.length,
-      data: services
-    });
+    res.status(200).json({ success: true, count: services.length, data: services });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-// Mount API Router
+apiRouter.post('/inventory/pos-sale', async (req, res) => {
+  try {
+    const { student_id, service_id, quantity } = req.body;
+    const qty = quantity || 1;
+
+    const service = await prisma.teacherService.findUnique({ where: { id: service_id } });
+    if (!service || service.stock_quantity < qty) {
+      return res.status(400).json({ success: false, message: 'الكمية غير متاحة بالمخزن' });
+    }
+
+    await prisma.teacherService.update({
+      where: { id: service_id },
+      data: { stock_quantity: { decrement: qty } }
+    });
+
+    const sale = await prisma.serviceSale.create({
+      data: {
+        center_id: req.centerId,
+        student_id,
+        service_id,
+        amount_paid: Number(service.price) * qty
+      }
+    });
+
+    res.status(200).json({ success: true, message: 'تم تسليم المطبوعة بنجاح وتحديث المخزن', data: sale });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 app.use('/api', apiRouter);
 
-// ============================================================================
-// 3. PAGE ROUTES & SERVING
-// ============================================================================
-app.get('/', (req, res) => {
-  res.sendFile(path.join(publicDir, 'login.html'));
-});
+app.get('/', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
+app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
+app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
 
-app.get('/login', (req, res) => {
-  res.sendFile(path.join(publicDir, 'login.html'));
-});
+app.get('/dashboard', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
 
-app.get('/super-admin', (req, res) => {
-  res.sendFile(path.join(publicDir, 'super-admin.html'));
-});
+app.get('/super-admin', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
+app.get('/super-admin.html', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
 
-app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'UP',
-    service: 'Center SaaS Web Engine',
-    timestamp: new Date().toISOString()
-  });
+app.get('/students.html', (req, res) => res.sendFile(path.join(publicDir, 'students.html')));
+app.get('/teachers.html', (req, res) => res.sendFile(path.join(publicDir, 'teachers.html')));
+app.get('/inventory.html', (req, res) => res.sendFile(path.join(publicDir, 'inventory.html')));
+app.get('/scanner.html', (req, res) => res.sendFile(path.join(publicDir, 'scanner.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.join(publicDir, 'settings.html')));
+
+app.get('/health', async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({ status: 'UP', database: 'CONNECTED', timestamp: new Date().toISOString() });
+  } catch (e) {
+    res.status(500).json({ status: 'DOWN', database: 'DISCONNECTED', error: e.message });
+  }
 });
 
 app.use((req, res) => {
-  if (req.accepts('html')) {
-    return res.status(404).sendFile(path.join(publicDir, 'index.html'));
-  }
-  res.status(404).json({ success: false, message: 'المسار المطلوب غير موجود' });
-});
-
-// ============================================================================
-// 4. SERVER LAUNCH
-// ============================================================================
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  if (req.accepts('html')) return res.status(404).sendFile(path.join(publicDir, 'index.html'));
+  res.status(404).json({ success: false, message: 'المسار غير موجود' });
 });
 
 module.exports = app;

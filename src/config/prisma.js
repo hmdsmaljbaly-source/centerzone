@@ -1,6 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 
-// تطبيق نمط Singleton للحد من كثرة الاتصالات بقاعدة البيانات أثناء التطوير
+// Singleton pattern to prevent database connection exhaustion in development
 const prisma = global.prisma || new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
 });

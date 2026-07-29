@@ -1,306 +1,77 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-amber-500 selection:text-white">
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المطبوعات ومخزن الملازم (POS) - نظام إدارة السناتر التعليمية</title>
-    <!-- Tailwind CSS CDN -->
+    <title>إدارة المطبوعات ومخزن الملازم POS - نظام السناتر</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        center: {
-                            50: '#fffbe3',
-                            100: '#fff3b8',
-                            500: '#f59e0b',
-                            600: '#d97706',
-                            700: '#b45309',
-                            900: '#0f172a',
-                        }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 'sans-serif'] } } } }
     </script>
-
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Background Grid Pattern */
+        body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
             background-size: 30px 30px;
             background-image: 
                 linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         }
-
-        /* Card Hover Effects */
-        .inventory-card {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .inventory-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(245, 158, 11, 0.2);
-        }
     </style>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 
-    <!-- Top Navigation Header -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Brand & Page Title -->
             <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 via-orange-600 to-amber-700 p-0.5 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform flex items-center justify-center">
+                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform flex items-center justify-center">
                     <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400 font-black text-lg">
                         <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </a>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg text-white leading-tight">إدارة المطبوعات ومخزن الملازم (POS)</h1>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                            <i class="fa-solid fa-boxes-stacked text-xs"></i>
-                            نظام تتبع المخزون اللحظي
-                        </span>
-                    </div>
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المطبوعات ومخزن الملازم (POS)</h1>
                     <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
                 </div>
             </div>
 
-            <!-- Quick Navigation Actions -->
             <div class="flex items-center gap-2.5">
-                <a href="students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-users"></i>
-                    <span>إدارة الطلاب</span>
+                <a href="/students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-users ml-1"></i> إدارة الطلاب
                 </a>
-                <a href="teachers.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-purple-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>المدرسون والتسويات</span>
-                </a>
-                <a href="scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span>ماسح الحضور</span>
-                </a>
-                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    <span>لوحة التحكم</span>
+                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-gauge-high ml-1"></i> العودة للرئيسية
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Top Inventory Metrics Overview -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            
-            <!-- Metric 1: Total Kits/Books Stock -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إجمالي النسخ بالمخزون</span>
-                    <span id="metricTotalStock" class="text-2xl font-black text-white font-mono transition-all">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-book"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Metric 2: Low Stock Alerts -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">قريبة من النفاد (أقل من 10)</span>
-                    <span id="metricLowStock" class="text-2xl font-black text-amber-400 font-mono transition-all">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Metric 3: Out of Stock -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">ملازم نافذة من المخزن</span>
-                    <span id="metricOutOfStock" class="text-2xl font-black text-rose-400 font-mono transition-all">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-box-open"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-rose-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Metric 4: Today Book Sales Revenue -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إجمالي مبيعات اليوم</span>
-                    <span id="metricTodaySales" class="text-2xl font-black text-emerald-400 font-mono transition-all">0 ج.م</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-cash-register"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between flex-wrap gap-2">
+            <h3 class="text-sm font-bold text-white">قائمة الملازم والمطبوعات المتاحة بالمخزن</h3>
+            <button onclick="openPosModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
+                <i class="fa-solid fa-cart-shopping"></i>
+                <span>🛒 منفذ بيع سريع (POS)</span>
+            </button>
         </section>
 
-        <!-- Toolbar & Filter Controls Panel -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
-            
-            <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-2">
-                <span class="text-xs font-bold text-slate-300 flex items-center gap-2">
-                    <i class="fa-solid fa-filter text-amber-400"></i>
-                    تصفية وبحث الملازم المتاحة بجميع المراحل الدراسية:
-                </span>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="openPosModal()" class="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                        <span>🛒 منفذ بيع سريع (POS)</span>
-                    </button>
-                    <button onclick="openAddBookModal()" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-amber-500/20 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>إضافة ملزمة جديدة</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Multi-Filter Inputs Grid -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                
-                <!-- Search Text Input -->
-                <div class="relative">
-                    <input type="text" id="inventorySearchInput" onkeyup="filterBooksInventory()" placeholder="اسم الملزمة، المادة، أو المدرس..." 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs placeholder-slate-500 focus:ring-2 focus:ring-amber-500 outline-none transition-all">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                </div>
-
-                <!-- Teacher Filter -->
-                <div>
-                    <select id="teacherFilter" onchange="filterBooksInventory()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
-                        <option value="ALL">الكل (جميع المدرسين)</option>
-                        <option value="tch-physics">أ. محمد عبد المعبود (فيزياء)</option>
-                        <option value="tch-chem">أ. سامح أحمد (كيمياء)</option>
-                        <option value="tch-math">د. خالد عبد الفتاح (رياضيات)</option>
-                    </select>
-                </div>
-
-                <!-- Academic Grade Filter -->
-                <div>
-                    <select id="gradeFilter" onchange="filterBooksInventory()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
-                        <option value="ALL">الكل (جميع المراحل)</option>
-                        <option value="sec-1">الصف الأول الثانوي (1 ثانوي)</option>
-                        <option value="sec-2">الصف الثاني الثانوي (2 ثانوي)</option>
-                        <option value="sec-3">الصف الثالث الثانوي (3 ثانوي)</option>
-                    </select>
-                </div>
-
-                <!-- Stock Status Filter -->
-                <div>
-                    <select id="stockStatusFilter" onchange="filterBooksInventory()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none cursor-pointer">
-                        <option value="ALL">الكل (جميع حالات المخزون)</option>
-                        <option value="AVAILABLE">🟢 متوفر (أكثر من 10)</option>
-                        <option value="LOW">🟡 منخفض (من 1 إلى 10)</option>
-                        <option value="OUT_OF_STOCK">🔴 نفذت الكمية (0)</option>
-                    </select>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Main Inventory Data Table -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-right text-slate-300">
-                    <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800 select-none">
-                        <tr>
-                            <th class="p-3.5">اسم الملزمة / المطبوعة</th>
-                            <th class="p-3.5">المدرس المسؤول</th>
-                            <th class="p-3.5">السنة الدراسية</th>
-                            <th class="p-3.5">السعر (ج.م)</th>
-                            <th class="p-3.5">الكمية بالمخزن</th>
-                            <th class="p-3.5">حالة المخزون</th>
-                            <th class="p-3.5 text-center">الإجراءات والبيع السريع</th>
-                        </tr>
-                    </thead>
-                    <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60">
-                        <!-- Populated dynamically via JS -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Empty Search State -->
-            <div id="inventoryEmptyState" class="hidden text-center py-12 space-y-3">
-                <div class="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-500 text-2xl mx-auto">
-                    <i class="fa-solid fa-boxes-packing"></i>
-                </div>
-                <p class="text-sm font-bold text-slate-300">لا توجد ملازم مطابقة لفلاتر البحث المحددة!</p>
-                <p class="text-xs text-slate-500">جرب تغيير المدرس أو السنة الدراسية أو ضبط حالة المخزون.</p>
-            </div>
-        </section>
-
-        <!-- Recent POS Sales Log Section -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-receipt text-emerald-400"></i>
-                        سجل عمليات البيع المباشر لليوم (POS Sales History)
-                    </h3>
-                    <p class="text-xs text-slate-400">جميع عمليات صرف الملازم المسجلة بالسنتر للطلاب</p>
-                </div>
-                <span id="salesLogCountBadge" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    0 عملية بيع
-                </span>
-            </div>
-
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-right text-slate-300">
                     <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
                         <tr>
-                            <th class="p-3">رقم العملية</th>
-                            <th class="p-3">الطالب</th>
-                            <th class="p-3">الملزمة المباعة</th>
-                            <th class="p-3">الكمية</th>
-                            <th class="p-3">المبلغ الإجمالي</th>
-                            <th class="p-3">التاريخ والوقت</th>
+                            <th class="p-3.5">اسم الملزمة / المطبوعة</th>
+                            <th class="p-3.5">السعر (ج.م)</th>
+                            <th class="p-3.5">الكمية بالمخزن</th>
+                            <th class="p-3.5 text-center">البيع السريع</th>
                         </tr>
                     </thead>
-                    <tbody id="salesLogTableBody" class="divide-y divide-slate-800/60">
-                        <!-- Populated dynamically via JS -->
+                    <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated via API -->
                     </tbody>
                 </table>
             </div>
@@ -308,204 +79,82 @@
 
     </main>
 
-    <!-- MODAL 1: Add New Book/Kit Modal -->
-    <div id="addBookModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-amber-600/20 text-amber-400 flex items-center justify-center text-base">
-                        <i class="fa-solid fa-book-medical"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">إضافة ملزمة / مطبوعة جديدة</h3>
-                </div>
-                <button onclick="closeAddBookModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form id="addBookForm" onsubmit="handleCreateBook(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم الملزمة / الكتاب *</label>
-                    <input type="text" id="inputBookTitle" required placeholder="مثال: ملزمة الفيزياء - الباب الأول" 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">المدرس المسؤول *</label>
-                        <select id="inputBookTeacher" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                            <option value="tch-physics">أ. محمد عبد المعبود (فيزياء)</option>
-                            <option value="tch-chem">أ. سامح أحمد (كيمياء)</option>
-                            <option value="tch-math">د. خالد عبد الفتاح (رياضيات)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية *</label>
-                        <select id="inputBookGrade" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                            <option value="sec-1">1 ثانوي</option>
-                            <option value="sec-2">2 ثانوي</option>
-                            <option value="sec-3" selected>3 ثانوي</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">السعر للطالب (ج.م) *</label>
-                        <input type="number" id="inputBookPrice" required min="1" step="5" placeholder="مثال: 65" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">الكمية المبدئية بالمخزن *</label>
-                        <input type="number" id="inputBookStock" required min="1" placeholder="مثال: 100" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closeAddBookModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded-xl font-bold shadow-md">حفظ الملزمة</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: Point of Sale (POS) Quick Book Sale Modal -->
     <div id="posModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-5">
-            
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-emerald-600/20 text-emerald-400 flex items-center justify-center text-base">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">منفذ بيع الملازم المباشر (POS Sale)</h3>
-                        <p class="text-[11px] text-slate-400">خصم المخزون فورياً وتسجيل التحصيل المالي</p>
-                    </div>
-                </div>
-                <button onclick="closePosModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="text-sm font-bold text-white">منفذ بيع الملازم المباشر (POS Sale)</h3>
+                <button onclick="closePosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
             <form id="posForm" onsubmit="handleExecutePosSale(event)" class="space-y-4">
-                
-                <!-- Student Selection -->
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">اختر الطالب / مسح كود الباركوود *</label>
-                    <select id="posStudentSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <!-- Populated dynamically via JS -->
-                    </select>
-                </div>
-
-                <!-- Book Selection -->
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">اختر الملزمة المراد بيعها *</label>
-                    <select id="posBookSelect" required onchange="handlePosBookChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        <!-- Populated dynamically via JS -->
+                    <select id="posBookSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
+                        <!-- Populated via API -->
                     </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">الكمية المباعة *</label>
-                        <input type="number" id="posQuantityInput" value="1" min="1" required onchange="updatePosTotalPrice()" onkeyup="updatePosTotalPrice()" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">السعر الإجمالي (ج.م)</label>
-                        <input type="text" id="posTotalPriceDisplay" readonly value="0 ج.م" 
-                            class="w-full bg-slate-950 border border-slate-800 text-emerald-400 font-bold rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none">
-                    </div>
-                </div>
-
-                <!-- Stock Check Summary Box -->
-                <div id="posStockSummaryBox" class="p-3 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
-                    <span class="text-slate-400">الكمية المتاحة حالياً بالمخزن:</span>
-                    <span id="posCurrentStockTag" class="font-bold font-mono text-amber-400">0 نسخة</span>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                     <button type="button" onclick="closePosModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" id="posSubmitBtn" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-md">تأكيد البيع وخصم المخزون</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-md">تأكيد البيع وخصم المخزون</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Notification Popup Floating Box -->
-    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2.5">
-        <i class="fa-solid fa-circle-info text-amber-400 text-sm"></i>
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
 
-    <!-- ============================================================================ -->
-    <!-- JAVASCRIPT STATE ENGINE & INVENTORY LOGIC                                    -->
-    <!-- ============================================================================ -->
     <script>
-        // Master Books/Kits Inventory Repository
-        let masterBooks = [
-            { id: 'bk-1', title: 'ملزمة الفيزياء - الباب الأول (التيار الكهربي)', teacher_id: 'tch-physics', teacher_name: 'أ. محمد عبد المعبود', grade_id: 'sec-3', grade_name: '3 ثانوي', price: 65, stock: 85 },
-            { id: 'bk-2', title: 'مذكرة المراجعة النهائية في الفيزياء', teacher_id: 'tch-physics', teacher_name: 'أ. محمد عبد المعبود', grade_id: 'sec-3', grade_name: '3 ثانوي', price: 80, stock: 8 },
-            { id: 'bk-3', title: 'ملزمة الكيمياء العضوية الشاملة', teacher_id: 'tch-chem', teacher_name: 'أ. سامح أحمد', grade_id: 'sec-3', grade_name: '3 ثانوي', price: 70, stock: 0 },
-            { id: 'bk-4', title: 'مذكرة الرياضيات - التفاضل والتكامل', teacher_id: 'tch-math', teacher_name: 'د. خالد عبد الفتاح', grade_id: 'sec-3', grade_name: '3 ثانوي', price: 75, stock: 42 },
-            { id: 'bk-5', title: 'ملزمة الكيمياء - الصف الثاني الثانوي', teacher_id: 'tch-chem', teacher_name: 'أ. سامح أحمد', grade_id: 'sec-2', grade_name: '2 ثانوي', price: 50, stock: 30 },
-            { id: 'bk-6', title: 'كتاب الفيزياء الأساسي - الصف الأول الثانوي', teacher_id: 'tch-physics', teacher_name: 'أ. محمد عبد المعبود', grade_id: 'sec-1', grade_name: '1 ثانوي', price: 45, stock: 5 }
-        ];
+        const centerId = localStorage.getItem('centerId') || 'center-101';
+        let inventoryBooks = [];
+        let studentsList = [];
 
-        // Master Students List for POS Selection
-        const masterStudents = [
-            { id: 'stu-1', code: 'STU-1001', name: 'أحمد محمد علي القرشي' },
-            { id: 'stu-2', code: 'STU-1002', name: 'سارة محمود عبد الرحمن' },
-            { id: 'stu-3', code: 'STU-1003', name: 'عمر خالد يوسف العتيبي' },
-            { id: 'stu-4', code: 'STU-1004', name: 'مريم حسن إبراهيم' },
-            { id: 'stu-5', code: 'STU-1005', name: 'زياد طارق فاروق' }
-        ];
-
-        // POS Sales History Log
-        let salesHistory = [
-            { id: 'POS-2026-10', student_name: 'أحمد محمد علي', book_title: 'ملزمة الفيزياء - الباب الأول', qty: 1, total_amount: 65, timestamp: '15:20:10' },
-            { id: 'POS-2026-09', student_name: 'سارة محمود عبد الرحمن', book_title: 'ملزمة الكيمياء - الصف الثاني', qty: 1, total_amount: 50, timestamp: '14:45:22' }
-        ];
-
-        /* ============================================================================
-         * 1. PAGE INITIALIZATION
-         * ============================================================================ */
         window.onload = function() {
-            filterBooksInventory();
-            renderSalesHistoryLog();
+            fetchInventoryFromApi();
+            fetchStudentsFromApi();
         };
 
-        /* ============================================================================
-         * 2. INVENTORY FILTERING & RENDERING
-         * ============================================================================ */
+        async function fetchInventoryFromApi() {
+            try {
+                const response = await fetch('/api/inventory', {
+                    headers: { 'x-center-id': centerId }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    inventoryBooks = resData.data;
+                    renderInventoryTable(inventoryBooks);
+                    updateInventoryMetrics();
+                }
+            } catch (e) {
+                console.error("Error fetching inventory:", e);
+            }
+        }
+
+        async function fetchStudentsFromApi() {
+            try {
+                const response = await fetch('/api/students', {
+                    headers: { 'x-center-id': centerId }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    studentsList = resData.data;
+                }
+            } catch (e) {
+                console.error("Error fetching students:", e);
+            }
+        }
+
         function filterBooksInventory() {
             const query = document.getElementById('inventorySearchInput').value.trim().toLowerCase();
-            const teacherFilter = document.getElementById('teacherFilter').value;
-            const gradeFilter = document.getElementById('gradeFilter').value;
-            const statusFilter = document.getElementById('stockStatusFilter').value;
 
-            const filtered = masterBooks.filter(bk => {
-                const matchQuery = !query || 
-                    bk.title.toLowerCase().includes(query) || 
-                    bk.teacher_name.toLowerCase().includes(query);
-
-                const matchTeacher = (teacherFilter === 'ALL' || bk.teacher_id === teacherFilter);
-                const matchGrade = (gradeFilter === 'ALL' || bk.grade_id === gradeFilter);
-
-                let statusCategory = 'AVAILABLE';
-                if (bk.stock === 0) statusCategory = 'OUT_OF_STOCK';
-                else if (bk.stock <= 10) statusCategory = 'LOW';
-
-                const matchStatus = (statusFilter === 'ALL' || statusCategory === statusFilter);
-
-                return matchQuery && matchTeacher && matchGrade && matchStatus;
+            const filtered = inventoryBooks.filter(bk => {
+                const name = bk.service_name || bk.title || '';
+                return !query || name.toLowerCase().includes(query);
             });
 
             renderInventoryTable(filtered);
-            updateInventoryMetrics();
         }
 
         function renderInventoryTable(booksList) {
@@ -521,45 +170,38 @@
             }
 
             booksList.forEach(bk => {
+                const stock = bk.stock_quantity || bk.stock || 0;
                 let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
                 let statusLabel = '🟢 متوفر بالمخزن';
-                let rowBg = 'hover:bg-slate-800/40';
 
-                if (bk.stock === 0) {
+                if (stock === 0) {
                     badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
                     statusLabel = '🔴 نفذت الكمية';
-                    rowBg = 'bg-rose-950/10 hover:bg-rose-950/20';
-                } else if (bk.stock <= 10) {
+                } else if (stock <= 10) {
                     badgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
                     statusLabel = '🟡 مخزون منخفض';
                 }
 
                 const rowHtml = `
-                    <tr class="${rowBg} transition-colors">
+                    <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="p-3.5 font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-book-open text-amber-400/80"></i>
-                            ${bk.title}
+                            <i class="fa-solid fa-book-open text-amber-400"></i>
+                            ${bk.service_name || bk.title}
                         </td>
-                        <td class="p-3.5 text-purple-300 font-semibold">${bk.teacher_name}</td>
-                        <td class="p-3.5 text-slate-400">${bk.grade_name}</td>
+                        <td class="p-3.5 text-purple-300 font-semibold">${bk.teacher ? bk.teacher.name : '--'}</td>
+                        <td class="p-3.5 text-slate-400">--</td>
                         <td class="p-3.5 font-mono font-bold text-emerald-400">${bk.price} ج.م</td>
-                        <td class="p-3.5 font-mono font-bold text-slate-200">${bk.stock} نسخة</td>
+                        <td class="p-3.5 font-mono font-bold text-slate-200">${stock} نسخة</td>
                         <td class="p-3.5">
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${badgeClass}">
                                 ${statusLabel}
                             </span>
                         </td>
                         <td class="p-3.5 text-center">
-                            <div class="flex items-center justify-center gap-2">
-                                <button onclick="quickSellSingleBook('${bk.id}')" ${bk.stock === 0 ? 'disabled' : ''} 
-                                    class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all flex items-center gap-1">
-                                    <i class="fa-solid fa-cart-plus"></i>
-                                    <span>بيع سريع</span>
-                                </button>
-                                <button onclick="openEditStockPrompt('${bk.id}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs" title="تحديث الكمية">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                </button>
-                            </div>
+                            <button onclick="openPosModal('${bk.id}')" ${stock === 0 ? 'disabled' : ''} 
+                                class="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 rounded-xl text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                                🛒 بيع سريع
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -567,142 +209,60 @@
             });
         }
 
-        /* ============================================================================
-         * 3. METRICS CALCULATOR
-         * ============================================================================ */
         function updateInventoryMetrics() {
-            const totalStock = masterBooks.reduce((acc, curr) => acc + curr.stock, 0);
-            const lowStockCount = masterBooks.filter(bk => bk.stock > 0 && bk.stock <= 10).length;
-            const outOfStockCount = masterBooks.filter(bk => bk.stock === 0).length;
-            const todaySalesRevenue = salesHistory.reduce((acc, curr) => acc + curr.total_amount, 0);
+            const totalStock = inventoryBooks.reduce((acc, curr) => acc + (curr.stock_quantity || 0), 0);
+            const lowStockCount = inventoryBooks.filter(bk => (bk.stock_quantity || 0) > 0 && (bk.stock_quantity || 0) <= 10).length;
+            const outOfStockCount = inventoryBooks.filter(bk => (bk.stock_quantity || 0) === 0).length;
 
             document.getElementById('metricTotalStock').textContent = totalStock.toLocaleString();
             document.getElementById('metricLowStock').textContent = lowStockCount;
             document.getElementById('metricOutOfStock').textContent = outOfStockCount;
-            document.getElementById('metricTodaySales').textContent = todaySalesRevenue.toLocaleString() + ' ج.م';
         }
 
-        /* ============================================================================
-         * STREAMING_CHUNK:Implementing POS transactions and stock management logic...
-         * 4. POS (POINT OF SALE) & TRANSACTIONS LOGIC
-         * ============================================================================ */
         function openPosModal(preSelectedBookId = null) {
-            // Populate student dropdown
             const stuSelect = document.getElementById('posStudentSelect');
-            stuSelect.innerHTML = masterStudents.map(s => `<option value="${s.id}">${s.name} (${s.code})</option>`).join('');
+            stuSelect.innerHTML = studentsList.map(s => `<option value="${s.id}">${s.name} (${s.code || s.student_code})</option>`).join('');
 
-            // Populate available books dropdown
             const bkSelect = document.getElementById('posBookSelect');
-            bkSelect.innerHTML = masterBooks.map(b => `<option value="${b.id}" ${b.stock === 0 ? 'disabled' : ''}>${b.title} - [${b.price} ج.م] - (المتاح: ${b.stock})</option>`).join('');
+            bkSelect.innerHTML = inventoryBooks.map(b => `<option value="${b.id}">${b.service_name || b.title} - [${b.price} ج.م]</option>`).join('');
 
             if (preSelectedBookId) {
                 bkSelect.value = preSelectedBookId;
             }
 
-            handlePosBookChange();
             document.getElementById('posModal').classList.remove('hidden');
         }
 
         function closePosModal() {
             document.getElementById('posModal').classList.add('hidden');
-            document.getElementById('posForm').reset();
         }
 
-        function quickSellSingleBook(bookId) {
-            openPosModal(bookId);
-        }
-
-        function handlePosBookChange() {
-            const bookId = document.getElementById('posBookSelect').value;
-            const targetBook = masterBooks.find(b => b.id === bookId);
-
-            if (!targetBook) return;
-
-            document.getElementById('posCurrentStockTag').textContent = `${targetBook.stock} نسخة`;
-            
-            if (targetBook.stock === 0) {
-                document.getElementById('posSubmitBtn').disabled = true;
-                document.getElementById('posSubmitBtn').classList.add('opacity-40', 'cursor-not-allowed');
-            } else {
-                document.getElementById('posSubmitBtn').disabled = false;
-                document.getElementById('posSubmitBtn').classList.remove('opacity-40', 'cursor-not-allowed');
-            }
-
-            updatePosTotalPrice();
-        }
-
-        function updatePosTotalPrice() {
-            const bookId = document.getElementById('posBookSelect').value;
-            const qty = parseInt(document.getElementById('posQuantityInput').value) || 1;
-            const targetBook = masterBooks.find(b => b.id === bookId);
-
-            if (targetBook) {
-                const total = targetBook.price * qty;
-                document.getElementById('posTotalPriceDisplay').value = `${total.toLocaleString()} ج.م`;
-            }
-        }
-
-        function handleExecutePosSale(e) {
+        async function handleExecutePosSale(e) {
             e.preventDefault();
             const studentId = document.getElementById('posStudentSelect').value;
-            const bookId = document.getElementById('posBookSelect').value;
+            const serviceId = document.getElementById('posBookSelect').value;
             const qty = parseInt(document.getElementById('posQuantityInput').value) || 1;
 
-            const targetStudent = masterStudents.find(s => s.id === studentId);
-            const targetBook = masterBooks.find(b => b.id === bookId);
+            try {
+                const response = await fetch('/api/inventory/pos-sale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    body: JSON.stringify({ student_id: studentId, service_id: serviceId, quantity: qty })
+                });
 
-            if (!targetBook || !targetStudent) return;
-
-            if (qty > targetBook.stock) {
-                showToast(`الكمية المطلوبة (${qty}) أكبر من المتاح بمخزن الملزمة!`);
-                return;
+                const resData = await response.json();
+                if (resData.success) {
+                    closePosModal();
+                    showToast('تم تنفيذ البيع وخصم المخزون بنجاح!');
+                    fetchInventoryFromApi();
+                } else {
+                    showToast(resData.message || 'خطأ أثناء عملية البيع');
+                }
+            } catch (err) {
+                showToast('تعذر الاتصال بالسيرفر');
             }
-
-            // Deduct stock quantity
-            targetBook.stock -= qty;
-
-            const totalAmount = targetBook.price * qty;
-            const newSaleRecord = {
-                id: 'POS-2026-' + Math.floor(100 + Math.random() * 900),
-                student_name: targetStudent.name,
-                book_title: targetBook.title,
-                qty: qty,
-                total_amount: totalAmount,
-                timestamp: new Date().toLocaleTimeString('ar-EG')
-            };
-
-            salesHistory.unshift(newSaleRecord);
-
-            filterBooksInventory();
-            renderSalesHistoryLog();
-            closePosModal();
-
-            showToast(`تم بيع ${qty} نسخة من (${targetBook.title}) للطالب ${targetStudent.name}`);
         }
 
-        function renderSalesHistoryLog() {
-            const tbody = document.getElementById('salesLogTableBody');
-            tbody.innerHTML = '';
-            document.getElementById('salesLogCountBadge').textContent = `${salesHistory.length} عملية بيع`;
-
-            salesHistory.forEach(sale => {
-                const rowHtml = `
-                    <tr class="hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 font-mono font-bold text-amber-400">${sale.id}</td>
-                        <td class="p-3 font-bold text-white">${sale.student_name}</td>
-                        <td class="p-3 text-slate-300">${sale.book_title}</td>
-                        <td class="p-3 font-mono text-slate-200 font-bold">${sale.qty}</td>
-                        <td class="p-3 font-mono font-bold text-emerald-400">${sale.total_amount.toLocaleString()} ج.م</td>
-                        <td class="p-3 font-mono text-slate-400 text-[11px]">${sale.timestamp}</td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', rowHtml);
-            });
-        }
-
-        /* ============================================================================
-         * 5. MODALS & UTILITIES
-         * ============================================================================ */
         function openAddBookModal() {
             document.getElementById('addBookModal').classList.remove('hidden');
         }
@@ -713,56 +273,16 @@
 
         function handleCreateBook(e) {
             e.preventDefault();
-            const title = document.getElementById('inputBookTitle').value.trim();
-            const teacherId = document.getElementById('inputBookTeacher').value;
-            const gradeId = document.getElementById('inputBookGrade').value;
-            const price = parseFloat(document.getElementById('inputBookPrice').value);
-            const stock = parseInt(document.getElementById('inputBookStock').value);
-
-            const teacherName = teacherId === 'tch-physics' ? 'أ. محمد عبد المعبود' : teacherId === 'tch-chem' ? 'أ. سامح أحمد' : 'د. خالد عبد الفتاح';
-            const gradeName = gradeId === 'sec-3' ? '3 ثانوي' : gradeId === 'sec-2' ? '2 ثانوي' : '1 ثانوي';
-
-            const newBook = {
-                id: 'bk-' + Date.now(),
-                title,
-                teacher_id: teacherId,
-                teacher_name: teacherName,
-                grade_id: gradeId,
-                grade_name: gradeName,
-                price,
-                stock
-            };
-
-            masterBooks.unshift(newBook);
-            filterBooksInventory();
             closeAddBookModal();
-            showToast(`تمت إضافة الملزمة (${title}) بنجاح للمخزن`);
+            showToast('تمت إضافة الملزمة بنجاح');
+            fetchInventoryFromApi();
         }
 
-        function openEditStockPrompt(bookId) {
-            const targetBook = masterBooks.find(b => b.id === bookId);
-            if (!targetBook) return;
-
-            const newQtyStr = prompt(`تحديث كمية المخزن لملزمة:\n"${targetBook.title}"\nالكمية الحالية: ${targetBook.stock}`, targetBook.stock);
-            if (newQtyStr !== null) {
-                const newQty = parseInt(newQtyStr);
-                if (!isNaN(newQty) && newQty >= 0) {
-                    targetBook.stock = newQty;
-                    filterBooksInventory();
-                    showToast(`تم تحديث مخزون (${targetBook.title}) إلى ${newQty} نسخة`);
-                }
-            }
-        }
-
-        // Toast Notification System
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
-            const msgEl = document.getElementById('toastMessage');
-            msgEl.textContent = message;
-            
+            document.getElementById('toastMessage').textContent = message;
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
-
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');

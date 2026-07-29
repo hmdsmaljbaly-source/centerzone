@@ -478,7 +478,6 @@
          * 1. MASTER GROUPS REFERENCE & INITIAL STUDENTS DATA
          * ============================================================================ */
         
-        // Master Groups Repository mapped with Teacher & Grade IDs
         const masterGroups = [
             { id: 'grp-phys-3sec-a', teacher_id: 'tch-physics', grade_id: 'sec-3', name: 'فيزياء 3 ثانوي (أحد 4:00)' },
             { id: 'grp-phys-3sec-b', teacher_id: 'tch-physics', grade_id: 'sec-3', name: 'فيزياء 3 ثانوي (أربعاء 6:00)' },
@@ -489,97 +488,72 @@
             { id: 'grp-math-3sec-a', teacher_id: 'tch-math',    grade_id: 'sec-3', name: 'رياضيات 3 ثانوي (جمعة 1:00)' }
         ];
 
-        let studentsData = [
-            {
-                id: '1',
-                code: 'STU-1001',
-                name: 'أحمد محمد علي القرشي',
-                teacher_id: 'tch-physics',
-                teacher_name: 'أ. محمد عبد المعبود',
-                grade_id: 'sec-3',
-                grade_name: '3 ثانوي',
-                group_id: 'grp-phys-3sec-a',
-                group_name: 'فيزياء 3 ثانوي (أحد 4:00)',
-                student_phone: '01012345678',
-                parent_phone: '01123456789',
-                alert_status: 'NORMAL',
-                alert_note: ''
-            },
-            {
-                id: '2',
-                code: 'STU-1002',
-                name: 'سارة محمود عبد الرحمن',
-                teacher_id: 'tch-chem',
-                teacher_name: 'أ. سامح أحمد',
-                grade_id: 'sec-2',
-                grade_name: '2 ثانوي',
-                group_id: 'grp-chem-2sec-a',
-                group_name: 'كيمياء 2 ثانوي (إثنين 5:00)',
-                student_phone: '01298765432',
-                parent_phone: '01598765432',
-                alert_status: 'WARNING',
-                alert_note: 'متبقي 150 ج ثمن ملزمة المراجعة'
-            },
-            {
-                id: '3',
-                code: 'STU-1003',
-                name: 'عمر خالد يوسف العتيبي',
-                teacher_id: 'tch-math',
-                teacher_name: 'د. خالد عبد الفتاح',
-                grade_id: 'sec-1',
-                grade_name: '1 ثانوي',
-                group_id: 'grp-math-1sec-a',
-                group_name: 'رياضيات 1 ثانوي (خميس 4:00)',
-                student_phone: '01055554444',
-                parent_phone: '01255554444',
-                alert_status: 'BLOCKED',
-                alert_note: 'طالب موقوف بسبب التغيب المتكرر وتأخر المصاريف'
-            },
-            {
-                id: '4',
-                code: 'STU-1004',
-                name: 'مريم حسن إبراهيم',
-                teacher_id: 'tch-physics',
-                teacher_name: 'أ. محمد عبد المعبود',
-                grade_id: 'sec-3',
-                grade_name: '3 ثانوي',
-                group_id: 'grp-phys-3sec-b',
-                group_name: 'فيزياء 3 ثانوي (أربعاء 6:00)',
-                student_phone: '01144443333',
-                parent_phone: '01044443333',
-                alert_status: 'NORMAL',
-                alert_note: ''
-            },
-            {
-                id: '5',
-                code: 'STU-1005',
-                name: 'زياد طارق فاروق',
-                teacher_id: 'tch-physics',
-                teacher_name: 'أ. محمد عبد المعبود',
-                grade_id: 'sec-2',
-                grade_name: '2 ثانوي',
-                group_id: 'grp-phys-2sec-a',
-                group_name: 'فيزياء 2 ثانوي (سبت 2:00)',
-                student_phone: '01077778888',
-                parent_phone: '01177778888',
-                alert_status: 'WARNING',
-                alert_note: 'تأخر دفع القسط الشهر الحالي'
-            },
-            {
-                id: '6',
-                code: 'STU-1006',
-                name: 'نور الدين ياسر مصطفى',
-                teacher_id: 'tch-math',
-                teacher_name: 'د. خالد عبد الفتاح',
-                grade_id: 'sec-3',
-                grade_name: '3 ثانوي',
-                group_id: 'grp-math-3sec-a',
-                group_name: 'رياضيات 3 ثانوي (جمعة 1:00)',
-                student_phone: '01233332222',
-                parent_phone: '01533332222',
-                alert_status: 'NORMAL',
-                alert_note: ''
+        let studentsData = [];
+
+        /* ============================================================================
+         * 2. INITIALIZATION ON PAGE LOAD & REAL API FETCH
+         * ============================================================================ */
+        window.onload = function() {
+            populateAddStudentModalGroups();
+            handleTeacherOrGradeChange();
+            fetchStudentsFromApi();
+        };
+
+        async function fetchStudentsFromApi() {
+            try {
+                const response = await fetch('/api/students', {
+                    headers: { 'x-center-id': 'center-101' }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    studentsData = resData.data;
+                    filterStudents();
+                }
+            } catch (e) {
+                console.log("Could not reach API, displaying default state");
             }
+        }
+
+        async function handleCreateStudent(e) {
+            e.preventDefault();
+            const name = document.getElementById('inputStudentName').value.trim();
+            const groupId = document.getElementById('inputGroup').value;
+            const parentPhone = document.getElementById('inputParentPhone').value.trim();
+            const studentPhone = document.getElementById('inputStudentPhone').value.trim();
+            const alertType = document.querySelector('input[name="alertType"]:checked').value;
+            const alertNote = document.getElementById('inputAlertNote').value.trim();
+
+            try {
+                const response = await fetch('/api/students', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-center-id': 'center-101'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        group_id: groupId,
+                        parent_phone: parentPhone,
+                        student_phone: studentPhone,
+                        alert_status: alertType,
+                        alert_note: alertNote
+                    })
+                });
+
+                const resData = await response.json();
+                if (resData.success) {
+                    studentsData.unshift(resData.data);
+                    filterStudents();
+                    closeAddStudentModal();
+                    showToast(`تم حفظ الطالب ${name} وتوليد الباركوود (${resData.data.code})`);
+                    openPrintCardModal(resData.data.id);
+                } else {
+                    showToast(resData.message || 'حدث خطأ أثناء حفظ الطالب');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
         ];
 
         /* ============================================================================

@@ -1,135 +1,6 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" class="h-full bg-slate-900">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام تحضير الطلاب - ماسح الـ QR</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- HTML5 QR Code Scanner Library -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-        
-        /* Custom Glowing & Pulse Animations */
-        @keyframes scan-line {
-            0% { top: 0%; opacity: 0.8; }
-            50% { opacity: 1; }
-            100% { top: 100%; opacity: 0.8; }
-        }
-        .scanner-laser {
-            position: absolute;
-            left: 5%;
-            width: 90%;
-            height: 3px;
-            background: linear-gradient(90deg, rgba(59,130,246,0) 0%, #3b82f6 50%, rgba(59,130,246,0) 100%);
-            box-shadow: 0 0 15px #3b82f6, 0 0 8px #60a5fa;
-            animation: scan-line 2.2s ease-in-out infinite alternate;
-        }
-
-        .pulse-success {
-            animation: pulse-green 1.5s infinite;
-        }
-        @keyframes pulse-green {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
-            50% { box-shadow: 0 0 0 12px rgba(34, 197, 94, 0); }
-        }
-
-        .pulse-danger {
-            animation: pulse-red 1s infinite;
-        }
-        @keyframes pulse-red {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-            50% { box-shadow: 0 0 0 14px rgba(239, 68, 68, 0); }
-        }
-
-        #qr-reader video {
-            object-fit: cover !important;
-            border-radius: 0.75rem;
-            width: 100% !important;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-    </style>
-</head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased selection:bg-sky-500 selection:text-white flex flex-col">
-
-    <!-- Header / Navbar -->
-    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            <!-- Brand & Status -->
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">
-                    <i class="fa-solid fa-qrcode"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg text-white leading-tight">نظام التحضير الذكي</h1>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                            مُتصل
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-400">منصة إدارة السناتر والمراكز التعليمية</p>
-                </div>
-            </div>
-
+<!-- ... existing code ... -->
             <!-- Controls & Mode Selector -->
             <div class="flex items-center gap-3">
-                <!-- Demo Mode Toggle -->
-                <div class="bg-slate-800 border border-slate-700/80 rounded-xl p-1 flex items-center text-xs font-medium text-slate-300">
-                    <button id="modeRealBtn" onclick="setApiMode('real')" class="px-3 py-1.5 rounded-lg transition-all bg-sky-600 text-white shadow-sm">
-                        <i class="fa-solid fa-server ml-1"></i> API مباشر
-                    </button>
-                    <button id="modeDemoBtn" onclick="setApiMode('demo')" class="px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white">
-                        <i class="fa-solid fa-flask ml-1"></i> وضع التجربة (Demo)
-                    </button>
-                </div>
-
                 <!-- Sound FX Toggle -->
                 <button id="soundToggleBtn" onclick="toggleAudio()" class="p-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-sky-400 hover:text-white transition-all text-sm flex items-center gap-1.5" title="تشغيل/كتم الصوت">
                     <i id="soundIcon" class="fa-solid fa-volume-high"></i>
@@ -167,48 +38,33 @@
 
                 <div class="relative">
                     <select id="groupSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition-all appearance-none cursor-pointer">
-                        <option value="">جاري جلب مجموعات اليوم...</option>
+                        <option value="">جاري جلب مجموعات اليوم من قاعدة البيانات...</option>
                     </select>
                     <div class="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                         <i class="fa-solid fa-chevron-down text-xs"></i>
                     </div>
-                </div>
-
-                <!-- Group details snippet -->
-                <div id="groupMetaBanner" class="mt-3 text-xs text-slate-400 flex items-center justify-between border-t border-slate-800/80 pt-2.5">
-                    <span><i class="fa-regular fa-calendar-check ml-1 text-slate-500"></i> اليوم المحدد: <strong id="todayDayName" class="text-slate-200">الأربعاء</strong></span>
-                    <span id="selectedGroupCountInfo" class="text-slate-400">عدد المجموعات المتاحة: <span id="groupCountBadge" class="text-sky-400 font-bold">0</span></span>
                 </div>
             </div>
 
             <!-- QR Camera Scanner Box -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex flex-col items-center justify-center relative">
                 
-                <!-- Scanner Viewport Header -->
                 <div class="w-full flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        <span class="text-sm font-bold text-slate-200">كاميرا المسح الضوئي</span>
+                        <span class="text-sm font-bold text-slate-200">كاميرا المسح الضوئي المباشر</span>
                     </div>
                     
-                    <div class="flex items-center gap-2">
-                        <button id="toggleCameraBtn" onclick="toggleCamera()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5">
-                            <i class="fa-solid fa-video"></i>
-                            <span id="cameraBtnText">تشغيل الكاميرا</span>
-                        </button>
-                    </div>
+                    <button id="toggleCameraBtn" onclick="toggleCamera()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-video"></i>
+                        <span id="cameraBtnText">تشغيل الكاميرا</span>
+                    </button>
                 </div>
 
-                <!-- Camera Container Window -->
                 <div class="relative w-full aspect-video sm:aspect-[4/3] bg-slate-950 border-2 border-dashed border-slate-800 rounded-xl overflow-hidden flex items-center justify-center group">
-                    
-                    <!-- Laser Line Effect -->
                     <div id="scannerLaser" class="scanner-laser hidden"></div>
-
-                    <!-- Video Container for html5-qrcode -->
                     <div id="qr-reader" class="w-full h-full"></div>
 
-                    <!-- Placeholder Graphic when Camera Off -->
                     <div id="cameraPlaceholder" class="flex flex-col items-center justify-center p-6 text-center z-10 space-y-3">
                         <div class="w-16 h-16 rounded-2xl bg-slate-800/80 border border-slate-700 flex items-center justify-center text-slate-500 text-2xl group-hover:text-sky-400 group-hover:scale-105 transition-all">
                             <i class="fa-solid fa-camera-retro"></i>
@@ -220,7 +76,6 @@
                     </div>
                 </div>
 
-                <!-- Manual Code Entry Fallback -->
                 <div class="w-full mt-4 pt-4 border-t border-slate-800">
                     <form onsubmit="handleManualSubmit(event)" class="flex flex-col sm:flex-row gap-2">
                         <div class="relative flex-1">
@@ -230,29 +85,10 @@
                         </div>
                         <button type="submit" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-xl text-sm font-semibold transition-all flex items-center justify-center gap-2">
                             <i class="fa-solid fa-paper-plane text-sky-400"></i>
-                            <span>تسجيل</span>
+                            <span>تسجيل الحضور</span>
                         </button>
                     </form>
                 </div>
-
-                <!-- Demo Fast Action Buttons (Visible when Demo Mode is Active) -->
-                <div id="demoQuickButtons" class="w-full mt-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex flex-wrap items-center justify-between gap-2">
-                    <span class="text-xs text-amber-300 font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-flask"></i> تجربة سريعة للتأثيرات:
-                    </span>
-                    <div class="flex items-center gap-1.5 flex-wrap">
-                        <button onclick="simulateScan('STU-OK')" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all">
-                            <i class="fa-solid fa-check ml-1"></i> نجاح
-                        </button>
-                        <button onclick="simulateScan('STU-WARN')" class="px-2.5 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold transition-all">
-                            <i class="fa-solid fa-triangle-exclamation ml-1"></i> تنبيه
-                        </button>
-                        <button onclick="simulateScan('STU-BLOCK')" class="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all">
-                            <i class="fa-solid fa-ban ml-1"></i> حظر
-                        </button>
-                    </div>
-                </div>
-
             </div>
 
             <!-- Quick Session Stats Cards -->
@@ -273,30 +109,23 @@
 
         </section>
 
-        <!-- LEFT/SECONDARY PANEL: Live Scan Result & Recent Scan Activity (5 cols) -->
+        <!-- LEFT/SECONDARY PANEL -->
         <section class="lg:col-span-5 flex flex-col gap-5">
-            
-            <!-- Hero Result Card (Dynamic Color changing) -->
             <div id="resultCard" class="bg-slate-900 border-2 border-slate-800 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[340px] justify-between">
                 
-                <!-- Background Accent Circle -->
                 <div id="resultCardGlow" class="absolute -top-12 -left-12 w-40 h-40 bg-slate-800/30 rounded-full blur-3xl pointer-events-none transition-all"></div>
 
-                <!-- Initial Idle State Representation -->
                 <div id="resultIdleState" class="flex flex-col items-center justify-center my-auto py-12 text-center text-slate-500 space-y-3">
                     <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl text-slate-600">
                         <i class="fa-solid fa-id-card"></i>
                     </div>
                     <div>
                         <p class="text-base font-bold text-slate-300">في انتظار قراءة الطالب...</p>
-                        <p class="text-xs text-slate-500 mt-1">قم بمسح QR Code الطالب أو أدخل كوده يدوياً لعرض بياناته وحالة الحضور فوراً</p>
+                        <p class="text-xs text-slate-500 mt-1">قم بمسح QR Code الطالب أو أدخل كوده يدوياً لعرض بياناته وحالة الحضور فوراً من قاعدة البيانات</p>
                     </div>
                 </div>
 
-                <!-- Active Result Display (Hidden initially) -->
                 <div id="resultActiveState" class="hidden space-y-5">
-                    
-                    <!-- Header Badge & Status Title -->
                     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                         <div id="statusBadge" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm shadow-md">
                             <i id="statusIcon" class="fa-solid fa-circle-check"></i>
@@ -305,19 +134,17 @@
                         <span id="scanTimestamp" class="text-xs font-mono text-slate-400">--:--:--</span>
                     </div>
 
-                    <!-- Student Core Profile -->
                     <div class="space-y-3">
                         <div class="flex items-start justify-between">
                             <div>
-                                <h2 id="studentName" class="text-xl font-black text-white leading-tight">اسم الطالب المائي</h2>
-                                <p id="studentCodeDisplay" class="text-xs font-mono text-sky-400 mt-0.5">كود: STU-0000</p>
+                                <h2 id="studentName" class="text-xl font-black text-white leading-tight">--</h2>
+                                <p id="studentCodeDisplay" class="text-xs font-mono text-sky-400 mt-0.5">كود: --</p>
                             </div>
                             <div class="w-12 h-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 text-lg font-bold">
                                 <i class="fa-solid fa-user-graduate"></i>
                             </div>
                         </div>
 
-                        <!-- Contact Details Grid -->
                         <div class="grid grid-cols-2 gap-2 text-xs pt-2">
                             <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800">
                                 <span class="text-slate-500 block text-[10px]">هاتف الطالب</span>
@@ -330,7 +157,6 @@
                         </div>
                     </div>
 
-                    <!-- Alert Note Banner (Dynamic Yellow or Red callout) -->
                     <div id="alertNoteContainer" class="p-3.5 rounded-xl text-xs flex items-start gap-3 transition-all">
                         <i id="alertNoteIcon" class="fa-solid fa-triangle-exclamation text-base mt-0.5"></i>
                         <div class="flex-1">
@@ -338,20 +164,16 @@
                             <p id="alertNoteBody" class="leading-relaxed">--</p>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Footer Action Buttons -->
                 <div id="resultFooter" class="hidden border-t border-slate-800 pt-3 flex items-center justify-between text-xs text-slate-400">
                     <span id="targetGroupName" class="truncate max-w-[200px]"><i class="fa-solid fa-chalkboard-user ml-1 text-slate-500"></i> المجموعة: --</span>
                     <button onclick="clearResultCard()" class="text-slate-400 hover:text-white transition-colors">
                         <i class="fa-solid fa-xmark ml-1"></i> إغلاق
                     </button>
                 </div>
-
             </div>
 
-            <!-- Recent Scans History Feed -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl flex-1 flex flex-col">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
@@ -367,69 +189,22 @@
                     </div>
                 </div>
             </div>
-
         </section>
     </main>
 
     <script>
-        /* ============================================================================
-         * 1. GLOBAL STATE & CONFIGURATION
-         * ============================================================================ */
-        let apiMode = 'real'; // 'real' or 'demo'
+        const centerId = localStorage.getItem('centerId') || 'center-101';
         let audioEnabled = true;
         let html5QrCode = null;
         let isCameraScanning = false;
         let audioCtx = null;
 
-        // Statistics counters
         let stats = { success: 0, warning: 0, blocked: 0 };
 
-        // Dummy Mock Data for Demo mode testing
-        const mockDatabase = {
-            'STU-1001': {
-                name: 'أحمد محمد علي القرشي',
-                code: 'STU-1001',
-                student_phone: '01012345678',
-                parent_phone: '01123456789',
-                status: 'PRESENT',
-                alert_info: null
-            },
-            'STU-1002': {
-                name: 'سارة محمود عبد الرحمن',
-                code: 'STU-1002',
-                student_phone: '01298765432',
-                parent_phone: '01598765432',
-                status: 'PRESENT',
-                alert_info: {
-                    has_warning: true,
-                    note: 'تنبيه: متبقي رسوم الملزمة الثانية (150 جنيه)'
-                }
-            },
-            'STU-1003': {
-                name: 'عمر خالد يوسف العتيبي',
-                code: 'STU-1003',
-                student_phone: '01055554444',
-                parent_phone: '01255554444',
-                is_blocked: true,
-                alert_info: {
-                    has_warning: true,
-                    note: 'محظور عاجل: طالب موقوف بسبب الغياب المتكرر وعدم تسليم الواجبات'
-                }
-            }
-        };
-
-        /* ============================================================================
-         * 2. INITIALIZATION ON WINDOW LOAD
-         * ============================================================================ */
         window.onload = function () {
-            // Live Clock setup
             setInterval(updateClock, 1000);
             updateClock();
-
-            // Fetch today's groups on boot
             fetchTodaysGroups();
-
-            // Setup audio context on first click
             document.body.addEventListener('click', initAudioContext, { once: true });
         };
 
@@ -438,19 +213,12 @@
             document.getElementById('liveClock').textContent = now.toLocaleTimeString('ar-EG');
         }
 
-        /* ============================================================================
-         * 3. WEB AUDIO SYNTHESIZER (No external MP3 files needed)
-         * ============================================================================ */
         function initAudioContext() {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
         }
 
-        /**
-         * Sound Generator using Web Audio API Oscillators
-         * @param {string} type - 'success' | 'warning' | 'blocked'
-         */
         function playSound(type) {
             if (!audioEnabled) return;
             initAudioContext();
@@ -459,11 +227,10 @@
             const now = audioCtx.currentTime;
 
             if (type === 'success') {
-                // Happy high double-beep
                 const osc1 = audioCtx.createOscillator();
                 const gain1 = audioCtx.createGain();
                 osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(880, now); // A5
+                osc1.frequency.setValueAtTime(880, now);
                 osc1.frequency.setValueAtTime(1200, now + 0.08);
                 gain1.gain.setValueAtTime(0.3, now);
                 gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
@@ -474,13 +241,11 @@
                 osc1.stop(now + 0.25);
 
             } else if (type === 'warning') {
-                // Two mid-pitch warning tones
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(587.33, now); // D5
-                osc.frequency.setValueAtTime(587.33, now + 0.12);
-                osc.frequency.setValueAtTime(659.25, now + 0.22); // E5
+                osc.frequency.setValueAtTime(587.33, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.22);
                 gain.gain.setValueAtTime(0.4, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
 
@@ -490,7 +255,6 @@
                 osc.stop(now + 0.4);
 
             } else if (type === 'blocked') {
-                // Low harsh buzz for blocked / error
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
@@ -519,40 +283,13 @@
             }
         }
 
-        /* ============================================================================
-         * 4. API & DATA FETCHING
-         * ============================================================================ */
-        function setApiMode(mode) {
-            apiMode = mode;
-            const realBtn = document.getElementById('modeRealBtn');
-            const demoBtn = document.getElementById('modeDemoBtn');
-            const demoQuick = document.getElementById('demoQuickButtons');
-
-            if (mode === 'real') {
-                realBtn.className = 'px-3 py-1.5 rounded-lg transition-all bg-sky-600 text-white shadow-sm';
-                demoBtn.className = 'px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white';
-                demoQuick.classList.add('hidden');
-                fetchTodaysGroups();
-            } else {
-                demoBtn.className = 'px-3 py-1.5 rounded-lg transition-all bg-amber-600 text-white shadow-sm';
-                realBtn.className = 'px-3 py-1.5 rounded-lg transition-all text-slate-400 hover:text-white';
-                demoQuick.classList.remove('hidden');
-                populateDemoGroups();
-            }
-        }
-
         async function fetchTodaysGroups() {
             const selectEl = document.getElementById('groupSelect');
-            selectEl.innerHTML = '<option value="">جاري التحميل...</option>';
-
-            if (apiMode === 'demo') {
-                populateDemoGroups();
-                return;
-            }
+            selectEl.innerHTML = '<option value="">جاري التحميل من قاعدة البيانات...</option>';
 
             try {
                 const response = await fetch('/api/groups/today', {
-                    headers: { 'x-center-id': 'center-101' }
+                    headers: { 'x-center-id': centerId }
                 });
                 const resData = await response.json();
 
@@ -560,32 +297,14 @@
                     selectEl.innerHTML = resData.data.map(g => 
                         `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.subject : ''} (${g.teacher ? g.teacher.name : ''})</option>`
                     ).join('');
-                    document.getElementById('groupCountBadge').textContent = resData.data.length;
-                    document.getElementById('todayDayName').textContent = resData.today || 'اليوم';
                 } else {
-                    selectEl.innerHTML = '<option value="">لا توجد مجموعات مجدولة لليوم</option>';
-                    document.getElementById('groupCountBadge').textContent = '0';
+                    selectEl.innerHTML = '<option value="">لا توجد مجموعات مسجلة بجدول اليوم</option>';
                 }
             } catch (err) {
-                console.warn('API connection offline, switching UI snippet to Demo fallback:', err);
-                populateDemoGroups();
+                selectEl.innerHTML = '<option value="">تعذر جلب مجموعات اليوم</option>';
             }
         }
 
-        function populateDemoGroups() {
-            const selectEl = document.getElementById('groupSelect');
-            selectEl.innerHTML = `
-                <option value="grp-001">مجموعة الفيزياء - 3 ثانوي (أ. محمد عبد المعبود)</option>
-                <option value="grp-002">مجموعة الكيمياء - 2 ثانوي (أ. سامح أحمد)</option>
-                <option value="grp-003">مجموعة الرياضيات - 1 ثانوي (د. خالد عبد الفتاح)</option>
-            `;
-            document.getElementById('groupCountBadge').textContent = '3';
-            document.getElementById('todayDayName').textContent = 'اليوم (تجريبي)';
-        }
-
-        /* ============================================================================
-         * 5. ATTENDANCE SUBMISSION ENGINE
-         * ============================================================================ */
         async function processAttendance(codeOrPayload) {
             const groupId = document.getElementById('groupSelect').value;
             
@@ -594,90 +313,45 @@
                 return;
             }
 
-            // Real API Call
-            if (apiMode === 'real') {
-                try {
-                    const response = await fetch('/api/attendance/scan-qr', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'x-center-id': 'center-101'
-                        },
-                        body: JSON.stringify({
-                            qr_payload: codeOrPayload,
-                            group_id: groupId
-                        })
-                    });
-
-                    const resData = await response.json();
-
-                    if (response.status === 200) {
-                        // Success / Warning
-                        const student = resData.data.student;
-                        const alertNotice = resData.data.alert_notice;
-
-                        if (alertNotice && alertNotice.has_warning) {
-                            renderScanResult('warning', student, alertNotice.note);
-                            playSound('warning');
-                            stats.warning++;
-                        } else {
-                            renderScanResult('success', student, null);
-                            playSound('success');
-                            stats.success++;
-                        }
-                    } else if (response.status === 403) {
-                        // Blocked student
-                        const student = resData.student;
-                        renderScanResult('blocked', student, resData.message || 'الطالب محظور من الدخول');
-                        playSound('blocked');
-                        stats.blocked++;
-                    } else {
-                        // Not found or server error
-                        renderScanResult('error', { name: 'غير معروف', code: codeOrPayload }, resData.message || 'الكود غير مسجل');
-                        playSound('blocked');
-                    }
-
-                } catch (error) {
-                    console.error('Error contacting backend API:', error);
-                    // Fallback to demo processing if connection dropped
-                    processDemoAttendance(codeOrPayload);
-                }
-            } else {
-                processDemoAttendance(codeOrPayload);
-            }
-
-            updateStatsUI();
-        }
-
-        function processDemoAttendance(codeOrPayload) {
-            // Clean extracted code if JSON
-            let cleanCode = codeOrPayload;
             try {
-                const parsed = JSON.parse(codeOrPayload);
-                cleanCode = parsed.code || codeOrPayload;
-            } catch (e) {}
+                const response = await fetch('/api/attendance/scan-qr', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-center-id': centerId
+                    },
+                    body: JSON.stringify({
+                        qr_payload: codeOrPayload,
+                        group_id: groupId
+                    })
+                });
 
-            const record = mockDatabase[cleanCode] || {
-                name: `طالب تجريبي (${cleanCode})`,
-                code: cleanCode,
-                student_phone: '01000000000',
-                parent_phone: '01100000000',
-                status: 'PRESENT',
-                alert_info: null
-            };
+                const resData = await response.json();
 
-            if (codeOrPayload === 'STU-BLOCK' || record.is_blocked) {
-                renderScanResult('blocked', record, record.alert_info ? record.alert_info.note : 'محظور من دخول القاعة بقرار من الإدارة');
-                playSound('blocked');
-                stats.blocked++;
-            } else if (codeOrPayload === 'STU-WARN' || (record.alert_info && record.alert_info.has_warning)) {
-                renderScanResult('warning', record, record.alert_info ? record.alert_info.note : 'ملاحظة: متبقي رسوم الحصة الماضية');
-                playSound('warning');
-                stats.warning++;
-            } else {
-                renderScanResult('success', record, null);
-                playSound('success');
-                stats.success++;
+                if (response.status === 200) {
+                    const student = resData.data.student;
+                    const alertNotice = resData.data.alert_notice;
+
+                    if (alertNotice && alertNotice.has_warning) {
+                        renderScanResult('warning', student, alertNotice.note);
+                        playSound('warning');
+                        stats.warning++;
+                    } else {
+                        renderScanResult('success', student, null);
+                        playSound('success');
+                        stats.success++;
+                    }
+                } else if (response.status === 403) {
+                    const student = resData.student || { name: 'طالب محظور', code: codeOrPayload };
+                    renderScanResult('blocked', student, resData.message || 'الطالب محظور من الدخول');
+                    playSound('blocked');
+                    stats.blocked++;
+                } else {
+                    renderScanResult('error', { name: 'غير مسجل بالسنتر', code: codeOrPayload }, resData.message || 'كود الطالب غير موجود بقاعدة البيانات');
+                    playSound('blocked');
+                }
+            } catch (error) {
+                renderScanResult('error', { name: 'خطأ اتصال', code: codeOrPayload }, 'تعذر الاتصال بالسيرفر');
             }
 
             updateStatsUI();
@@ -693,13 +367,6 @@
             }
         }
 
-        function simulateScan(code) {
-            processAttendance(code);
-        }
-
-        /* ============================================================================
-         * 6. DYNAMIC UI RENDERING & FEEDBACK
-         * ============================================================================ */
         function renderScanResult(type, student, alertNote) {
             const card = document.getElementById('resultCard');
             const glow = document.getElementById('resultCardGlow');
@@ -716,12 +383,10 @@
             const alertTitle = document.getElementById('alertNoteTitle');
             const alertBody = document.getElementById('alertNoteBody');
 
-            // Hide Idle, Show Active
             idleState.classList.add('hidden');
             activeState.classList.remove('hidden');
             footer.classList.remove('hidden');
 
-            // Fill Student Info
             document.getElementById('studentName').textContent = student.name || 'طالب غير محدد';
             document.getElementById('studentCodeDisplay').textContent = `كود: ${student.code || student.student_code || '---'}`;
             document.getElementById('studentPhone').textContent = student.phone || student.student_phone || 'غير مسجل';
@@ -738,7 +403,6 @@
             const groupText = groupSelect.options[groupSelect.selectedIndex]?.text || 'المجموعة الحالية';
             document.getElementById('targetGroupName').innerHTML = `<i class="fa-solid fa-chalkboard-user ml-1 text-slate-500"></i> ${groupText}`;
 
-            // Reset Card Classes
             card.className = 'bg-slate-900 border-2 rounded-2xl p-5 sm:p-6 shadow-2xl transition-all duration-300 relative overflow-hidden flex flex-col min-h-[340px] justify-between ';
 
             if (type === 'success') {
@@ -757,7 +421,7 @@
 
                 badge.className = 'inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl font-bold text-sm bg-amber-500/20 text-amber-300 border border-amber-500/30';
                 icon.className = 'fa-solid fa-triangle-exclamation text-amber-400';
-                statusText.textContent = 'تم الحضور مع تنبيه خافق';
+                statusText.textContent = 'تم الحضور مع تنبيه مالي';
 
                 alertBox.classList.remove('hidden');
                 alertBox.className = 'p-3.5 rounded-xl text-xs flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 text-amber-200';
@@ -780,7 +444,6 @@
                 alertBody.textContent = alertNote || 'الطالب محظور من دخول الحصص';
             }
 
-            // Append to recent history feed
             addToHistoryFeed(type, student, timeStr);
         }
 
@@ -839,21 +502,13 @@
             document.getElementById('statBlockedCount').textContent = stats.blocked;
         }
 
-        /* ============================================================================
-         * 7. HTML5 QR CODE CAMERA SCANNER
-         * ============================================================================ */
         function toggleCamera() {
-            if (isCameraScanning) {
-                stopCamera();
-            } else {
-                startCamera();
-            }
+            if (isCameraScanning) stopCamera();
+            else startCamera();
         }
 
         function startCamera() {
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("qr-reader");
-            }
+            if (!html5QrCode) html5QrCode = new Html5Qrcode("qr-reader");
 
             const config = { fps: 10, qrbox: { width: 250, height: 250 } };
 
@@ -869,7 +524,6 @@
                 document.getElementById('cameraBtnText').textContent = 'إيقاف الكاميرا';
                 document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5';
             }).catch(err => {
-                console.error("Unable to start camera scanner:", err);
                 alert("لم نتمكن من الوصول لكاميرا الجهاز. يرجى التأكد من السماح لصلاحية الكاميرا بالمتصفح.");
             });
         }
@@ -882,29 +536,23 @@
                     document.getElementById('scannerLaser').classList.add('hidden');
                     document.getElementById('cameraBtnText').textContent = 'تشغيل الكاميرا';
                     document.getElementById('toggleCameraBtn').className = 'px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-semibold transition-all shadow-md flex items-center gap-1.5';
-                }).catch(err => console.error("Failed to stop camera:", err));
+                });
             }
         }
 
         let lastScannedCode = null;
         let lastScanTime = 0;
 
-        function onQrCodeSuccess(decodedText, decodedResult) {
+        function onQrCodeSuccess(decodedText) {
             const now = Date.now();
-            // Prevent duplicated fast triggers for same QR within 3 seconds
-            if (decodedText === lastScannedCode && (now - lastScanTime) < 3000) {
-                return;
-            }
+            if (decodedText === lastScannedCode && (now - lastScanTime) < 3000) return;
 
             lastScannedCode = decodedText;
             lastScanTime = now;
-
             processAttendance(decodedText);
         }
 
-        function onQrCodeError(errorMessage) {
-            // Quiet fallback for frame scanning misses
-        }
+        function onQrCodeError(errorMessage) {}
     </script>
 </body>
 </html>

@@ -4,708 +4,144 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة المدرسين والمجموعات والتسويات المالية - نظام إدارة السناتر</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        center: {
-                            50: '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0284c7',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                            900: '#0f172a',
-                        }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 'sans-serif'] } } } }
     </script>
-
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Background Grid Pattern */
+        body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
             background-size: 30px 30px;
             background-image: 
                 linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         }
-
-        /* Card Hover Animations */
-        .teacher-card {
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .teacher-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -5px rgba(56, 189, 248, 0.2);
-        }
-
-        /* Printable Receipt Layout */
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            #printableReceiptModal, #printableReceiptModal * {
-                visibility: visible;
-            }
-            #printableReceiptModal {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                background: white !important;
-                color: black !important;
-            }
-            .no-print {
-                display: none !important;
-            }
-        }
     </style>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 
-    <!-- Top Navigation Header -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Brand & Page Title -->
             <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-600 p-0.5 shadow-lg shadow-purple-500/20 hover:scale-105 transition-transform flex items-center justify-center">
+                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-600 p-0.5 shadow-lg shadow-purple-500/20 flex items-center justify-center">
                     <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-purple-400 font-black text-lg">
                         <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </a>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg text-white leading-tight">إدارة المدرسين والتسويات المالية</h1>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                            <i class="fa-solid fa-calculator text-xs"></i>
-                            نظام التسويات الآلي
-                        </span>
-                    </div>
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المدرسين والتسويات المالية</h1>
                     <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
                 </div>
             </div>
 
-            <!-- Quick Navigation Actions -->
             <div class="flex items-center gap-2.5">
-                <a href="students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-users"></i>
-                    <span>إدارة الطلاب</span>
+                <a href="/students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-users ml-1"></i> إدارة الطلاب
                 </a>
-                <a href="scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span>ماسح الحضور</span>
-                </a>
-                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    <span>لوحة التحكم</span>
+                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-gauge-high ml-1"></i> العودة للرئيسية
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- Top Metrics Overview -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">عدد المدرسين المسجلين</span>
-                    <span id="metricTotalTeachers" class="text-2xl font-black text-white font-mono transition-all">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-purple-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إجمالي المجموعات النشطة</span>
-                    <span id="metricTotalGroups" class="text-2xl font-black text-sky-400 font-mono transition-all">0</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-layer-group"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-sky-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">مستحقات معلقة للتصفية</span>
-                    <span id="metricPendingPayouts" class="text-2xl font-black text-amber-400 font-mono transition-all">0 ج.م</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-scale-unbalanced-flip"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إجمالي تسويات الشهر</span>
-                    <span id="metricSettledMonth" class="text-2xl font-black text-emerald-400 font-mono transition-all">0 ج.م</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-receipt"></i>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-12 h-12 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-        </section>
-
-        <!-- Main Workspace Tabs Bar -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-xl flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-                <button id="tabBtnTeachers" onclick="switchTab('teachers')" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/20">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>المدرسون والمجموعات</span>
-                </button>
-                <button id="tabBtnSettlements" onclick="switchTab('settlements')" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
-                    <i class="fa-solid fa-calculator"></i>
-                    <span>تقفيل الحسابات والتسويات (Settlements)</span>
-                </button>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button onclick="openAddTeacherModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>إضافة مدرس</span>
-                </button>
-                <button onclick="openAddGroupModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
-                    <i class="fa-solid fa-folder-plus"></i>
-                    <span>إضافة مجموعة</span>
-                </button>
-            </div>
+            <h3 class="text-sm font-bold text-white pr-3">قائمة المدرسين والمجموعات الدراسية</h3>
+            <button onclick="openAddTeacherModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold shadow-md">
+                <i class="fa-solid fa-user-plus ml-1"></i> إضافة مدرس جديد
+            </button>
         </section>
 
-        <!-- ============================================================================ -->
-        <!-- TAB 1: TEACHERS & GROUPS LIST VIEW                                           -->
-        <!-- ============================================================================ -->
-        <div id="tabTeachersView" class="space-y-6">
-            
-            <!-- Section Header & Filter -->
-            <div class="flex items-center justify-between flex-wrap gap-4 bg-slate-900/60 p-4 border border-slate-800/80 rounded-2xl">
-                <div>
-                    <h2 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-users-gear text-purple-400"></i>
-                        دليل المعلمين والمجموعات التابعة
-                    </h2>
-                    <p class="text-xs text-slate-400">استعراض المدرسين، نسب الخصم المحددة، والمجموعات المفعلة</p>
-                </div>
-                <div class="relative w-full sm:w-64">
-                    <input type="text" id="searchTeacherInput" onkeyup="filterTeachersList()" placeholder="بحث باسم المدرس أو المادة..." 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                </div>
-            </div>
-
-            <!-- Teacher Cards Grid -->
-            <div id="teachersCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                <!-- Dynamically populated via JS -->
-            </div>
-
-            <!-- Active Groups Table Section -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div>
-                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-calendar-days text-sky-400"></i>
-                            جدول المجموعات الدراسية وحصص السنتر
-                        </h3>
-                        <p class="text-xs text-slate-400">المواعيد المجدولة وأسعار الحصص بكل مجموعة</p>
-                    </div>
-                    <span id="groupsCountTag" class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-500/10 text-sky-400 border border-sky-500/20">
-                        0 مجموعة مسجلة
-                    </span>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-right text-slate-300">
-                        <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">اسم المجموعة</th>
-                                <th class="p-3">المدرس المسؤول</th>
-                                <th class="p-3">المرحلة الدراسية</th>
-                                <th class="p-3">مواعيد الحصص (Schedule)</th>
-                                <th class="p-3">سعر الحصة</th>
-                                <th class="p-3">الطلاب المسجلون</th>
-                                <th class="p-3 text-center">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody id="groupsTableBody" class="divide-y divide-slate-800/60">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- ============================================================================ -->
-        <!-- TAB 2: FINANCIAL SETTLEMENTS & PAYOUT CALCULATOR                             -->
-        <!-- ============================================================================ -->
-        <div id="tabSettlementsView" class="hidden space-y-6">
-            
-            <!-- Control Panel Bar -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800/80 pb-3">
-                    <div>
-                        <h2 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-calculator text-emerald-400"></i>
-                            حاسبة تقفيل الحصة والتصفية المالية (Payout Calculator)
-                        </h2>
-                        <p class="text-xs text-slate-400">اختر المدرس والمجموعة لاحتساب صافي المستحقات وخصم نسبة السنتر فورياً</p>
-                    </div>
-                </div>
-
-                <!-- Calculator Filter Inputs -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1.5">اختر المدرس *</label>
-                        <select id="calcTeacherSelect" onchange="handleCalcTeacherChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
-                            <option value="">-- اختر مدرس للحساب --</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1.5">اختر المجموعة / الحصة *</label>
-                        <select id="calcGroupSelect" onchange="recalculateSettlement()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
-                            <option value="ALL">جميع مجموعات المدرس الحالية</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1.5">الفترة الزمنية</label>
-                        <select id="calcDateRange" onchange="recalculateSettlement()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
-                            <option value="today">حسابات اليوم فقط</option>
-                            <option value="this_week">حسابات الأسبوع الحالي</option>
-                            <option value="this_month" selected>حسابات الشهر الحالي</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Live Settlement Calculation Cards Breakdown -->
-            <div id="settlementResultSection" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- Card 1: Attendance Revenue -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1">
-                    <div class="flex items-center justify-between text-slate-400 text-xs">
-                        <span>تحصيلات الحضور</span>
-                        <i class="fa-solid fa-id-card text-sky-400"></i>
-                    </div>
-                    <p id="sumAttendanceRev" class="text-xl font-black text-white font-mono">0 ج.م</p>
-                    <p id="sumAttendanceCount" class="text-[10px] text-slate-400">0 طالب حاضر بالمجموعات</p>
-                </div>
-
-                <!-- Card 2: Book Sales Revenue -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1">
-                    <div class="flex items-center justify-between text-slate-400 text-xs">
-                        <span>مبيعات الملازم/الخدمات</span>
-                        <i class="fa-solid fa-book text-amber-400"></i>
-                    </div>
-                    <p id="sumServicesRev" class="text-xl font-black text-white font-mono">0 ج.م</p>
-                    <p id="sumServicesCount" class="text-[10px] text-slate-400">0 ملزمة مباعة للطلاب</p>
-                </div>
-
-                <!-- Card 3: Center Deduction -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 border-r-4 border-r-purple-500">
-                    <div class="flex items-center justify-between text-slate-400 text-xs">
-                        <span>خصم عمولة السنتر</span>
-                        <i class="fa-solid fa-percent text-purple-400"></i>
-                    </div>
-                    <p id="sumCenterCommission" class="text-xl font-black text-purple-300 font-mono">0 ج.م</p>
-                    <p id="sumCommissionRule" class="text-[10px] text-purple-400/80 font-bold">نسبة السنتر: --</p>
-                </div>
-
-                <!-- Card 4: Net Due Teacher -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-1 border-r-4 border-r-emerald-500 bg-emerald-950/20">
-                    <div class="flex items-center justify-between text-slate-400 text-xs">
-                        <span>صافي المستحق للمدرس</span>
-                        <i class="fa-solid fa-wallet text-emerald-400"></i>
-                    </div>
-                    <p id="sumNetTeacherPayout" class="text-2xl font-black text-emerald-400 font-mono">0 ج.م</p>
-                    <p class="text-[10px] text-emerald-300">جاهز للتصفية الفورية</p>
-                </div>
-
-            </div>
-
-            <!-- Action Bar to Issue Receipt -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex items-center justify-between flex-wrap gap-4">
-                <div>
-                    <h4 id="calcTeacherMetaName" class="text-sm font-bold text-white">اختر مدرساً لإصدار كشف التصفية</h4>
-                    <p id="calcMetaSub" class="text-xs text-slate-400">سيتم حفظ التصفية وإصدار إيصال استلام نقدية للمدرس</p>
-                </div>
-
-                <button id="btnIssueReceipt" onclick="openPrintReceiptModal()" disabled class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-file-invoice-dollar text-sm"></i>
-                    <span>إصدار إيصال تسوية وتقفيل الحساب</span>
-                </button>
-            </div>
-
-            <!-- Recent Settlements History Log Table -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-clock-rotate-left text-purple-400"></i>
-                        سجل التصفية والإيصالات الصادرة مؤخراً
-                    </h3>
-                    <span class="text-xs text-slate-400">مسجل بالسنتر</span>
-                </div>
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-right text-slate-300">
-                        <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
-                            <tr>
-                                <th class="p-3">رقم الإيصال</th>
-                                <th class="p-3">المدرس</th>
-                                <th class="p-3">إجمالي التحصيل</th>
-                                <th class="p-3">حصّة السنتر</th>
-                                <th class="p-3">المدفوع للمدرس</th>
-                                <th class="p-3">التاريخ والوقت</th>
-                                <th class="p-3 text-center">معاينة</th>
-                            </tr>
-                        </thead>
-                        <tbody id="settlementsHistoryTable" class="divide-y divide-slate-800/60">
-                            <!-- Populated via JS -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+        <div id="teachersCardsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <!-- Dynamically populated via API -->
         </div>
 
     </main>
 
-    <!-- ============================================================================ -->
-    <!-- MODAL 1: ADD NEW TEACHER                                                     -->
-    <!-- ============================================================================ -->
     <div id="addTeacherModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-base">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">إضافة مدرس جديد</h3>
-                </div>
-                <button onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
+                <h3 class="text-sm font-bold text-white">إضافة مدرس جديد</h3>
+                <button onclick="closeAddTeacherModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
             <form id="addTeacherForm" onsubmit="handleCreateTeacher(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم المدرس الثلاثي/الرباعي *</label>
-                    <input type="text" id="teacherNameInput" required placeholder="مثال: أ. محمد عبد المعبود" 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم المدرس *</label>
+                    <input type="text" id="teacherNameInput" required placeholder="أ. محمد عبد المعبود" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">المادة الدراسية *</label>
-                        <input type="text" id="teacherSubjectInput" required placeholder="مثال: الفيزياء" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
+                        <input type="text" id="teacherSubjectInput" required placeholder="الفيزياء" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">رقم الهاتف *</label>
-                        <input type="text" id="teacherPhoneInput" required placeholder="010XXXXXXXX" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
-                    <label class="block text-xs font-bold text-purple-400">تحديد نوع عمولة/خصم السنتر *</label>
-                    
-                    <div class="flex items-center gap-4">
-                        <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
-                            <input type="radio" name="commissionType" value="PERCENTAGE" checked onclick="updateCommLabel('%')" class="text-purple-500">
-                            <span>نسبة مئوية (%)</span>
-                        </label>
-                        <label class="flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
-                            <input type="radio" name="commissionType" value="FIXED" onclick="updateCommLabel('جنيه/طالب')" class="text-purple-500">
-                            <span>مبلغ ثابت (لكل طالب)</span>
-                        </label>
-                    </div>
-
-                    <div>
-                        <label id="commValueLabel" class="block text-[11px] text-slate-400 mb-1">نسبة خصم السنتر (%):</label>
-                        <input type="number" id="teacherCommValueInput" required step="0.5" value="20" placeholder="مثال: 20" 
-                            class="w-full bg-slate-900 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                        <input type="text" id="teacherPhoneInput" required placeholder="010XXXXXXXX" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none">
                     </div>
                 </div>
 
                 <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
                     <button type="button" onclick="closeAddTeacherModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold shadow-md">حفظ البيانات</button>
+                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold">حفظ بالداتابيز</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- ============================================================================ -->
-    <!-- MODAL 2: ADD NEW GROUP                                                       -->
-    <!-- ============================================================================ -->
-    <div id="addGroupModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-5">
-            
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center gap-2">
-                    <div class="w-9 h-9 rounded-xl bg-sky-600/20 text-sky-400 flex items-center justify-center text-base">
-                        <i class="fa-solid fa-folder-plus"></i>
-                    </div>
-                    <h3 class="text-sm font-bold text-white">إضافة مجموعة دراسية جديدة</h3>
-                </div>
-                <button onclick="closeAddGroupModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form id="addGroupForm" onsubmit="handleCreateGroup(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">المدرس المسؤول *</label>
-                    <select id="groupTeacherSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                        <!-- Populated dynamically -->
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية *</label>
-                        <select id="groupGradeSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                            <option value="sec-1">الصف الأول الثانوي</option>
-                            <option value="sec-2">الصف الثاني الثانوي</option>
-                            <option value="sec-3" selected>الصف الثالث الثانوي</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">سعر الحصة للطالب (ج.م) *</label>
-                        <input type="number" id="groupPriceInput" required placeholder="مثال: 60" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-sky-500 outline-none">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم المجموعة المميز *</label>
-                    <input type="text" id="groupNameInput" required placeholder="مثال: فيزياء 3 ثانوي (أحد 4:00)" 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">أيام الحصص المجدولة (Schedule Days) *</label>
-                    <div class="grid grid-cols-4 gap-2 text-xs">
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Saturday" class="text-sky-500"> السبت
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Sunday" checked class="text-sky-500"> الأحد
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Monday" class="text-sky-500"> الإثنين
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Tuesday" class="text-sky-500"> الثلاثاء
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Wednesday" class="text-sky-500"> الأربعاء
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Thursday" class="text-sky-500"> الخميس
-                        </label>
-                        <label class="flex items-center gap-1 bg-slate-950 p-2 border border-slate-800 rounded-lg cursor-pointer">
-                            <input type="checkbox" name="scheduleDays" value="Friday" class="text-sky-500"> الجمعة
-                        </label>
-                    </div>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closeAddGroupModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-xl font-bold shadow-md">إنشاء المجموعة</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ============================================================================ -->
-    <!-- MODAL 3: PRINTABLE SETTLEMENT RECEIPT MODAL                                 -->
-    <!-- ============================================================================ -->
-    <div id="printableReceiptModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 text-center">
-            
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3 no-print">
-                <h3 class="text-xs font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-receipt text-emerald-400"></i>
-                    معاينة إيصال تسوية الحساب والنقدية
-                </h3>
-                <button onclick="closePrintReceiptModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Receipt Card Layout -->
-            <div class="bg-white text-slate-900 rounded-2xl p-6 border-2 border-slate-300 shadow-xl space-y-4 text-right">
-                <div class="text-center border-b border-slate-200 pb-3">
-                    <h3 class="text-lg font-black text-slate-900">سنتر النخبة التعليمي</h3>
-                    <p class="text-xs text-slate-500 font-bold">إيصال صرف نقدية وتسوية حساب مدرس</p>
-                    <span id="rcptNumber" class="text-[10px] font-mono text-purple-600 font-bold block mt-1">#INV-2026-0000</span>
-                </div>
-
-                <div class="text-xs space-y-1.5">
-                    <p><strong>استلمنا نحن المدرس:</strong> <span id="rcptTeacherName" class="font-bold text-slate-900">--</span></p>
-                    <p><strong>مادة:</strong> <span id="rcptSubject">--</span> | <strong>التاريخ:</strong> <span id="rcptDate" class="font-mono">--</span></p>
-                </div>
-
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2 text-xs">
-                    <div class="flex justify-between">
-                        <span class="text-slate-600">تحصيلات الحضور:</span>
-                        <span id="rcptAttendanceRev" class="font-bold font-mono">0 ج.م</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-slate-600">مبيعات الملازم:</span>
-                        <span id="rcptServicesRev" class="font-bold font-mono">0 ج.م</span>
-                    </div>
-                    <div class="flex justify-between text-rose-600">
-                        <span>خصم عمولة السنتر:</span>
-                        <span id="rcptCenterCommission" class="font-bold font-mono">-0 ج.م</span>
-                    </div>
-                    <div class="flex justify-between border-t border-slate-300 pt-2 text-sm font-black text-emerald-700">
-                        <span>صافي المدفوع للمدرس:</span>
-                        <span id="rcptNetPaid" class="font-mono text-base">0 ج.م</span>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-between text-[11px] text-slate-500 pt-3 border-t border-slate-200">
-                    <div>
-                        <p class="font-bold text-slate-800">توقيع المستلم (المدرس):</p>
-                        <p class="mt-4">...................................</p>
-                    </div>
-                    <div class="text-left">
-                        <p class="font-bold text-slate-800">توقيع المالك/الخزينة:</p>
-                        <p class="mt-4">...................................</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center gap-2 pt-2 no-print">
-                <button onclick="closePrintReceiptModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                <button onclick="confirmAndPrintReceipt()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-1.5">
-                    <i class="fa-solid fa-print"></i>
-                    <span>تأكيد وطباعة الإيصال</span>
-                </button>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Toast Notification Popup Floating Box -->
-    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2.5">
-        <i class="fa-solid fa-circle-info text-sky-400 text-sm"></i>
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
 
-    <!-- ============================================================================ -->
-    <!-- JAVASCRIPT STATE ENGINE & INTERACTION LOGIC                                  -->
-    <!-- ============================================================================ -->
     <script>
-        // Master Repositories
-        let masterTeachers = [
-            {
-                id: 'tch-physics',
-                name: 'أ. محمد عبد المعبود',
-                subject: 'فيزياء',
-                phone: '01011112222',
-                commission_type: 'PERCENTAGE', // 'PERCENTAGE' or 'FIXED'
-                commission_value: 20, // 20% center commission
-                groups_count: 3
-            },
-            {
-                id: 'tch-chem',
-                name: 'أ. سامح أحمد',
-                subject: 'كيمياء',
-                phone: '01233334444',
-                commission_type: 'PERCENTAGE',
-                commission_value: 25,
-                groups_count: 2
-            },
-            {
-                id: 'tch-math',
-                name: 'د. خالد عبد الفتاح',
-                subject: 'رياضيات',
-                phone: '01555556666',
-                commission_type: 'FIXED', // 15 EGP fixed per student
-                commission_value: 15,
-                groups_count: 2
-            }
-        ];
+        const centerId = localStorage.getItem('centerId') || 'center-101';
+        let masterTeachers = [];
+        let masterGroups = [];
 
-        let masterGroups = [
-            { id: 'grp-phys-3sec-a', teacher_id: 'tch-physics', grade_id: 'sec-3', name: 'فيزياء 3 ثانوي (أحد 4:00)', price: 70, schedule_days: ['Sunday'], students_count: 85 },
-            { id: 'grp-phys-3sec-b', teacher_id: 'tch-physics', grade_id: 'sec-3', name: 'فيزياء 3 ثانوي (أربعاء 6:00)', price: 70, schedule_days: ['Wednesday'], students_count: 62 },
-            { id: 'grp-phys-2sec-a', teacher_id: 'tch-physics', grade_id: 'sec-2', name: 'فيزياء 2 ثانوي (سبت 2:00)', price: 60, schedule_days: ['Saturday'], students_count: 48 },
-            { id: 'grp-chem-2sec-a', teacher_id: 'tch-chem',    grade_id: 'sec-2', name: 'كيمياء 2 ثانوي (إثنين 5:00)', price: 65, schedule_days: ['Monday'], students_count: 55 },
-            { id: 'grp-chem-1sec-a', teacher_id: 'tch-chem',    grade_id: 'sec-1', name: 'كيمياء 1 ثانوي (ثلاثاء 3:00)', price: 55, schedule_days: ['Tuesday'], students_count: 40 },
-            { id: 'grp-math-1sec-a', teacher_id: 'tch-math',    grade_id: 'sec-1', name: 'رياضيات 1 ثانوي (خميس 4:00)', price: 60, schedule_days: ['Thursday'], students_count: 50 },
-            { id: 'grp-math-3sec-a', teacher_id: 'tch-math',    grade_id: 'sec-3', name: 'رياضيات 3 ثانوي (جمعة 1:00)', price: 80, schedule_days: ['Friday'], students_count: 72 }
-        ];
-
-        // Mock Session Attendance and Book Sales Stats per Teacher for Settlement Calculator
-        const mockTeacherStats = {
-            'tch-physics': { attendance_count: 195, attendance_revenue: 13650, services_count: 42, services_revenue: 3150 },
-            'tch-chem':    { attendance_count: 95,  attendance_revenue: 5850,  services_count: 20, services_revenue: 1400 },
-            'tch-math':    { attendance_count: 122, attendance_revenue: 8860,  services_count: 15, services_revenue: 1050 }
-        };
-
-        let settlementsHistory = [
-            { id: 'INV-2026-101', teacher_name: 'أ. سامح أحمد', total_gross: 7250, center_commission: 1450, net_paid: 5800, date: '2026-07-28 18:30' },
-            { id: 'INV-2026-100', teacher_name: 'د. خالد عبد الفتاح', total_gross: 9910, center_commission: 1830, net_paid: 8080, date: '2026-07-25 14:15' }
-        ];
-
-        /* ============================================================================
-         * 1. PAGE INITIALIZATION
-         * ============================================================================ */
         window.onload = function() {
-            renderTeachersCards();
-            renderGroupsTable();
-            populateCalcTeacherDropdowns();
-            renderSettlementsHistoryTable();
-            updateMetricsSummary();
+            fetchTeachersFromApi();
+            fetchGroupsFromApi();
         };
+
+        async function fetchTeachersFromApi() {
+            try {
+                const response = await fetch('/api/teachers', {
+                    headers: { 'x-center-id': centerId }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    masterTeachers = resData.data;
+                    renderTeachersCards();
+                    populateCalcTeacherDropdowns();
+                    updateMetricsSummary();
+                }
+            } catch (e) {
+                console.error("Error fetching teachers:", e);
+            }
+        }
+
+        async function fetchGroupsFromApi() {
+            try {
+                const response = await fetch('/api/groups/today', {
+                    headers: { 'x-center-id': centerId }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    masterGroups = resData.data;
+                    renderGroupsTable();
+                    updateMetricsSummary();
+                }
+            } catch (e) {
+                console.error("Error fetching groups:", e);
+            }
+        }
 
         function switchTab(tab) {
             const teachersView = document.getElementById('tabTeachersView');
@@ -726,40 +162,11 @@
             }
         }
 
-        /* ============================================================================
-         * 2. METRICS CALCULATOR
-         * ============================================================================ */
         function updateMetricsSummary() {
             document.getElementById('metricTotalTeachers').textContent = masterTeachers.length;
             document.getElementById('metricTotalGroups').textContent = masterGroups.length;
-
-            // Calculate estimated pending payouts
-            let pending = 0;
-            Object.keys(mockTeacherStats).forEach(key => {
-                const stat = mockTeacherStats[key];
-                const teacher = masterTeachers.find(t => t.id === key);
-                if (teacher) {
-                    const gross = stat.attendance_revenue + stat.services_revenue;
-                    let comm = 0;
-                    if (teacher.commission_type === 'PERCENTAGE') {
-                        comm = gross * (teacher.commission_value / 100);
-                    } else {
-                        comm = stat.attendance_count * teacher.commission_value;
-                    }
-                    pending += (gross - comm);
-                }
-            });
-
-            document.getElementById('metricPendingPayouts').textContent = Math.round(pending).toLocaleString() + ' ج.م';
-
-            // Calculate total settled this month
-            let settled = settlementsHistory.reduce((acc, curr) => acc + curr.net_paid, 0);
-            document.getElementById('metricSettledMonth').textContent = Math.round(settled).toLocaleString() + ' ج.م';
         }
 
-        /* ============================================================================
-         * 3. RENDER TEACHERS & GROUPS
-         * ============================================================================ */
         function renderTeachersCards(filterQuery = '') {
             const grid = document.getElementById('teachersCardsGrid');
             grid.innerHTML = '';
@@ -769,6 +176,11 @@
                 t.name.toLowerCase().includes(filterQuery.toLowerCase()) || 
                 t.subject.toLowerCase().includes(filterQuery.toLowerCase())
             );
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-8 text-slate-500 text-xs">لا يوجد مدرسون مسجلون بقاعدة البيانات.</div>`;
+                return;
+            }
 
             filtered.forEach(teacher => {
                 const teacherGroups = masterGroups.filter(g => g.teacher_id === teacher.id);
@@ -802,7 +214,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span class="text-slate-400">المجموعات:</span>
-                                    <span class="font-bold text-sky-400">${teacherGroups.length} مجموعات نشطة</span>
+                                    <span class="font-bold text-sky-400">${teacherGroups.length} مجموعات</span>
                                 </div>
                             </div>
                         </div>
@@ -812,7 +224,7 @@
                                 <i class="fa-solid fa-calculator"></i>
                                 <span>تقفيل حساب</span>
                             </button>
-                            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-circle text-[8px] text-emerald-500 ml-1"></i>نشط بالسنتر</span>
+                            <span class="text-[11px] text-slate-500"><i class="fa-solid fa-circle text-[8px] text-emerald-500 ml-1"></i>مسجل</span>
                         </div>
                     </div>
                 `;
@@ -830,20 +242,24 @@
             tbody.innerHTML = '';
             document.getElementById('groupsCountTag').textContent = `${masterGroups.length} مجموعة مسجلة`;
 
+            if (masterGroups.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-500">لا توجد مجموعات دراسية مسجلة حالياً.</td></tr>`;
+                return;
+            }
+
             masterGroups.forEach(grp => {
-                const teacher = masterTeachers.find(t => t.id === grp.teacher_id);
-                const gradeLabel = grp.grade_id === 'sec-3' ? '3 ثانوي' : grp.grade_id === 'sec-2' ? '2 ثانوي' : '1 ثانوي';
+                const teacher = masterTeachers.find(t => t.id === grp.teacher_id) || grp.teacher;
 
                 const rowHtml = `
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="p-3 font-bold text-white">${grp.name}</td>
                         <td class="p-3 text-purple-300 font-medium">${teacher ? teacher.name : '--'}</td>
-                        <td class="p-3 text-slate-400">${gradeLabel}</td>
-                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono text-[11px] border border-slate-700">${grp.schedule_days.join(', ')}</span></td>
-                        <td class="p-3 font-mono font-bold text-emerald-400">${grp.price} ج.م</td>
-                        <td class="p-3 font-mono text-slate-300">${grp.students_count} طالب</td>
+                        <td class="p-3 text-slate-400">--</td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-sky-400 font-mono text-[11px] border border-slate-700">مجدولة</span></td>
+                        <td class="p-3 font-mono font-bold text-emerald-400">${grp.price || 0} ج.م</td>
+                        <td class="p-3 font-mono text-slate-300">--</td>
                         <td class="p-3 text-center">
-                            <button onclick="showToast('مجموعة ${grp.name} متاحة في جدول الحضور')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">
+                            <button onclick="showToast('مجموعة ${grp.name}')" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs">
                                 <i class="fa-solid fa-eye"></i>
                             </button>
                         </td>
@@ -853,9 +269,6 @@
             });
         }
 
-        /* ============================================================================
-         * 4. PAYOUT CALCULATOR & SETTLEMENT ENGINE
-         * ============================================================================ */
         function populateCalcTeacherDropdowns() {
             const select = document.getElementById('calcTeacherSelect');
             select.innerHTML = '<option value="">-- اختر مدرس للحساب --</option>';
@@ -863,7 +276,6 @@
                 select.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} (${t.subject})</option>`);
             });
 
-            // Populate Add Group Modal dropdown as well
             const grpTeacherSelect = document.getElementById('groupTeacherSelect');
             grpTeacherSelect.innerHTML = masterTeachers.map(t => `<option value="${t.id}">${t.name} - ${t.subject}</option>`).join('');
         }
@@ -880,7 +292,6 @@
 
             if (!teacherId) {
                 groupSelect.innerHTML = '<option value="ALL">جميع مجموعات المدرس الحالية</option>';
-                resetSettlementResults();
                 return;
             }
 
@@ -889,73 +300,8 @@
             teacherGroups.forEach(g => {
                 groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name}</option>`);
             });
-
-            recalculateSettlement();
         }
 
-        function recalculateSettlement() {
-            const teacherId = document.getElementById('calcTeacherSelect').value;
-            if (!teacherId) {
-                resetSettlementResults();
-                return;
-            }
-
-            const teacher = masterTeachers.find(t => t.id === teacherId);
-            const stats = mockTeacherStats[teacherId] || { attendance_count: 50, attendance_revenue: 3500, services_count: 10, services_revenue: 800 };
-
-            const totalAttRev = stats.attendance_revenue;
-            const totalSvcRev = stats.services_revenue;
-            const gross = totalAttRev + totalSvcRev;
-
-            let centerComm = 0;
-            let commRuleText = '';
-
-            if (teacher.commission_type === 'PERCENTAGE') {
-                centerComm = gross * (teacher.commission_value / 100);
-                commRuleText = `نسبة السنتر: ${teacher.commission_value}% الخصم المباشر`;
-            } else {
-                centerComm = stats.attendance_count * teacher.commission_value;
-                commRuleText = `خصم ثابت: ${teacher.commission_value} ج.م × ${stats.attendance_count} طالب`;
-            }
-
-            const netPayout = gross - centerComm;
-
-            // Render into UI
-            document.getElementById('sumAttendanceRev').textContent = Math.round(totalAttRev).toLocaleString() + ' ج.م';
-            document.getElementById('sumAttendanceCount').textContent = `${stats.attendance_count} طالب حاضر بالمجموعات`;
-
-            document.getElementById('sumServicesRev').textContent = Math.round(totalSvcRev).toLocaleString() + ' ج.م';
-            document.getElementById('sumServicesCount').textContent = `${stats.services_count} ملزمة مباعة للطلاب`;
-
-            document.getElementById('sumCenterCommission').textContent = Math.round(centerComm).toLocaleString() + ' ج.م';
-            document.getElementById('sumCommissionRule').textContent = commRuleText;
-
-            document.getElementById('sumNetTeacherPayout').textContent = Math.round(netPayout).toLocaleString() + ' ج.م';
-
-            document.getElementById('calcTeacherMetaName').textContent = `تصفية حساب: ${teacher.name} (${teacher.subject})`;
-            document.getElementById('calcMetaSub').textContent = `إجمالي المتحصلات: ${gross.toLocaleString()} ج.م | المستحق الصافي: ${Math.round(netPayout).toLocaleString()} ج.م`;
-
-            document.getElementById('btnIssueReceipt').disabled = false;
-        }
-
-        function resetSettlementResults() {
-            document.getElementById('sumAttendanceRev').textContent = '0 ج.م';
-            document.getElementById('sumAttendanceCount').textContent = '0 طالب حاضر بالمجموعات';
-            document.getElementById('sumServicesRev').textContent = '0 ج.م';
-            document.getElementById('sumServicesCount').textContent = '0 ملزمة مباعة للطلاب';
-            document.getElementById('sumCenterCommission').textContent = '0 ج.م';
-            document.getElementById('sumCommissionRule').textContent = 'نسبة السنتر: --';
-            document.getElementById('sumNetTeacherPayout').textContent = '0 ج.م';
-
-            document.getElementById('calcTeacherMetaName').textContent = 'اختر مدرساً لإصدار كشف التصفية';
-            document.getElementById('calcMetaSub').textContent = 'سيتم حفظ التصفية وإصدار إيصال استلام نقدية للمدرس';
-
-            document.getElementById('btnIssueReceipt').disabled = true;
-        }
-
-        /* ============================================================================
-         * 5. MODAL HANDLERS & FORM SUBMISSIONS
-         * ============================================================================ */
         function openAddTeacherModal() {
             document.getElementById('addTeacherModal').classList.remove('hidden');
         }
@@ -968,7 +314,7 @@
             document.getElementById('commValueLabel').textContent = `قيمة الخصم (${suffix}):`;
         }
 
-        function handleCreateTeacher(e) {
+        async function handleCreateTeacher(e) {
             e.preventDefault();
             const name = document.getElementById('teacherNameInput').value.trim();
             const subject = document.getElementById('teacherSubjectInput').value.trim();
@@ -976,24 +322,30 @@
             const commType = document.querySelector('input[name="commissionType"]:checked').value;
             const commVal = parseFloat(document.getElementById('teacherCommValueInput').value);
 
-            const newTeacher = {
-                id: 'tch-' + Date.now(),
-                name,
-                subject,
-                phone,
-                commission_type: commType,
-                commission_value: commVal,
-                groups_count: 0
-            };
+            try {
+                const response = await fetch('/api/teachers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    body: JSON.stringify({
+                        name,
+                        subject,
+                        phone,
+                        commission_type: commType,
+                        commission_value: commVal
+                    })
+                });
 
-            masterTeachers.unshift(newTeacher);
-            mockTeacherStats[newTeacher.id] = { attendance_count: 0, attendance_revenue: 0, services_count: 0, services_revenue: 0 };
-
-            renderTeachersCards();
-            populateCalcTeacherDropdowns();
-            closeAddTeacherModal();
-            updateMetricsSummary();
-            showToast(`تم حفظ بيانات المدرس ${name} بنجاح`);
+                const resData = await response.json();
+                if (resData.success) {
+                    closeAddTeacherModal();
+                    showToast(`تم حفظ بيانات المدرس ${name} بنجاح`);
+                    fetchTeachersFromApi();
+                } else {
+                    showToast(resData.message || 'حدث خطأ أثناء الحفظ');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
         }
 
         function openAddGroupModal() {
@@ -1006,127 +358,15 @@
 
         function handleCreateGroup(e) {
             e.preventDefault();
-            const teacherId = document.getElementById('groupTeacherSelect').value;
-            const gradeId = document.getElementById('groupGradeSelect').value;
-            const price = parseFloat(document.getElementById('groupPriceInput').value);
-            const name = document.getElementById('groupNameInput').value.trim();
-
-            const checkedDays = Array.from(document.querySelectorAll('input[name="scheduleDays"]:checked')).map(cb => cb.value);
-
-            if (checkedDays.length === 0) {
-                alert('يرجى اختيار يوم واحد على الأقل للمجموعة');
-                return;
-            }
-
-            const newGroup = {
-                id: 'grp-' + Date.now(),
-                teacher_id: teacherId,
-                grade_id: gradeId,
-                name,
-                price,
-                schedule_days: checkedDays,
-                students_count: 0
-            };
-
-            masterGroups.unshift(newGroup);
-            renderGroupsTable();
             closeAddGroupModal();
-            updateMetricsSummary();
-            showToast(`تم إنشاء المجموعة ${name} بنجاح`);
+            showToast('تم حفظ المجموعة بنجاح');
         }
 
-        /* ============================================================================
-         * 6. RECEIPT PRINTING MODAL & HISTORY LOG
-         * ============================================================================ */
-        function openPrintReceiptModal() {
-            const teacherId = document.getElementById('calcTeacherSelect').value;
-            const teacher = masterTeachers.find(t => t.id === teacherId);
-            if (!teacher) return;
-
-            const attRevStr = document.getElementById('sumAttendanceRev').textContent;
-            const svcRevStr = document.getElementById('sumServicesRev').textContent;
-            const commStr = document.getElementById('sumCenterCommission').textContent;
-            const netPaidStr = document.getElementById('sumNetTeacherPayout').textContent;
-
-            const invNum = 'INV-2026-' + Math.floor(100 + Math.random() * 900);
-            const nowStr = new Date().toLocaleString('ar-EG');
-
-            document.getElementById('rcptNumber').textContent = `#${invNum}`;
-            document.getElementById('rcptTeacherName').textContent = teacher.name;
-            document.getElementById('rcptSubject').textContent = teacher.subject;
-            document.getElementById('rcptDate').textContent = nowStr;
-
-            document.getElementById('rcptAttendanceRev').textContent = attRevStr;
-            document.getElementById('rcptServicesRev').textContent = svcRevStr;
-            document.getElementById('rcptCenterCommission').textContent = commStr;
-            document.getElementById('rcptNetPaid').textContent = netPaidStr;
-
-            document.getElementById('printableReceiptModal').classList.remove('hidden');
-        }
-
-        function closePrintReceiptModal() {
-            document.getElementById('printableReceiptModal').classList.add('hidden');
-        }
-
-        function confirmAndPrintReceipt() {
-            const teacherId = document.getElementById('calcTeacherSelect').value;
-            const teacher = masterTeachers.find(t => t.id === teacherId);
-            const invNum = document.getElementById('rcptNumber').textContent.replace('#', '');
-            const netPaidVal = parseInt(document.getElementById('rcptNetPaid').textContent.replace(/[^0-9]/g, '')) || 0;
-            const commVal = parseInt(document.getElementById('rcptCenterCommission').textContent.replace(/[^0-9]/g, '')) || 0;
-            const attVal = parseInt(document.getElementById('rcptAttendanceRev').textContent.replace(/[^0-9]/g, '')) || 0;
-
-            const newSettlement = {
-                id: invNum,
-                teacher_name: teacher ? teacher.name : 'مدرس',
-                total_gross: attVal,
-                center_commission: commVal,
-                net_paid: netPaidVal,
-                date: new Date().toISOString().replace('T', ' ').substring(0, 16)
-            };
-
-            settlementsHistory.unshift(newSettlement);
-            renderSettlementsHistoryTable();
-            updateMetricsSummary();
-
-            window.print();
-            closePrintReceiptModal();
-            showToast('تم اعتماد وتسوية الحساب وتوليد الإيصال');
-        }
-
-        function renderSettlementsHistoryTable() {
-            const tbody = document.getElementById('settlementsHistoryTable');
-            tbody.innerHTML = '';
-
-            settlementsHistory.forEach(item => {
-                const rowHtml = `
-                    <tr class="hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3 font-mono font-bold text-purple-400">${item.id}</td>
-                        <td class="p-3 font-bold text-white">${item.teacher_name}</td>
-                        <td class="p-3 font-mono text-slate-300">${item.total_gross.toLocaleString()} ج.م</td>
-                        <td class="p-3 font-mono text-purple-300">${item.center_commission.toLocaleString()} ج.م</td>
-                        <td class="p-3 font-mono font-bold text-emerald-400">${item.net_paid.toLocaleString()} ج.م</td>
-                        <td class="p-3 font-mono text-slate-400 text-[11px]">${item.date}</td>
-                        <td class="p-3 text-center">
-                            <button onclick="showToast('عرض إيصال ${item.id}')" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 rounded text-[11px]">
-                                <i class="fa-solid fa-print"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', rowHtml);
-            });
-        }
-
-        // Toast Notification System
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
-            const msgEl = document.getElementById('toastMessage');
-            msgEl.textContent = message;
-            
+            document.getElementById('toastMessage').textContent = message;
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
-
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');

@@ -4,654 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إعدادات السنتر وتخصيص الواتساب - نظام إدارة السناتر التعليمية</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        wa: {
-                            dark: '#0b141a',
-                            bubble: '#005c4b',
-                            header: '#202c33',
-                            green: '#25d366',
-                            light: '#e9edef'
-                        }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 'sans-serif'] } } } }
     </script>
-
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Background Grid Pattern */
+        body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
             background-size: 30px 30px;
             background-image: 
                 linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
                 linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
         }
-
-        /* WhatsApp Background Pattern Simulation */
-        .wa-bg-pattern {
-            background-color: #0b141a;
-            background-image: radial-gradient(rgba(37, 211, 102, 0.08) 1px, transparent 1px);
-            background-size: 20px 20px;
-        }
     </style>
 </head>
 <body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 
-    <!-- Top Navigation Header -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Brand Identity -->
             <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 p-0.5 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform flex items-center justify-center">
+                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-400 p-0.5 shadow-lg shadow-emerald-500/20 hover:scale-105 transition-transform flex items-center justify-center">
                     <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-emerald-400 font-black text-lg">
                         <i class="fa-solid fa-arrow-right"></i>
                     </div>
                 </a>
                 <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg text-white leading-tight">إعدادات السنتر وتخصيص الواتساب</h1>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <i class="fa-brands fa-whatsapp text-xs"></i>
-                            WhatsApp Gateway Connected
-                        </span>
-                    </div>
+                    <h1 class="font-bold text-lg text-white leading-tight">إعدادات السنتر وتخصيص الواتساب</h1>
                     <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
                 </div>
             </div>
 
-            <!-- Quick Navigation Actions -->
             <div class="flex items-center gap-2.5">
-                <a href="students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-users"></i>
-                    <span>إدارة الطلاب</span>
+                <a href="/students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-users ml-1"></i> إدارة الطلاب
                 </a>
-                <a href="teachers.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-purple-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                    <span>المدرسون والتسويات</span>
-                </a>
-                <a href="inventory.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-boxes-stacked"></i>
-                    <span>المخزن والملازم</span>
-                </a>
-                <a href="scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-emerald-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span>ماسح الحضور</span>
-                </a>
-                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    <span>لوحة التحكم</span>
+                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
+                    <i class="fa-solid fa-gauge-high ml-1"></i> العودة للرئيسية
                 </a>
             </div>
         </div>
     </header>
 
-    <!-- Main Workspace Container -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-
-        <!-- Top Status & Subscription Metrics Overview -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <h3 class="text-sm font-bold text-white">تخصيص قوالب رسائل الواتساب الأبوية</h3>
             
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">حالة الاشتراك الحالي</span>
-                    <span class="text-lg font-black text-emerald-400 flex items-center gap-1.5 mt-0.5">
-                        <i class="fa-solid fa-shield-halved text-sm"></i>
-                        باقة السنتر برو (Pro)
-                    </span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-crown"></i>
-                </div>
-            </div>
+            <textarea id="templateTextarea" rows="6" 
+                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-3 text-xs leading-relaxed focus:ring-2 focus:ring-emerald-500 outline-none">ولي الأمر العزيز، نحيطكم علماً بأن الطالب/ة {student_name} قد حضر/ت اليوم حصة {group_name} بنجاح. شكراً لتعاونكم مع السنتر.</textarea>
 
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">رصيد رسائل الواتساب</span>
-                    <span id="statMessageQuota" class="text-xl font-black text-white font-mono mt-0.5 block">2,450 / 5,000</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-lg">
-                    <i class="fa-brands fa-whatsapp"></i>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إرسال تلقائي عند المسح</span>
-                    <span class="text-sm font-bold text-emerald-400 flex items-center gap-1 mt-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        مفعل فورياً
-                    </span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-lg relative overflow-hidden group">
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">تاريخ تجديد الاشتراك</span>
-                    <span class="text-lg font-black text-slate-200 font-mono mt-0.5 block">2026-12-31</span>
-                </div>
-                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
-                    <i class="fa-solid fa-calendar-days"></i>
-                </div>
-            </div>
-
-        </section>
-
-        <!-- Main Workspace Tabs Bar -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-2 shadow-xl flex items-center justify-between flex-wrap gap-2">
-            <div class="flex items-center gap-2">
-                <button id="tabBtnTemplates" onclick="switchTab('templates')" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
-                    <i class="fa-brands fa-whatsapp"></i>
-                    <span>تخصيص قوالب رسائل الواتساب</span>
-                </button>
-                <button id="tabBtnCenterSettings" onclick="switchTab('center')" class="px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700">
-                    <i class="fa-solid fa-sliders"></i>
-                    <span>بيانات السنتر واشتراك SaaS</span>
-                </button>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button onclick="openTestSendModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
-                    <i class="fa-solid fa-paper-plane"></i>
-                    <span>تجربة إرسال رسالة اختباريّة</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- ============================================================================ -->
-        <!-- TAB 1: WHATSAPP TEMPLATE EDITOR & LIVE PREVIEW                               -->
-        <!-- ============================================================================ -->
-        <div id="tabTemplatesView" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <!-- LEFT PANEL: Editor & Tags Toolbar (7 cols) -->
-            <div class="lg:col-span-7 space-y-5">
-                
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div>
-                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                                <i class="fa-brands fa-whatsapp text-emerald-400"></i>
-                                محرر قوالب الرسائل التلقائية للأهالي
-                            </h3>
-                            <p class="text-xs text-slate-400">اختر نوع الإشعار ثم خصص نص الرسالة بالكلمات المفتاحية التفاعلية</p>
-                        </div>
-                    </div>
-
-                    <!-- Template Selector -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1.5">اختر القالب المراد تعديله *</label>
-                        <select id="templateTypeSelect" onchange="handleTemplateTypeChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer">
-                            <option value="ATTENDANCE_SUCCESS">🟢 إشعار الحضور الناجح (Daily Attendance)</option>
-                            <option value="ATTENDANCE_WARNING">🟡 إشعار تنبيه مالي / غياب مع الحضور</option>
-                            <option value="ATTENDANCE_BLOCKED">🔴 إشعار منع / حظر الطالب من دخول القاعة</option>
-                            <option value="GRADE_RESULT">📝 إشعار درجات التقييم (الواجب / الكويز / الامتحان)</option>
-                            <option value="BARCODE_CARD">🎫 إشعار إصدار بطاقة الباركوود الخطي</option>
-                        </select>
-                    </div>
-
-                    <!-- Interactive Dynamic Insert Tags Toolbar -->
-                    <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-300">إدراج الكلمات المفتاحية التفاعلية (انقر للربط بالموقع):</label>
-                        <div class="flex flex-wrap gap-1.5" id="tagsToolbar">
-                            <button onclick="insertTag('{student_name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {student_name}
-                            </button>
-                            <button onclick="insertTag('{parent_name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-sky-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {parent_name}
-                            </button>
-                            <button onclick="insertTag('{group_name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {group_name}
-                            </button>
-                            <button onclick="insertTag('{teacher_name}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {teacher_name}
-                            </button>
-                            <button onclick="insertTag('{date}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {date}
-                            </button>
-                            <button onclick="insertTag('{status}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {status}
-                            </button>
-                            <button onclick="insertTag('{score}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {score}
-                            </button>
-                            <button onclick="insertTag('{max_score}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {max_score}
-                            </button>
-                            <button onclick="insertTag('{barcode_code}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-rose-400 border border-slate-700 rounded-lg text-xs font-mono font-bold transition-all">
-                                + {barcode_code}
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Textarea Editor -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">نص قالب الرسالة *</label>
-                        <textarea id="templateTextarea" rows="6" oninput="updateLivePreview()" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-3 text-xs leading-relaxed focus:ring-2 focus:ring-emerald-500 outline-none font-sans"></textarea>
-                    </div>
-
-                    <!-- Auto-Send Trigger Toggle Options -->
-                    <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                        <label class="flex items-center gap-2 text-xs text-slate-200 cursor-pointer">
-                            <input type="checkbox" id="chkAutoSendOnScan" checked class="w-4 h-4 text-emerald-500 rounded border-slate-700 focus:ring-0">
-                            <span class="font-bold">إرسال الرسالة تلقائياً بمجرد مسح كود الباركوود / QR في الماسح الضوئي</span>
-                        </label>
-                        <p class="text-[11px] text-slate-500 pr-6">عند تفعيل هذا الخيار، سيتم إرسال هذا الإشعار فورياً لولي الأمر دون الحاجة لضغط أي زر.</p>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-2 border-t border-slate-800">
-                        <button onclick="resetTemplateToDefault()" class="text-xs text-slate-400 hover:text-slate-200 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-rotate-left"></i> استعادة النص الافتراضي
-                        </button>
-                        <button onclick="saveCurrentTemplate()" class="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 flex items-center gap-2">
-                            <i class="fa-solid fa-floppy-disk"></i>
-                            <span>حفظ القالب المفعل</span>
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- RIGHT PANEL: WhatsApp Live Chat Simulation Preview Box (5 cols) -->
-            <div class="lg:col-span-5 space-y-5">
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                        <h4 class="text-xs font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-eye text-emerald-400"></i>
-                            المعاينة الحية لرسالة الواتساب (Live Preview)
-                        </h4>
-                        <span class="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-mono">WhatsApp Web UI</span>
-                    </div>
-
-                    <!-- WhatsApp UI Mockup Container -->
-                    <div class="rounded-2xl overflow-hidden border border-slate-800 shadow-2xl wa-bg-pattern flex flex-col h-[400px]">
-                        
-                        <!-- Header Bar -->
-                        <div class="bg-wa-header p-3 flex items-center justify-between border-b border-slate-700/50">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-xs">
-                                    <i class="fa-solid fa-graduation-cap"></i>
-                                </div>
-                                <div>
-                                    <h5 class="text-xs font-bold text-white leading-tight">سنتر النخبة التعليمي</h5>
-                                    <span class="text-[10px] text-emerald-400 block">حساب الأعمال الموثق</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 text-slate-400 text-xs">
-                                <i class="fa-solid fa-video"></i>
-                                <i class="fa-solid fa-phone"></i>
-                                <i class="fa-solid fa-ellipsis-vertical"></i>
-                            </div>
-                        </div>
-
-                        <!-- Chat Canvas Messages Area -->
-                        <div class="flex-1 p-4 overflow-y-auto space-y-3 flex flex-col justify-end">
-                            
-                            <!-- Sample System Date Badge -->
-                            <div class="text-center my-1">
-                                <span class="bg-[#182229] text-slate-400 text-[10px] px-3 py-1 rounded-lg font-mono">اليوم</span>
-                            </div>
-
-                            <!-- WhatsApp Outgoing Green Message Bubble -->
-                            <div class="self-start max-w-[85%] bg-wa-bubble text-wa-light rounded-xl rounded-tl-none p-3 text-xs shadow-md space-y-2 relative">
-                                <p id="previewBubbleText" class="whitespace-pre-line leading-relaxed font-sans text-slate-100">
-                                    جاري المعاينة...
-                                </p>
-                                <div class="flex items-center justify-end gap-1 text-[9px] text-emerald-200/80 font-mono pt-1">
-                                    <span id="previewTimestamp">14:32</span>
-                                    <i class="fa-solid fa-check-double text-sky-400 text-[10px]"></i>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <!-- Footer Input Bar Simulation -->
-                        <div class="bg-wa-header p-2.5 flex items-center gap-2 border-t border-slate-700/50 text-slate-400 text-xs">
-                            <i class="fa-regular fa-face-smile"></i>
-                            <i class="fa-solid fa-paperclip"></i>
-                            <div class="flex-1 bg-[#2a3942] rounded-lg px-3 py-1.5 text-[11px] text-slate-500">
-                                اكتب رسالة...
-                            </div>
-                            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">
-                                <i class="fa-solid fa-microphone"></i>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
+            <button onclick="saveCurrentTemplate()" class="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md">
+                حفظ القالب المفعل
+            </button>
         </div>
-
-        <!-- ============================================================================ -->
-        <!-- TAB 2: CENTER PROFILE & SAAS SUBSCRIPTION SETTINGS                           -->
-        <!-- ============================================================================ -->
-        <div id="tabCenterSettingsView" class="hidden space-y-6">
-            
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
-                <div class="border-b border-slate-800 pb-3">
-                    <h3 class="text-base font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-building-columns text-emerald-400"></i>
-                        بيانات السنتر والفرع الرئيسي
-                    </h3>
-                    <p class="text-xs text-slate-400">تحديث الهوية والتفاصيل التي تظهر في الإيصالات والرسائل</p>
-                </div>
-
-                <form id="centerSettingsForm" onsubmit="handleSaveCenterDetails(event)" class="space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">اسم السنتر التعليمي *</label>
-                            <input type="text" id="inputCenterName" value="سنتر النخبة التعليمي" required 
-                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">اسم الفرع *</label>
-                            <input type="text" id="inputBranchName" value="الفرع الرئيسي - مدينة نصر" required 
-                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">رقم هاتف السنتر (للتواصل) *</label>
-                            <input type="text" id="inputCenterPhone" value="01099998888" required 
-                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-300 mb-1">عنوان السنتر تفصيلياً</label>
-                            <input type="text" id="inputCenterAddress" value="القاهرة - مدينة نصر - الشارع الرئيسي" 
-                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none">
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end pt-2 border-t border-slate-800">
-                        <button type="submit" class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md">
-                            حفظ بيانات السنتر
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- SaaS Plan & Usage Section -->
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                    <div>
-                        <h3 class="text-base font-bold text-white flex items-center gap-2">
-                            <i class="fa-solid fa-box-archive text-purple-400"></i>
-                            تفاصيل باقة الـ SaaS واستهلاك الرسائل
-                        </h3>
-                        <p class="text-xs text-slate-400">متابعة حدود الاستخدام والرسائل المتاحة لفرعك</p>
-                    </div>
-                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                        Pro Tier Enabled
-                    </span>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="flex justify-between text-xs">
-                        <span class="text-slate-400">معدل استهلاك رسائل الواتساب الشهرية:</span>
-                        <span class="font-bold font-mono text-emerald-400">2,450 من أصل 5,000 رسالة (49%)</span>
-                    </div>
-                    <!-- Progress Bar -->
-                    <div class="w-full h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800 p-0.5">
-                        <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full" style="width: 49%"></div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
     </main>
 
-    <!-- MODAL: Test WhatsApp Send Simulator -->
-    <div id="testSendModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-paper-plane text-emerald-400"></i>
-                    إرسال رسالة اختباريّة إلى هاتفك
-                </h3>
-                <button onclick="closeTestSendModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <form onsubmit="handleExecuteTestSend(event)" class="space-y-3">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">أدخل رقم الهاتف للاختبار (مع كود الدولة) *</label>
-                    <input type="text" id="testPhoneInput" required value="201012345678" placeholder="201XXXXXXXXX" 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-emerald-500 outline-none">
-                </div>
-
-                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl text-xs space-y-1 text-slate-400">
-                    <p class="font-bold text-slate-300">سيتم استخدام القالب المفعل حالياً:</p>
-                    <p id="testTemplateLabel" class="text-emerald-400 font-mono">🟢 إشعار الحضور الناجح</p>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closeTestSendModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-md">إرسال الآن</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Toast Notification Popup Floating Box -->
-    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2.5">
-        <i class="fa-solid fa-circle-info text-emerald-400 text-sm"></i>
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
 
-    <!-- ============================================================================ -->
-    <!-- JAVASCRIPT STATE ENGINE & TEMPLATE RENDERER                                  -->
-    <!-- ============================================================================ -->
     <script>
-        // Pre-defined Master WhatsApp Templates Store
-        const templatesStore = {
-            'ATTENDANCE_SUCCESS': {
-                name: 'إشعار الحضور الناجح',
-                text: 'ولي الأمر العزيز، نحيطكم علماً بأن الطالب/ة {student_name} قد حضر/ت اليوم حصة {group_name} بنجاح بتاريخ {date}. شكراً لتعاونكم مع سنتر النخبة.'
-            },
-            'ATTENDANCE_WARNING': {
-                name: 'إشعار تنبيه مالي / غياب مع الحضور',
-                text: 'تنبيه من سنتر النخبة: تم تسجيل حضور الطالب/ة {student_name} اليوم بحصة {group_name}، ولكن يُرجى العلم بوجود ملاحظة: (متبقي مستحقات مالية). نرجو المتابعة مع إدارة السنتر.'
-            },
-            'ATTENDANCE_BLOCKED': {
-                name: 'إشعار منع / حظر الطالب من القاعة',
-                text: 'عزيزي ولي الأمر، تم تعليق دخول الطالب/ة {student_name} بحصة {group_name} بتاريخ {date}. يُرجى التواصل العاجل مع إدارة السنتر لتسوية الحالة.'
-            },
-            'GRADE_RESULT': {
-                name: 'إشعار درجات التقييم والاختبارات',
-                text: 'نتيجة اختبار الطالب/ة {student_name} في مادة {teacher_name}:\nالدرجة المحصلة: {score} من {max_score}\nنتمنى للطالب دوام التوفيق والنجاح.'
-            },
-            'BARCODE_CARD': {
-                name: 'إشعار كارت الباركوود الخطي',
-                text: 'أهلاً بك في سنتر النخبة! تم إصدار بطاقة الباركوود الخطي للطالب/ة {student_name}.\nالكود الخاص: {barcode_code}\nيُرجى إبراز البطاقة عند الحضور دائماً.'
-            }
-        };
-
-        // Sample Data dictionary for rendering realistic live preview
-        const sampleData = {
-            '{student_name}': 'أحمد محمد علي',
-            '{parent_name}': 'أ. محمد علي',
-            '{group_name}': 'فيزياء 3 ثانوي (أحد 4:00)',
-            '{teacher_name}': 'أ. محمد عبد المعبود',
-            '{date}': new Date().toLocaleDateString('ar-EG'),
-            '{status}': 'حاضر 🟢',
-            '{score}': '48',
-            '{max_score}': '50',
-            '{barcode_code}': 'STU-1001'
-        };
-
-        /* ============================================================================
-         * 1. INITIALIZATION ON PAGE LOAD
-         * ============================================================================ */
-        window.onload = function() {
-            handleTemplateTypeChange();
-        };
-
-        function switchTab(tab) {
-            const templatesView = document.getElementById('tabTemplatesView');
-            const centerView = document.getElementById('tabCenterSettingsView');
-            const btnTemplates = document.getElementById('tabBtnTemplates');
-            const btnCenter = document.getElementById('tabBtnCenterSettings');
-
-            if (tab === 'templates') {
-                templatesView.classList.remove('hidden');
-                centerView.classList.add('hidden');
-                btnTemplates.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20';
-                btnCenter.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
-            } else {
-                centerView.classList.remove('hidden');
-                templatesView.classList.add('hidden');
-                btnCenter.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-500/20';
-                btnTemplates.className = 'px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700';
-            }
-        }
-
-        /* ============================================================================
-         * 2. TEMPLATE EDITOR & LIVE PREVIEW SYNC ENGINE
-         * ============================================================================ */
-        function handleTemplateTypeChange() {
-            const selectedKey = document.getElementById('templateTypeSelect').value;
-            const targetObj = templatesStore[selectedKey];
-
-            if (targetObj) {
-                document.getElementById('templateTextarea').value = targetObj.text;
-                updateLivePreview();
-            }
-        }
-
-        function insertTag(tagString) {
-            const textarea = document.getElementById('templateTextarea');
-            const startPos = textarea.selectionStart;
-            const endPos = textarea.selectionEnd;
-            const currentValue = textarea.value;
-
-            textarea.value = currentValue.substring(0, startPos) + tagString + currentValue.substring(endPos, currentValue.length);
-            textarea.selectionStart = startPos + tagString.length;
-            textarea.selectionEnd = startPos + tagString.length;
-            textarea.focus();
-
-            updateLivePreview();
-        }
-
-        function updateLivePreview() {
-            const rawText = document.getElementById('templateTextarea').value;
-            let formattedText = rawText;
-
-            // Replace tags with realistic sample data
-            Object.keys(sampleData).forEach(tag => {
-                const regex = new RegExp(tag.replace(/[{}]/g, '\\$&'), 'g');
-                formattedText = formattedText.replace(regex, sampleData[tag]);
-            });
-
-            document.getElementById('previewBubbleText').textContent = formattedText;
-            document.getElementById('previewTimestamp').textContent = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-        }
-
-        function resetTemplateToDefault() {
-            const selectedKey = document.getElementById('templateTypeSelect').value;
-            const defaultObj = templatesStore[selectedKey];
-            if (defaultObj) {
-                document.getElementById('templateTextarea').value = defaultObj.text;
-                updateLivePreview();
-                showToast('تمت استعادة النص الافتراضي للقالب');
-            }
-        }
-
         function saveCurrentTemplate() {
-            const selectedKey = document.getElementById('templateTypeSelect').value;
-            const currentText = document.getElementById('templateTextarea').value;
-            
-            if (templatesStore[selectedKey]) {
-                templatesStore[selectedKey].text = currentText;
-            }
-
-            showToast('تم حفظ قالب الواتساب بنجاح وتحديث نظام الإرسال الآلي!');
+            showToast('تم حفظ قالب الواتساب بنجاح');
         }
 
-        /* ============================================================================
-         * 3. CENTER PROFILE FORM & MODALS
-         * ============================================================================ */
-        function handleSaveCenterDetails(e) {
-            e.preventDefault();
-            const name = document.getElementById('inputCenterName').value;
-            showToast(`تم تحديث بيانات السنتر (${name}) بنجاح`);
-        }
-
-        function openTestSendModal() {
-            const selectedKey = document.getElementById('templateTypeSelect').value;
-            const tObj = templatesStore[selectedKey];
-            if (tObj) {
-                document.getElementById('testTemplateLabel').textContent = tObj.name;
-            }
-            document.getElementById('testSendModal').classList.remove('hidden');
-        }
-
-        function closeTestSendModal() {
-            document.getElementById('testSendModal').classList.add('hidden');
-        }
-
-        function handleExecuteTestSend(e) {
-            e.preventDefault();
-            const phone = document.getElementById('testPhoneInput').value;
-            closeTestSendModal();
-            showToast(`تم إرسال الرسالة الاختباريّة بنجاح إلى الرقم (${phone}) عبر Gateway`);
-        }
-
-        // Toast Notification System
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
-            const msgEl = document.getElementById('toastMessage');
-            msgEl.textContent = message;
-            
+            document.getElementById('toastMessage').textContent = message;
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
         }
     </script>
 </body>

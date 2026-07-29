@@ -1,692 +1,244 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-sky-500 selection:text-white">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - نظام إدارة السناتر التعليمية (Center SaaS)</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Cairo & Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- QR Code Generator Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- ... existing code ... -->
+        <!-- Main Dashboard Body -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+            <!-- Stats Bar -->
+            <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-check"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">إجمالي الطلاب</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpiTotalStudents" class="text-2xl font-black text-white font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
+                    <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">مجموعات اليوم</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpiActiveGroups" class="text-2xl font-black text-white font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-user-tie"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">عدد المدرسين</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpiTeachersCount" class="text-2xl font-black text-purple-300 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">الملازم بالمخزن</span>
+                        <div class="flex items-baseline gap-2">
+                            <span id="kpiInventoryCount" class="text-2xl font-black text-amber-300 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Apps Cards Grid (CONNECTED TO REAL HTML FILES) -->
+            <section class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                            <i class="fa-solid fa-cubes text-sky-400"></i>
+                            منظومة تطبيقات السنتر (Apps Grid)
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">انقر على أي تطبيق لفتحه مباشرة</p>
+                    </div>
+
+                    <a href="students.html" class="px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>إضافة طالب جديد</span>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <!-- APP 1: scanner.html -->
+                    <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-sky-500">
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-sky-500/30">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+                                    ماسح سريع
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">الحضور والغياب (QR)</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">شاشة تحضير الطلاب بالكاميرا السريعة، إظهار المديونيات، والتنبيهات.</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400"><i class="fa-regular fa-clock ml-1"></i> جاهز</span>
+                            <a href="scanner.html" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
+                                <span>فتح الماسح</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- APP 2: students.html -->
+                    <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-indigo-500">
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-indigo-500/30">
+                                    <i class="fa-solid fa-id-card"></i>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                                    سجل الطلاب
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">إدارة الطلاب والبروفايل</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">تكويد الطلاب، طباعة كروت الباركوود، استعراض السجل الشامل للحضور.</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-folder-open ml-1"></i> قاعدة البيانات</span>
+                            <a href="students.html" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
+                                <span>فتح الطلاب</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- APP 3: teachers.html -->
+                    <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-purple-500">
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-purple-500/30">
+                                    <i class="fa-solid fa-chalkboard-user"></i>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                                    المدرسون
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">المدرسون والمجموعات</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">جدولة المجموعات، تحديد مواعيد الحصص، إعداد نسب وعمولات المدرسين.</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-calendar-days ml-1"></i> الجداول والتسويات</span>
+                            <a href="teachers.html" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
+                                <span>إدارة الجداول</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- APP 4: inventory.html -->
+                    <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-amber-500">
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-amber-500/30">
+                                    <i class="fa-solid fa-boxes-stacked"></i>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
+                                    POS المخزن
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">المطبوعات والملازم</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة الكميات بالمخزن، بيع الكتب والملازم للطلاب وتسجيل المقبولات تلقائياً.</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-boxes-stacked ml-1"></i> منفذ البيع</span>
+                            <a href="inventory.html" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
+                                <span>المخزن والبيع</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- APP 5: settings.html -->
+                    <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-emerald-500">
+                        <div>
+                            <div class="flex items-start justify-between mb-4">
+                                <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-emerald-500/30">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                </div>
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    إشعارات الواتساب
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-bold text-white mb-1">الإعدادات والواتساب</h3>
+                            <p class="text-xs text-slate-400 leading-relaxed mb-4">ضبط بيانات السنتر، إعداد قوالب الرسائل التلقائية للأهالي والملاحظات.</p>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
+                            <span class="text-xs text-slate-400"><i class="fa-solid fa-sliders ml-1"></i> التخصيص</span>
+                            <a href="settings.html" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
+                                <span>الإعدادات</span>
+                                <i class="fa-solid fa-arrow-left text-[10px]"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
 
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Cairo', 'Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        odoo: {
-                            purple: '#714B67',
-                            teal: '#00A09D',
-                            coral: '#E15252',
-                            amber: '#F0AD4E',
-                            dark: '#1E1E2D',
-                        }
-                    }
+        const centerId = localStorage.getItem('centerId') || 'center-101';
+
+        window.onload = function() {
+            document.getElementById('currentCenterBadge').textContent = centerId;
+            fetchDashboardMetrics();
+        };
+
+        async function fetchDashboardMetrics() {
+            const headers = { 'x-center-id': centerId };
+            try {
+                const stuRes = await fetch('/api/students', { headers });
+                const stuData = await stuRes.json();
+                if (stuData.success && Array.isArray(stuData.data)) {
+                    document.getElementById('kpiTotalStudents').textContent = stuData.data.length;
                 }
+
+                const grpRes = await fetch('/api/groups/today', { headers });
+                const grpData = await grpRes.json();
+                if (grpData.success && Array.isArray(grpData.data)) {
+                    document.getElementById('kpiActiveGroups').textContent = grpData.data.length;
+                }
+
+                const tchRes = await fetch('/api/teachers', { headers });
+                const tchData = await tchRes.json();
+                if (tchData.success && Array.isArray(tchData.data)) {
+                    document.getElementById('kpiTeachersCount').textContent = tchData.data.length;
+                }
+
+                const invRes = await fetch('/api/inventory', { headers });
+                const invData = await invRes.json();
+                if (invData.success && Array.isArray(invData.data)) {
+                    document.getElementById('kpiInventoryCount').textContent = invData.data.length;
+                }
+            } catch (e) {
+                console.warn('API error fetching metrics:', e);
             }
         }
-    </script>
 
-    <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-        }
-
-        /* Odoo App Icon Glow & Hover Animation */
-        .app-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .app-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5), 0 0 25px -5px rgba(56, 189, 248, 0.25);
-        }
-
-        .app-icon-wrapper {
-            transition: all 0.3s ease;
-        }
-        .app-card:hover .app-icon-wrapper {
-            transform: scale(1.1) rotate(-3deg);
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0f172a;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #475569;
-        }
-
-        /* Subtle Background Grid Pattern */
-        .bg-grid-pattern {
-            background-size: 30px 30px;
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        }
-    </style>
-</head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
-
-    <!-- Top Header Navigation Bar -->
-    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Center Brand Identity & Status -->
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-purple-600 p-0.5 shadow-lg shadow-sky-500/20">
-                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-sky-400 font-black text-xl">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                    </div>
-                </div>
-                <div>
-                    <div class="flex items-center gap-2">
-                        <h1 class="font-bold text-lg text-white leading-tight">سنتر النخبة التعليمي</h1>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            اشتراك برو نشط
-                        </span>
-                    </div>
-                    <p class="text-xs text-slate-400">ينتهي الاشتراك في: <span class="text-slate-300 font-medium dir-ltr">2026-12-31</span></p>
-                </div>
-            </div>
-
-            <!-- Header Right Quick Actions & Profile -->
-            <div class="flex items-center gap-3">
-                
-                <!-- Quick Search Bar Trigger -->
-                <button onclick="openStudentSearchModal()" class="hidden md:flex items-center gap-2 px-3.5 py-2 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-xl text-xs text-slate-400 transition-all">
-                    <i class="fa-solid fa-magnifying-glass text-sky-400"></i>
-                    <span>بحث سريع عن طالب...</span>
-                    <kbd class="bg-slate-950 px-1.5 py-0.5 rounded text-[10px] text-slate-400 border border-slate-800 font-mono">Ctrl+K</kbd>
-                </button>
-
-                <!-- WhatsApp Messages Counter Badge -->
-                <div class="flex items-center gap-2 bg-emerald-950/40 border border-emerald-800/50 px-3 py-1.5 rounded-xl text-xs text-emerald-300" title="رصيد رسائل الواتساب المتبقي">
-                    <i class="fa-brands fa-whatsapp text-base text-emerald-400"></i>
-                    <div>
-                        <span class="block text-[9px] text-emerald-500 leading-none">رصيد الرسائل</span>
-                        <span class="font-bold font-mono text-emerald-300">2,450 / 5,000</span>
-                    </div>
-                </div>
-
-                <!-- Notifications Bell -->
-                <button class="relative p-2.5 bg-slate-800 hover:bg-slate-700/80 border border-slate-700/80 rounded-xl text-slate-300 transition-all" title="الإشعارات">
-                    <i class="fa-regular fa-bell text-sm"></i>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500 animate-ping"></span>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-sky-500"></span>
-                </button>
-
-                <!-- User Profile Menu -->
-                <div class="flex items-center gap-2 pr-2 border-r border-slate-800">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 text-white flex items-center justify-center font-bold text-sm shadow-md">
-                        م.ع
-                    </div>
-                    <div class="hidden lg:block text-xs">
-                        <span class="block font-bold text-slate-200">مدير السنتر</span>
-                        <span class="text-slate-400 text-[10px]">الفرع الرئيسي</span>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Dashboard Body -->
-    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-        <!-- Today's Live Quick Statistics Bar -->
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            
-            <!-- Stat 1: Today Attendance -->
-            <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
-                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-user-check"></i>
-                </div>
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">حضور اليوم</span>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-black text-white font-mono">342</span>
-                        <span class="text-[11px] text-emerald-400 font-semibold"><i class="fa-solid fa-arrow-trend-up"></i> +12%</span>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-emerald-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Stat 2: Active Groups Today -->
-            <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
-                <div class="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-chalkboard-user"></i>
-                </div>
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">المجموعات اليوم</span>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-black text-white font-mono">8</span>
-                        <span class="text-[11px] text-slate-400">مجموعات نشطة</span>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-sky-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Stat 3: Today's Total Revenue -->
-            <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
-                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-sack-dollar"></i>
-                </div>
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">تحصيلات اليوم</span>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-black text-amber-300 font-mono">14,250</span>
-                        <span class="text-xs font-bold text-amber-400">ج.م</span>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-amber-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-            <!-- Stat 4: Total Registered Students -->
-            <div class="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 flex items-center gap-4 relative overflow-hidden shadow-lg group">
-                <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                    <i class="fa-solid fa-users"></i>
-                </div>
-                <div>
-                    <span class="text-xs text-slate-400 block font-medium">إجمالي الطلاب</span>
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-2xl font-black text-white font-mono">1,890</span>
-                        <span class="text-[11px] text-indigo-400 font-semibold">مسجل بالسنتر</span>
-                    </div>
-                </div>
-                <div class="absolute -right-4 -bottom-4 w-16 h-16 bg-indigo-500/5 rounded-full blur-xl pointer-events-none"></div>
-            </div>
-
-        </section>
-
-        <!-- Odoo-Style Main Apps Grid System -->
-        <section class="space-y-4">
-            
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-cubes text-sky-400"></i>
-                        منظومة تطبيقات السنتر (Apps Grid)
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">اختر التطبيق المراد العمل عليه أو إدارة بياناته</p>
-                </div>
-
-                <div class="flex items-center gap-2">
-                    <button onclick="openQuickAddStudentModal()" class="px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>إضافة طالب سريع + QR</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Apps Cards Grid (6 Main Modules) -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-
-                <!-- APP 1: QR Attendance Scanner -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-sky-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-sky-500/30">
-                                <i class="fa-solid fa-qrcode"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                                ماسح سريع
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">الحضور والغياب (QR)</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">شاشة تحضير الطلاب بالكاميرا السريعة، إظهار المديونيات، التنبيهات الصوتية، وسجل الحضور الفوري.</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-regular fa-clock ml-1"></i> جاهز للاستخدام</span>
-                        <a href="scanner.html" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                            <span>فتح الماسح</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- APP 2: Student Management -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-indigo-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-indigo-500/30">
-                                <i class="fa-solid fa-id-card"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                                1,890 طالب
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">إدارة الطلاب والبروفايل</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">تكويد الطلاب، طباعة كروت الـ QR، استعراض السجل الشامل للحضور، والتحكم بالحظر والتنبيهات.</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <button onclick="openStudentSearchModal()" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-magnifying-glass"></i> بحث عن طالب
-                        </button>
-                        <button onclick="openQuickAddStudentModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                            <i class="fa-solid fa-plus text-xs"></i>
-                            <span>طالب جديد</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- APP 3: Teachers & Groups Schedule -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-emerald-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-emerald-500/30">
-                                <i class="fa-solid fa-chalkboard-user"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                14 مدرس
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">المدرسون والمجموعات</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">جدولة المجموعات، تحديد مواعيد الحصص، إعداد نسب وعمولات المدرسين (نسبة / مبلغ ثابت).</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-solid fa-calendar-days ml-1"></i> 24 مجموعة مفعلة</span>
-                        <button onclick="showToast('جاري فتح شاشة المجموعات والمدرسين...')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-all">
-                            إدارة الجداول
-                        </button>
-                    </div>
-                </div>
-
-                <!-- APP 4: Inventory & Book Store -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-amber-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-amber-500/30">
-                                <i class="fa-solid fa-book-open-reader"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                                المخزن والملازم
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">المطبوعات والملازم</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة الكميات بالمخزن، بيع الكتب والملازم للطلاب وتسجيل المقبولات المالية تلقائياً.</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-amber-400/90 font-medium"><i class="fa-solid fa-boxes-stacked ml-1"></i> 152 ملزمة بالمخزن</span>
-                        <button onclick="showToast('فتح نقطة بيع الملازم للطلاب...')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-all">
-                            منفذ البيع
-                        </button>
-                    </div>
-                </div>
-
-                <!-- APP 5: Financials & Teacher Settlements -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-purple-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-purple-500/30">
-                                <i class="fa-solid fa-calculator"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                تقفيل الحصص
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">الحسابات والتسويات</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">تقفيل الإيرادات اليومية، احتساب صافي السنتر ومستحقات المدرس فورياً بناءً على الحضور.</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <button onclick="openSettlementModal()" class="text-xs text-purple-400 hover:text-purple-300 font-semibold flex items-center gap-1">
-                            <i class="fa-solid fa-file-invoice-dollar"></i> معاينة تقفيل حصة
-                        </button>
-                        <button onclick="openSettlementModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition-all shadow-md">
-                            تسوية مالية
-                        </button>
-                    </div>
-                </div>
-
-                <!-- APP 6: Settings & WhatsApp Templates -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-slate-500">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-slate-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-700 to-slate-800 border border-slate-600 flex items-center justify-center text-white text-2xl shadow-xl">
-                                <i class="fa-solid fa-gears"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">
-                                إعدادات النظام
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1">الإعدادات والواتساب</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">ضبط بيانات السنتر، إعداد قوالب الرسائل التلقائية لأولياء الأمور، وإدارة المستخدمين.</p>
-                    </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-emerald-400"><i class="fa-brands fa-whatsapp ml-1"></i> قالب الرسائل مفعل</span>
-                        <button onclick="openWhatsAppModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 text-xs font-bold rounded-xl transition-all">
-                            تخصيص القوالب
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
-        <!-- Recent Center Stream Activity Table -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-bolt text-amber-400"></i>
-                        سجل النشاط المباشر بالسنتر (Live Stream)
-                    </h3>
-                    <p class="text-xs text-slate-400">آخر عمليات التحضير والمبيعات المسجلة في السنتر الآن</p>
-                </div>
-                <button onclick="showToast('تم تحديث بيانات النشاط المباشر')" class="text-xs text-sky-400 hover:text-sky-300 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-rotate"></i> تحديث
-                </button>
-            </div>
-
-            <!-- Activity Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-xs text-right text-slate-300">
-                    <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
-                        <tr>
-                            <th class="p-3">نوع العملية</th>
-                            <th class="p-3">الطالب / المعني</th>
-                            <th class="p-3">المجموعة / التفاصيل</th>
-                            <th class="p-3">المبلغ / الحالة</th>
-                            <th class="p-3">الوقت</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-800/60">
-                        <tr class="hover:bg-slate-800/40 transition-colors">
-                            <td class="p-3 font-bold text-emerald-400"><i class="fa-solid fa-check-circle ml-1"></i> حضور QR</td>
-                            <td class="p-3 text-white font-bold">أحمد محمد علي (STU-1001)</td>
-                            <td class="p-3">فيزياء - 3 ثانوي (أ. محمد عبد المعبود)</td>
-                            <td class="p-3"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">حاضر</span></td>
-                            <td class="p-3 text-slate-500 font-mono">14:32:05</td>
-                        </tr>
-                        <tr class="hover:bg-slate-800/40 transition-colors">
-                            <td class="p-3 font-bold text-amber-400"><i class="fa-solid fa-triangle-exclamation ml-1"></i> حضور مع تنبيه</td>
-                            <td class="p-3 text-white font-bold">سارة محمود (STU-1002)</td>
-                            <td class="p-3">كيمياء - 2 ثانوي (أ. سامح أحمد)</td>
-                            <td class="p-3"><span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">متبقي 150 ج.م</span></td>
-                            <td class="p-3 text-slate-500 font-mono">14:28:11</td>
-                        </tr>
-                        <tr class="hover:bg-slate-800/40 transition-colors">
-                            <td class="p-3 font-bold text-purple-400"><i class="fa-solid fa-basket-shopping ml-1"></i> شراء ملزمة</td>
-                            <td class="p-3 text-white font-bold">عمر خالد العتيبي (STU-1003)</td>
-                            <td class="p-3">ملزمة المراجعة النهائية (الفيزياء)</td>
-                            <td class="p-3 font-bold text-slate-200">75 ج.م</td>
-                            <td class="p-3 text-slate-500 font-mono">14:15:40</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- MODAL 1: Quick Add Student + Live QR Card Generator -->
-    <div id="addStudentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl relative overflow-hidden space-y-5 animate-in fade-in zoom-in duration-200">
-            
-            <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-10 h-10 rounded-xl bg-sky-600/20 text-sky-400 flex items-center justify-center text-lg">
-                        <i class="fa-solid fa-user-plus"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-base font-bold text-white">إضافة طالب جديد وتوليد QR</h3>
-                        <p class="text-xs text-slate-400">سيتم إنشاء كود مميز وبطاقة QR قابلة للطباعة فوراً</p>
-                    </div>
-                </div>
-                <button onclick="closeQuickAddStudentModal()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Add Form -->
-            <form id="addStudentForm" onsubmit="handleQuickAddStudent(event)" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">اسم الطالب الرباعي *</label>
-                        <input type="text" id="modalStudentName" required placeholder="مثال: زياد محمود عبد العظيم" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">رقم هاتف ولي الأمر *</label>
-                        <input type="text" id="modalParentPhone" required placeholder="011XXXXXXXX" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-sky-500 outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">رقم هاتف الطالب (اختياري)</label>
-                        <input type="text" id="modalStudentPhone" placeholder="010XXXXXXXX" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono focus:ring-2 focus:ring-sky-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">تنبيه أو ملاحظة مالية (إن وجد)</label>
-                        <input type="text" id="modalAlertNote" placeholder="مثال: متبقي 100 ج رسوم التسجيل" 
-                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                    </div>
-                </div>
-
-                <!-- Generated Live QR Card Preview Box -->
-                <div id="generatedQrContainer" class="hidden bg-slate-950 border border-sky-500/30 rounded-2xl p-4 flex flex-col sm:flex-row items-center gap-4">
-                    <div id="qrcodeCanvas" class="p-2 bg-white rounded-xl shrink-0"></div>
-                    <div class="space-y-1 text-center sm:text-right flex-1">
-                        <span class="inline-block px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-500/30 rounded text-[10px] font-bold">تم إنشاء الكارت بنجاح</span>
-                        <h4 id="genStudentName" class="text-sm font-black text-white">--</h4>
-                        <p id="genStudentCode" class="text-xs font-mono text-sky-400 font-bold">كود: --</p>
-                        <p id="genParentPhone" class="text-[11px] text-slate-400 font-mono">ولي الأمر: --</p>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closeQuickAddStudentModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-500/20">
-                        حفظ الطالب وتوليد QR
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: Quick Student Search & Profile Modal -->
-    <div id="studentSearchModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-solid fa-magnifying-glass text-indigo-400"></i>
-                    البحث عن بروفايل طالب
-                </h3>
-                <button onclick="closeStudentSearchModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <div class="relative">
-                <input type="text" id="searchInput" onkeyup="filterStudentSearch(this.value)" placeholder="أدخل اسم الطالب أو الكود (مثال: STU-1001)..." 
-                    class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-10 pl-4 py-3 text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                <i class="fa-solid fa-search absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-            </div>
-
-            <!-- Search Results List -->
-            <div id="searchResultsList" class="space-y-2 max-h-60 overflow-y-auto pr-1">
-                <div class="p-3 bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 rounded-xl flex items-center justify-between text-xs cursor-pointer" onclick="showToast('عرض بيانات الطالب أحمد محمد')">
-                    <div>
-                        <p class="font-bold text-white">أحمد محمد علي القرشي</p>
-                        <span class="font-mono text-[10px] text-sky-400">STU-1001</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">لا يوجد تنبيهات</span>
-                </div>
-                <div class="p-3 bg-slate-950/60 hover:bg-slate-800/60 border border-slate-800 rounded-xl flex items-center justify-between text-xs cursor-pointer" onclick="showToast('عرض بيانات الطالبة سارة محمود')">
-                    <div>
-                        <p class="font-bold text-white">سارة محمود عبد الرحمن</p>
-                        <span class="font-mono text-[10px] text-sky-400">STU-1002</span>
-                    </div>
-                    <span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 text-[10px] font-bold">تنبيه مالي</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL 3: WhatsApp Template Customization -->
-    <div id="whatsappModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fa-brands fa-whatsapp text-emerald-400 text-base"></i>
-                    تخصيص قالب رسالة الواتساب الأبوية
-                </h3>
-                <button onclick="closeWhatsAppModal()" class="text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <p class="text-xs text-slate-400 leading-relaxed">يمكنك استخدام المتغيرات التالية: <code class="text-sky-400">{student_name}</code>, <code class="text-sky-400">{group_name}</code>, <code class="text-sky-400">{status}</code>, <code class="text-sky-400">{date}</code></p>
-
-            <textarea id="whatsappTemplateInput" rows="4" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl p-3 text-xs leading-relaxed outline-none focus:ring-2 focus:ring-emerald-500">ولي الأمر العزيز، نحيطكم علماً بأن الطالب/ة {student_name} قد حضر/ت اليوم حصة {group_name} بنجاح بتاريخ {date}. شكراً لتعاونكم مع سنتر النخبة.</textarea>
-
-            <div class="flex justify-end gap-2 pt-2">
-                <button onclick="closeWhatsAppModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                <button onclick="saveWhatsAppTemplate()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-md">حفظ القالب</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Popup Floating Box -->
-    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2.5">
-        <i class="fa-solid fa-circle-info text-sky-400 text-sm"></i>
-        <span id="toastMessage">إشعار النظام</span>
-    </div>
-
-    <script>
-        /* ============================================================================
-         * JAVASCRIPT HANDLERS & INTERACTION ENGINE
-         * ============================================================================ */
-
-        // Keyboard Shortcut for Quick Search (Ctrl+K)
-        document.addEventListener('keydown', (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                openStudentSearchModal();
-            }
-        });
-
-        // Toast Notification System
-        function showToast(message) {
-            const toast = document.getElementById('toastNotification');
-            const msgEl = document.getElementById('toastMessage');
-            msgEl.textContent = message;
-            
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        // Modal Handlers
-        function openQuickAddStudentModal() {
-            document.getElementById('addStudentModal').classList.remove('hidden');
-        }
-        function closeQuickAddStudentModal() {
-            document.getElementById('addStudentModal').classList.add('hidden');
-            document.getElementById('generatedQrContainer').classList.add('hidden');
-            document.getElementById('addStudentForm').reset();
-        }
-
-        function openStudentSearchModal() {
-            document.getElementById('studentSearchModal').classList.remove('hidden');
-            document.getElementById('searchInput').focus();
-        }
-        function closeStudentSearchModal() {
-            document.getElementById('studentSearchModal').classList.add('hidden');
-        }
-
-        function openWhatsAppModal() {
-            document.getElementById('whatsappModal').classList.remove('hidden');
-        }
-        function closeWhatsAppModal() {
-            document.getElementById('whatsappModal').classList.add('hidden');
-        }
-
-        function openSettlementModal() {
-            showToast('تقفيل حصة اليوم: إجمالي السنتر (1,200 ج) - صافي المدرس (3,400 ج)');
-        }
-
-        function saveWhatsAppTemplate() {
-            closeWhatsAppModal();
-            showToast('تم حفظ قالب رسائل الواتساب الأبوية بنجاح!');
-        }
-
-        // Quick Student Creation & Instant QR Canvas Generator
-        function handleQuickAddStudent(e) {
-            e.preventDefault();
-            const name = document.getElementById('modalStudentName').value.trim();
-            const parentPhone = document.getElementById('modalParentPhone').value.trim();
-            const studentCode = 'STU-' + Math.floor(1000 + Math.random() * 9000);
-
-            // Populate preview box
-            document.getElementById('genStudentName').textContent = name;
-            document.getElementById('genStudentCode').textContent = `كود: ${studentCode}`;
-            document.getElementById('genParentPhone').textContent = `ولي الأمر: ${parentPhone}`;
-
-            // Generate QR Code into Canvas
-            const qrBox = document.getElementById('qrcodeCanvas');
-            qrBox.innerHTML = '';
-            
-            const qrPayload = JSON.stringify({
-                code: studentCode,
-                centerId: 'center-101',
-                timestamp: Date.now()
-            });
-
-            new QRCode(qrBox, {
-                text: qrPayload,
-                width: 90,
-                height: 90,
-                colorDark: "#0f172a",
-                colorLight: "#ffffff",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-
-            document.getElementById('generatedQrContainer').classList.remove('hidden');
-            showToast(`تم حفظ الطالب ${name} وتوليد رمز الـ QR (${studentCode})`);
-        }
-
-        function filterStudentSearch(query) {
-            // Simple dynamic filter demo
-            const list = document.getElementById('searchResultsList');
-            if (!query.trim()) return;
+        function handleLogout() {
+            localStorage.clear();
+            window.location.href = '/login.html';
         }
     </script>
 </body>

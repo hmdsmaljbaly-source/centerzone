@@ -63,7 +63,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="login.html" onclick="localStorage.clear()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                <a href="/login.html" onclick="handleLogout()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-rose-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
                     <i class="fa-solid fa-right-from-bracket"></i>
                     <span>تسجيل الخروج</span>
                 </a>
@@ -152,14 +152,13 @@
                             <th class="p-3.5">اسم السنتر التعليمي</th>
                             <th class="p-3.5">حساب مدير السنتر (Username)</th>
                             <th class="p-3.5">رقم التواصل</th>
-                            <th class="p-3.5">نوع الباقة</th>
                             <th class="p-3.5">حالة الخدمة</th>
                             <th class="p-3.5">تاريخ الانتهاء</th>
                             <th class="p-3.5 text-center">الإجراءات</th>
                         </tr>
                     </thead>
                     <tbody id="centersTableBody" class="divide-y divide-slate-800/60">
-                        <!-- Populated dynamically -->
+                        <!-- Populated dynamically via API -->
                     </tbody>
                 </table>
             </div>
@@ -217,8 +216,7 @@
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">نوع الاشتراك *</label>
                         <select id="inputSubscriptionPlan" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
-                            <option value="PRO">باقة السنتر برو (Pro Plan)</option>
-                            <option value="ENTERPRISE">باقة إنتربرايز (Enterprise)</option>
+                            <option value="ACTIVE">باقة نشطة (Active Plan)</option>
                             <option value="TRIAL">تجريبي 14 يوم (Free Trial)</option>
                         </select>
                     </div>
@@ -237,17 +235,41 @@
         </div>
     </div>
 
+    <!-- Toast Notification Popup -->
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-purple-400"></i>
+        <span id="toastMessage">إشعار النظام</span>
+    </div>
+
     <script>
-        let centersList = [
-            { id: 'center-101', name: 'سنتر النخبة التعليمي', username: 'center101', phone: '01099998888', plan: 'PRO', status: 'ACTIVE', expiry: '2026-12-31' },
-            { id: 'center-102', name: 'أكاديمية التفوق - فرع الدقي', username: 'tafawok_duqqi', phone: '01222223333', plan: 'ENTERPRISE', status: 'ACTIVE', expiry: '2026-10-15' },
-            { id: 'center-103', name: 'سنتر المستقبل الحديث', username: 'future_center', phone: '01555554444', plan: 'TRIAL', status: 'SUSPENDED', expiry: '2026-06-01' }
-        ];
+        let centersList = [];
 
         window.onload = function() {
-            renderCentersTable(centersList);
-            updateMetrics();
+            fetchCentersFromApi();
         };
+
+        async function fetchCentersFromApi() {
+            try {
+                const response = await fetch('/api/super-admin/centers');
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    centersList = resData.data.map(c => ({
+                        id: c.id,
+                        name: c.name,
+                        username: (c.users && c.users.length > 0) ? c.users[0].username : 'admin',
+                        phone: c.phone || 'غير مسجل',
+                        status: c.subscription_status || 'ACTIVE',
+                        expiry: c.expires_at ? c.expires_at.split('T')[0] : 'غير حدد'
+                    }));
+                } else {
+                    centersList = [];
+                }
+            } catch (e) {
+                console.error('API Error fetching centers:', e);
+                centersList = [];
+            }
+            filterCentersTable();
+        }
 
         function updateMetrics() {
             document.getElementById('metricTotalCenters').textContent = centersList.length;
@@ -259,6 +281,11 @@
         function renderCentersTable(data) {
             const tbody = document.getElementById('centersTableBody');
             tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-slate-500">لا توجد سنترات مسجلة بقاعدة البيانات حالياً.</td></tr>`;
+                return;
+            }
 
             data.forEach(center => {
                 let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
@@ -277,7 +304,6 @@
                         <td class="p-3.5 font-bold text-white">${center.name}</td>
                         <td class="p-3.5 font-mono text-sky-400">${center.username}</td>
                         <td class="p-3.5 font-mono text-slate-300">${center.phone}</td>
-                        <td class="p-3.5"><span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[10px]">${center.plan}</span></td>
                         <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${badgeClass}">${statusLabel}</span></td>
                         <td class="p-3.5 font-mono text-slate-400">${center.expiry}</td>
                         <td class="p-3.5 text-center">
@@ -302,6 +328,7 @@
             });
 
             renderCentersTable(filtered);
+            updateMetrics();
         }
 
         function toggleCenterStatus(centerId) {
@@ -309,7 +336,7 @@
             if (center) {
                 center.status = center.status === 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE';
                 filterCentersTable();
-                updateMetrics();
+                showToast(`تم تغيير حالة السنتر ${center.name}`);
             }
         }
 
@@ -321,28 +348,44 @@
             document.getElementById('addCenterForm').reset();
         }
 
-        function handleCreateCenter(e) {
+        async function handleCreateCenter(e) {
             e.preventDefault();
             const name = document.getElementById('inputCenterName').value.trim();
             const phone = document.getElementById('inputCenterPhone').value.trim();
             const username = document.getElementById('inputAdminUsername').value.trim();
+            const password = document.getElementById('inputAdminPassword').value.trim();
             const plan = document.getElementById('inputSubscriptionPlan').value;
             const expiry = document.getElementById('inputExpiryDate').value;
 
-            const newCenter = {
-                id: 'center-' + Math.floor(100 + Math.random() * 900),
-                name,
-                username,
-                phone,
-                plan,
-                status: 'ACTIVE',
-                expiry
-            };
+            try {
+                const response = await fetch('/api/super-admin/centers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, phone, username, password, plan, expiry })
+                });
 
-            centersList.unshift(newCenter);
-            filterCentersTable();
-            updateMetrics();
-            closeAddCenterModal();
+                const resData = await response.json();
+                if (resData.success) {
+                    showToast(`تم إنشاء السنتر ${name} وحفظه في الداتابيز!`);
+                    closeAddCenterModal();
+                    fetchCentersFromApi();
+                } else {
+                    showToast(resData.message || 'خطأ أثناء إنشاء السنتر');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
         }
     </script>
 </body>
