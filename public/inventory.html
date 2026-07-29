@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المطبوعات ومخزن الملازم POS - نظام السناتر</title>
+    <title>إدارة المطبوعات ومخزن الملازم POS - CenterZone</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,17 +24,18 @@
 </head>
 <body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
 
+    <!-- Top Navbar -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
             <div class="flex items-center space-x-3 space-x-reverse">
                 <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform flex items-center justify-center">
                     <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400 font-black text-lg">
-                        <i class="fa-solid fa-arrow-right"></i>
+                        <i class="fa-solid fa-boxes-stacked"></i>
                     </div>
                 </a>
                 <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المطبوعات ومخزن الملازم (POS)</h1>
-                    <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المخزن والمطبوعات (POS)</h1>
+                    <p class="text-xs text-slate-400">متابعة المخزون وملازم المدرسين والبيع المباشر</p>
                 </div>
             </div>
 
@@ -51,57 +52,159 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between flex-wrap gap-2">
-            <h3 class="text-sm font-bold text-white">قائمة الملازم والمطبوعات المتاحة بالمخزن</h3>
-            <button onclick="openPosModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5">
-                <i class="fa-solid fa-cart-shopping"></i>
-                <span>🛒 منفذ بيع سريع (POS)</span>
-            </button>
+        <!-- Metrics Dashboard -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl">
+                <span class="text-xs text-slate-400 block mb-1">إجمالي نسخ الملازم بالمخزن</span>
+                <span id="metricTotalStock" class="text-2xl font-black text-amber-400 font-mono">0</span>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl">
+                <span class="text-xs text-slate-400 block mb-1">عدد الملازم المسجلة</span>
+                <span id="metricTotalBooks" class="text-2xl font-black text-sky-400 font-mono">0</span>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl">
+                <span class="text-xs text-slate-400 block mb-1">ملازم منخفضة الكمية (≤10)</span>
+                <span id="metricLowStock" class="text-2xl font-black text-amber-300 font-mono">0</span>
+            </div>
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-xl">
+                <span class="text-xs text-slate-400 block mb-1">ملازم نفدت الكمية</span>
+                <span id="metricOutOfStock" class="text-2xl font-black text-rose-400 font-mono">0</span>
+            </div>
+        </div>
+
+        <!-- Controls Header Bar -->
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+                <div class="relative flex-1">
+                    <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    <input type="text" id="inventorySearchInput" oninput="filterBooksInventory()" placeholder="ابحث باسم الملزمة أو المدرس..." 
+                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-4 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openAddBookModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>إضافة ملزمة للمخزن</span>
+                </button>
+                <button onclick="openPosModal()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>منفذ بيع سريع (POS)</span>
+                </button>
+            </div>
         </section>
 
+        <!-- Main Table Section -->
         <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-right text-slate-300">
                     <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
                         <tr>
                             <th class="p-3.5">اسم الملزمة / المطبوعة</th>
-                            <th class="p-3.5">السعر (ج.م)</th>
-                            <th class="p-3.5">الكمية بالمخزن</th>
-                            <th class="p-3.5 text-center">البيع السريع</th>
+                            <th class="p-3.5">المدرس صاحب الملزمة</th>
+                            <th class="p-3.5">السعر</th>
+                            <th class="p-3.5">الكمية المتبقية</th>
+                            <th class="p-3.5">حالة المخزون</th>
+                            <th class="p-3.5 text-center">الإجراء</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody" class="divide-y divide-slate-800/60">
                         <!-- Populated via API -->
                     </tbody>
                 </table>
+                <div id="inventoryEmptyState" class="hidden p-8 text-center text-slate-500 text-xs">
+                    لا توجد ملازم مطابقة لبحثك في قاعدة البيانات.
+                </div>
             </div>
         </section>
 
     </main>
 
-    <div id="posModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <!-- Modal: Add New Book -->
+    <div id="addBookModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <h3 class="text-sm font-bold text-white">منفذ بيع الملازم المباشر (POS Sale)</h3>
-                <button onclick="closePosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-book text-sky-400"></i> إضافة ملزمة جديدة للمخزن
+                </h3>
+                <button onclick="closeAddBookModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <form id="posForm" onsubmit="handleExecutePosSale(event)" class="space-y-4">
+            <form id="addBookForm" onsubmit="handleCreateBook(event)" class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">اختر الملزمة المراد بيعها *</label>
-                    <select id="posBookSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
-                        <!-- Populated via API -->
+                    <label class="block font-bold text-slate-300 mb-1">اسم الملزمة / المطبوعة *</label>
+                    <input type="text" id="bookTitleInput" required placeholder="مثال: مذكرة الفيزياء - الفصل الأول"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-sky-500">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">المدرس صاحب الملزمة *</label>
+                    <select id="bookTeacherSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-sky-500">
+                        <option value="">جاري جلب قائمة المدرسين...</option>
                     </select>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
-                    <button type="button" onclick="closePosModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
-                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs rounded-xl font-bold shadow-md">تأكيد البيع وخصم المخزون</button>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">السعر (ج.م) *</label>
+                        <input type="number" id="bookPriceInput" min="0" required placeholder="50"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-sky-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">الكمية الابتدائية *</label>
+                        <input type="number" id="bookStockInput" min="1" required placeholder="100"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-sky-500">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeAddBookModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl font-bold shadow-md">حفظ وإضافة للمخزن</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- Modal: POS Sale -->
+    <div id="posModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-cart-shopping text-emerald-400"></i> منفذ بيع الملازم (POS)
+                </h3>
+                <button onclick="closePosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="posForm" onsubmit="handleExecutePosSale(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">اختر الطالب المشترِي *</label>
+                    <select id="posStudentSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500">
+                        <!-- Populated via API -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">اختر الملزمة المراد بيعها *</label>
+                    <select id="posBookSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500">
+                        <!-- Populated via API -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">الكمية المباعة *</label>
+                    <input type="number" id="posQuantityInput" min="1" value="1" required
+                        class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closePosModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-md">تأكيد البيع وخصم المخزون</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
     <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
@@ -109,10 +212,12 @@
     <script>
         const centerId = localStorage.getItem('centerId') || 'center-101';
         let inventoryBooks = [];
+        let teachersList = [];
         let studentsList = [];
 
         window.onload = function() {
             fetchInventoryFromApi();
+            fetchTeachersFromApi();
             fetchStudentsFromApi();
         };
 
@@ -132,6 +237,21 @@
             }
         }
 
+        async function fetchTeachersFromApi() {
+            try {
+                const response = await fetch('/api/teachers', {
+                    headers: { 'x-center-id': centerId }
+                });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    teachersList = resData.data;
+                    populateTeachersDropdown();
+                }
+            } catch (e) {
+                console.error("Error fetching teachers:", e);
+            }
+        }
+
         async function fetchStudentsFromApi() {
             try {
                 const response = await fetch('/api/students', {
@@ -146,12 +266,24 @@
             }
         }
 
+        function populateTeachersDropdown() {
+            const select = document.getElementById('bookTeacherSelect');
+            if (teachersList.length === 0) {
+                select.innerHTML = '<option value="">لا يوجد مدرسون مسجلون</option>';
+                return;
+            }
+            select.innerHTML = '<option value="">-- اختر المدرس --</option>' + teachersList.map(t => 
+                `<option value="${t.id}">${t.name} - ${t.subject || ''}</option>`
+            ).join('');
+        }
+
         function filterBooksInventory() {
             const query = document.getElementById('inventorySearchInput').value.trim().toLowerCase();
 
             const filtered = inventoryBooks.filter(bk => {
                 const name = bk.service_name || bk.title || '';
-                return !query || name.toLowerCase().includes(query);
+                const teacherName = bk.teacher ? bk.teacher.name : '';
+                return !query || name.toLowerCase().includes(query) || teacherName.toLowerCase().includes(query);
             });
 
             renderInventoryTable(filtered);
@@ -170,7 +302,7 @@
             }
 
             booksList.forEach(bk => {
-                const stock = bk.stock_quantity || bk.stock || 0;
+                const stock = bk.stock_quantity ?? bk.stock ?? 0;
                 let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
                 let statusLabel = '🟢 متوفر بالمخزن';
 
@@ -188,8 +320,7 @@
                             <i class="fa-solid fa-book-open text-amber-400"></i>
                             ${bk.service_name || bk.title}
                         </td>
-                        <td class="p-3.5 text-purple-300 font-semibold">${bk.teacher ? bk.teacher.name : '--'}</td>
-                        <td class="p-3.5 text-slate-400">--</td>
+                        <td class="p-3.5 text-sky-300 font-semibold">${bk.teacher ? bk.teacher.name : 'غير محدد'}</td>
                         <td class="p-3.5 font-mono font-bold text-emerald-400">${bk.price} ج.م</td>
                         <td class="p-3.5 font-mono font-bold text-slate-200">${stock} نسخة</td>
                         <td class="p-3.5">
@@ -211,12 +342,55 @@
 
         function updateInventoryMetrics() {
             const totalStock = inventoryBooks.reduce((acc, curr) => acc + (curr.stock_quantity || 0), 0);
+            const totalBooks = inventoryBooks.length;
             const lowStockCount = inventoryBooks.filter(bk => (bk.stock_quantity || 0) > 0 && (bk.stock_quantity || 0) <= 10).length;
             const outOfStockCount = inventoryBooks.filter(bk => (bk.stock_quantity || 0) === 0).length;
 
             document.getElementById('metricTotalStock').textContent = totalStock.toLocaleString();
+            document.getElementById('metricTotalBooks').textContent = totalBooks;
             document.getElementById('metricLowStock').textContent = lowStockCount;
             document.getElementById('metricOutOfStock').textContent = outOfStockCount;
+        }
+
+        function openAddBookModal() {
+            document.getElementById('addBookModal').classList.remove('hidden');
+        }
+
+        function closeAddBookModal() {
+            document.getElementById('addBookModal').classList.add('hidden');
+            document.getElementById('addBookForm').reset();
+        }
+
+        async function handleCreateBook(e) {
+            e.preventDefault();
+            const title = document.getElementById('bookTitleInput').value.trim();
+            const teacherId = document.getElementById('bookTeacherSelect').value;
+            const price = parseFloat(document.getElementById('bookPriceInput').value);
+            const stock = parseInt(document.getElementById('bookStockInput').value);
+
+            try {
+                const response = await fetch('/api/inventory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    body: JSON.stringify({
+                        title: title,
+                        teacher_id: teacherId,
+                        price: price,
+                        stock_quantity: stock
+                    })
+                });
+
+                const resData = await response.json();
+                if (resData.success) {
+                    closeAddBookModal();
+                    showToast('تمت إضافة الملزمة للمخزن بنجاح!');
+                    fetchInventoryFromApi();
+                } else {
+                    showToast(resData.message || 'خطأ أثناء إضافة الملزمة');
+                }
+            } catch (err) {
+                showToast('تعذر الاتصال بالسيرفر');
+            }
         }
 
         function openPosModal(preSelectedBookId = null) {
@@ -261,21 +435,6 @@
             } catch (err) {
                 showToast('تعذر الاتصال بالسيرفر');
             }
-        }
-
-        function openAddBookModal() {
-            document.getElementById('addBookModal').classList.remove('hidden');
-        }
-        function closeAddBookModal() {
-            document.getElementById('addBookModal').classList.add('hidden');
-            document.getElementById('addBookForm').reset();
-        }
-
-        function handleCreateBook(e) {
-            e.preventDefault();
-            closeAddBookModal();
-            showToast('تمت إضافة الملزمة بنجاح');
-            fetchInventoryFromApi();
         }
 
         function showToast(message) {
