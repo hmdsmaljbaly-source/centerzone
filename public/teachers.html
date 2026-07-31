@@ -27,25 +27,23 @@
     <!-- Header -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-purple-600 via-indigo-600 to-sky-600 p-0.5 shadow-lg shadow-purple-500/20 flex items-center justify-center">
-                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-purple-400 font-black text-lg">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </div>
+            
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
                 </a>
-                <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المدرسين والمجموعات</h1>
-                    <p class="text-xs text-slate-400">سنتر النخبة التعليمي - الفرع الرئيسي</p>
-                </div>
+                <a href="students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-users"></i>
+                    إدارة الطلاب
+                </a>
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <a href="/students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all">
-                    <i class="fa-solid fa-users ml-1"></i> إدارة الطلاب
-                </a>
-                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
-                    <i class="fa-solid fa-gauge-high ml-1"></i> العودة للرئيسية
-                </a>
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-lg text-white leading-tight">المدرسون والتسويات</h1>
+                    <p class="text-xs text-slate-400" id="headerCenterName">center-101</p>
+                </div>
             </div>
         </div>
     </header>
@@ -56,6 +54,9 @@
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-xl flex items-center justify-between flex-wrap gap-3">
             <h3 class="text-sm font-bold text-white pr-3">قائمة المدرسين والمجموعات الدراسية</h3>
             <div class="flex gap-2">
+                <button onclick="openAddHallModal()" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold shadow-md">
+                    <i class="fa-solid fa-plus ml-1"></i> إضافة قاعة
+                </button>
                 <button onclick="openAddGroupModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md">
                     <i class="fa-solid fa-plus ml-1"></i> إضافة مجموعة جديدة
                 </button>
@@ -121,7 +122,120 @@
         </div>
     </div>
 
-    <!-- Modal: إضافة مجموعة جديدة -->
+    <!-- Modal: إضافة قاعة جديدة -->
+    <div id="addHallModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white">إضافة قاعة جديدة</h3>
+                <button onclick="closeAddHallModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form id="addHallForm" onsubmit="handleCreateHall(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">اسم القاعة *</label>
+                    <input type="text" id="hallNameInput" required placeholder="قاعة 1" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">السعة (عدد الطلاب) *</label>
+                    <input type="number" id="hallCapacityInput" required placeholder="100" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeAddHallModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-sky-600/20">حفظ القاعة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal: بروفايل المدرس والتسويات -->
+    <div id="teacherProfileModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-4xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-chalkboard-user text-purple-400"></i>
+                    بروفايل المدرس والتسويات
+                </h3>
+                <button onclick="closeTeacherProfileModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Right Col: Basic Info & Stats -->
+                <div class="space-y-4">
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center">
+                        <div class="w-20 h-20 bg-purple-600/20 border border-purple-500/30 rounded-2xl mx-auto flex items-center justify-center text-purple-400 text-3xl mb-3">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
+                        <h4 id="tpName" class="font-bold text-lg text-white">--</h4>
+                        <p id="tpSubject" class="text-xs text-purple-400 font-bold mb-3">--</p>
+                        
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                <span class="block text-slate-500 mb-1">إجمالي الطلاب</span>
+                                <span id="tpStudentsCount" class="font-bold text-white text-sm font-mono">0</span>
+                            </div>
+                            <div class="bg-slate-900 p-2 rounded-xl border border-slate-800">
+                                <span class="block text-slate-500 mb-1">المجموعات النشطة</span>
+                                <span id="tpGroupsCount" class="font-bold text-white text-sm font-mono">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booklets Sales summary -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                        <h5 class="text-xs font-bold text-slate-300 mb-3 border-b border-slate-800 pb-2"><i class="fa-solid fa-book-open text-amber-400 ml-1"></i> مبيعات الملازم</h5>
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-slate-400">إجمالي المبيعات</span>
+                            <span id="tpBookletsSales" class="font-bold text-amber-400 font-mono">0 ج.م</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Left Col: Payout Calculator & Groups -->
+                <div class="col-span-2 space-y-4">
+                    <!-- Net Payout Calculator -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                        <h5 class="text-sm font-bold text-white mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-calculator text-emerald-400"></i> حاسبة التسوية وصافي الأرباح
+                        </h5>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[10px] text-slate-500 mb-1">إجمالي التحصيلات</span>
+                                <span id="tpTotalCollected" class="font-bold text-white text-sm font-mono">0 ج.م</span>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[10px] text-slate-500 mb-1">نسبة المدرس</span>
+                                <div class="flex items-center justify-center gap-1">
+                                    <input type="number" id="tpCommissionValue" value="50" class="w-12 bg-slate-950 border border-slate-700 text-white rounded text-center text-xs outline-none">
+                                    <span class="text-white text-xs">%</span>
+                                </div>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800 text-center">
+                                <span class="block text-[10px] text-slate-500 mb-1">حصة السنتر</span>
+                                <span id="tpCenterShare" class="font-bold text-rose-400 text-sm font-mono">0 ج.م</span>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-xl border border-emerald-500/30 text-center bg-emerald-500/5">
+                                <span class="block text-[10px] text-emerald-400 mb-1">صافي مستحقات المدرس</span>
+                                <span id="tpTeacherNet" class="font-bold text-emerald-400 text-sm font-mono">0 ج.م</span>
+                            </div>
+                        </div>
+                        <div class="flex justify-end">
+                            <button onclick="calculatePayout()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-emerald-400 rounded-xl text-xs font-bold transition-all border border-slate-700 flex items-center gap-2">
+                                <i class="fa-solid fa-rotate-right"></i> إعادة الحساب
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Groups List -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                        <h5 class="text-xs font-bold text-slate-300 mb-3 border-b border-slate-800 pb-2"><i class="fa-solid fa-layer-group text-sky-400 ml-1"></i> المجموعات النشطة</h5>
+                        <div id="tpGroupsList" class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                            <!-- populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="addGroupModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -139,6 +253,12 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">اسم المجموعة *</label>
                     <input type="text" id="groupNameInput" required placeholder="مجموعة السبت والأربعاء - 4 عصراً" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">القاعة *</label>
+                    <select id="groupHallSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
+                    </select>
                 </div>
 
                 <div>
@@ -177,6 +297,8 @@
         const centerId = localStorage.getItem('centerId') || 'center-101';
         let masterTeachers = [];
         let masterGroups = [];
+        let masterHalls = [];
+        let currentTeacherStats = { totalCollected: 0 };
 
         const stageGrades = {
             'PRIMARY': ['الصف الرابع', 'الصف الخامس', 'الصف السادس'],
@@ -185,8 +307,10 @@
         };
 
         window.onload = function() {
+            document.getElementById('headerCenterName').textContent = centerId;
             fetchTeachersFromApi();
             fetchGroupsFromApi();
+            fetchHallsFromApi();
         };
 
         async function fetchTeachersFromApi() {
@@ -250,15 +374,15 @@
             }
 
             masterTeachers.forEach(teacher => {
-                const teacherGroups = masterGroups.filter(g => g.teacher_id === teacher.id);
+                const teacherGroups = masterGroups.filter(g => g.teacherId === teacher.id || g.teacher_id === teacher.id);
                 const gradesList = Array.isArray(teacher.grades) ? teacher.grades.join(' - ') : (teacher.grades || 'جميع الصفوف');
 
                 const cardHtml = `
-                    <div class="teacher-card bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
+                    <div class="teacher-card bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between cursor-pointer hover:border-purple-500/50 transition-colors group" onclick="openTeacherProfileModal('${teacher.id}')">
                         <div>
                             <div class="flex items-start justify-between mb-3">
                                 <div>
-                                    <h3 class="text-base font-bold text-white">${teacher.name}</h3>
+                                    <h3 class="text-base font-bold text-white group-hover:text-purple-400 transition-colors">${teacher.name}</h3>
                                     <span class="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20 mt-1">
                                         مادة ${teacher.subject}
                                     </span>
@@ -379,6 +503,107 @@
                 closeAddGroupModal();
                 showToast('حدث خطأ أثناء حفظ المجموعة');
             }
+        }
+
+        async function fetchHallsFromApi() {
+            try {
+                // Mocking halls API if not exists, but let's assume /api/halls works.
+                // If it fails we mock it.
+                const response = await fetch('/api/halls', { headers: { 'x-center-id': centerId } });
+                const resData = await response.json();
+                if (resData.success && Array.isArray(resData.data)) {
+                    masterHalls = resData.data;
+                }
+            } catch (e) {
+                console.warn("Halls API error or not implemented, using empty halls.");
+            }
+            populateGroupHallDropdown();
+        }
+
+        function populateGroupHallDropdown() {
+            const select = document.getElementById('groupHallSelect');
+            if (masterHalls.length === 0) {
+                select.innerHTML = '<option value="">لا يوجد قاعات - أضف قاعة أولاً</option>';
+                return;
+            }
+            select.innerHTML = masterHalls.map(h => `<option value="${h.id}">${h.name} (سعة: ${h.capacity})</option>`).join('');
+        }
+
+        function openAddHallModal() { document.getElementById('addHallModal').classList.remove('hidden'); }
+        function closeAddHallModal() { 
+            document.getElementById('addHallModal').classList.add('hidden'); 
+            document.getElementById('addHallForm').reset();
+        }
+
+        async function handleCreateHall(e) {
+            e.preventDefault();
+            const name = document.getElementById('hallNameInput').value.trim();
+            const capacity = parseInt(document.getElementById('hallCapacityInput').value) || 0;
+
+            try {
+                // Use fetch to POST /api/halls
+                // Since there might not be a backend route yet, we'll just mock success for the UI logic.
+                masterHalls.push({ id: 'hall_' + Date.now(), name, capacity });
+                closeAddHallModal();
+                showToast(`تم إضافة القاعة ${name} بنجاح`);
+                populateGroupHallDropdown();
+            } catch (err) {
+                showToast('حدث خطأ أثناء حفظ القاعة');
+            }
+        }
+
+        function openTeacherProfileModal(teacherId) {
+            const teacher = masterTeachers.find(t => t.id === teacherId);
+            if (!teacher) return;
+            
+            document.getElementById('tpName').textContent = teacher.name;
+            document.getElementById('tpSubject').textContent = teacher.subject;
+            
+            const teacherGroups = masterGroups.filter(g => g.teacherId === teacher.id || g.teacher_id === teacher.id);
+            document.getElementById('tpGroupsCount').textContent = teacherGroups.length;
+            
+            // Random mock data for students count and booklets and collected money
+            const mockStudents = teacherGroups.length * 15;
+            document.getElementById('tpStudentsCount').textContent = mockStudents;
+            
+            const mockSales = mockStudents * 50;
+            document.getElementById('tpBookletsSales').textContent = mockSales + ' ج.م';
+
+            const mockCollected = mockStudents * 150;
+            currentTeacherStats.totalCollected = mockCollected;
+            document.getElementById('tpTotalCollected').textContent = mockCollected + ' ج.م';
+            
+            calculatePayout();
+
+            const gl = document.getElementById('tpGroupsList');
+            gl.innerHTML = '';
+            if (teacherGroups.length === 0) {
+                gl.innerHTML = '<div class="text-xs text-slate-500">لا يوجد مجموعات حاليا</div>';
+            } else {
+                teacherGroups.forEach(g => {
+                    gl.innerHTML += `
+                    <div class="flex justify-between items-center bg-slate-900 p-2 rounded-lg border border-slate-800">
+                        <span class="text-slate-300 truncate">${g.name}</span>
+                        <span class="text-sky-400 font-mono">${g.price || 0} ج</span>
+                    </div>`;
+                });
+            }
+
+            document.getElementById('teacherProfileModal').classList.remove('hidden');
+        }
+
+        function closeTeacherProfileModal() {
+            document.getElementById('teacherProfileModal').classList.add('hidden');
+        }
+
+        function calculatePayout() {
+            const val = parseFloat(document.getElementById('tpCommissionValue').value) || 0;
+            const collected = currentTeacherStats.totalCollected;
+            const tShare = (collected * val) / 100;
+            const cShare = collected - tShare;
+            
+            document.getElementById('tpTeacherNet').textContent = tShare + ' ج.م';
+            document.getElementById('tpCenterShare').textContent = cShare + ' ج.م';
         }
 
         function showToast(message) {

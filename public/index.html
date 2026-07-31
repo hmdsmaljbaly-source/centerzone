@@ -108,20 +108,15 @@
                     </h2>
                     <p class="text-xs text-slate-400 mt-0.5">انقر على أي تطبيق لفتحه مباشرة</p>
                 </div>
-
-                <a href="students.html" class="px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>إضافة طالب جديد</span>
-                </a>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
 
                 <!-- APP 1: scanner.html -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-sky-500">
+                <a href="scanner.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-sky-500 hover:border-sky-400 hover:bg-slate-800/80 transition-all cursor-pointer">
                     <div>
                         <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-sky-500/30">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-sky-500/30 group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-qrcode"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
@@ -129,114 +124,90 @@
                                 ماسح سريع
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">الحضور والغياب (QR)</h3>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-sky-400 transition-colors">الحضور والغياب (QR)</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">شاشة تحضير الطلاب بالكاميرا السريعة، إظهار المديونيات، والتنبيهات.</p>
                     </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-regular fa-clock ml-1"></i> جاهز</span>
-                        <a href="scanner.html" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                            <span>فتح الماسح</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
+                </a>
 
                 <!-- APP 2: students.html -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-indigo-500">
+                <a href="students.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-indigo-500 hover:border-indigo-400 hover:bg-slate-800/80 transition-all cursor-pointer">
                     <div>
                         <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-indigo-500/30">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-indigo-500/30 group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-id-card"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
                                 سجل الطلاب
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">إدارة الطلاب والبروفايل</h3>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">إدارة الطلاب والبروفايل</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">تكويد الطلاب، طباعة كروت الباركوود، استعراض السجل الشامل للحضور.</p>
                     </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-solid fa-folder-open ml-1"></i> قاعدة البيانات</span>
-                        <a href="students.html" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                            <span>فتح الطلاب</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
+                </a>
 
                 <!-- APP 3: teachers.html -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-purple-500">
+                <a href="teachers.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-purple-500 hover:border-purple-400 hover:bg-slate-800/80 transition-all cursor-pointer">
                     <div>
                         <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-purple-500/30">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-purple-500/30 group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-chalkboard-user"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
                                 المدرسون
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">المدرسون والمجموعات</h3>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-purple-400 transition-colors">المدرسون والمجموعات</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">جدولة المجموعات، تحديد مواعيد الحصص، إعداد نسب وعمولات المدرسين.</p>
                     </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-solid fa-calendar-days ml-1"></i> الجداول والتسويات</span>
-                        <a href="teachers.html" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                            <span>إدارة الجداول</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
+                </a>
 
                 <!-- APP 4: inventory.html -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-amber-500">
+                <a href="inventory.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-amber-500 hover:border-amber-400 hover:bg-slate-800/80 transition-all cursor-pointer">
                     <div>
                         <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-amber-500/30">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-amber-500/30 group-hover:scale-110 transition-transform">
                                 <i class="fa-solid fa-boxes-stacked"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
                                 POS المخزن
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">المطبوعات والملازم</h3>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">المطبوعات والملازم</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة الكميات بالمخزن، بيع الكتب والملازم للطلاب وتسجيل المقبولات تلقائياً.</p>
                     </div>
+                </a>
 
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-solid fa-boxes-stacked ml-1"></i> منفذ البيع</span>
-                        <a href="inventory.html" class="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 shadow-md">
-                            <span>المخزن والبيع</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- APP 5: settings.html -->
-                <div class="app-card bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-emerald-500">
+                <!-- APP 5: Accounts & Settlements -->
+                <a href="teachers.html#payouts" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-pink-500 hover:border-pink-400 hover:bg-slate-800/80 transition-all cursor-pointer">
                     <div>
                         <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-emerald-500/30">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-600 to-rose-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-pink-500/30 group-hover:scale-110 transition-transform">
+                                <i class="fa-solid fa-money-bill-transfer"></i>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-pink-500/10 text-pink-300 border border-pink-500/20">
+                                التسويات
+                            </span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-pink-400 transition-colors">الحسابات والتسويات</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة حسابات المدرسين، العمولات، والإغلاق المالي الشهري.</p>
+                    </div>
+                </a>
+
+                <!-- APP 6: settings.html -->
+                <a href="settings.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-emerald-500 hover:border-emerald-400 hover:bg-slate-800/80 transition-all cursor-pointer">
+                    <div>
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform">
                                 <i class="fa-brands fa-whatsapp"></i>
                             </div>
                             <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                                 إشعارات الواتساب
                             </span>
                         </div>
-                        <h3 class="text-lg font-bold text-white mb-1">الإعدادات والواتساب</h3>
+                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">الإعدادات والواتساب</h3>
                         <p class="text-xs text-slate-400 leading-relaxed mb-4">ضبط بيانات السنتر، إعداد قوالب الرسائل التلقائية للأهالي والملاحظات.</p>
                     </div>
-
-                    <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between">
-                        <span class="text-xs text-slate-400"><i class="fa-solid fa-sliders ml-1"></i> التخصيص</span>
-                        <a href="settings.html" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all flex items-center gap-1.5">
-                            <span>الإعدادات</span>
-                            <i class="fa-solid fa-arrow-left text-[10px]"></i>
-                        </a>
-                    </div>
-                </div>
+                </a>
 
             </div>
         </section>

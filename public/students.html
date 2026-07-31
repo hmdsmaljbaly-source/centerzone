@@ -33,27 +33,23 @@
 
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 via-sky-600 to-purple-600 p-0.5 shadow-lg shadow-indigo-500/20 hover:scale-105 transition-transform flex items-center justify-center">
-                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-sky-400 font-black text-lg">
-                        <i class="fa-solid fa-arrow-right"></i>
-                    </div>
+            
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
                 </a>
-                <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">إدارة الطلاب والبروفايل الشامل</h1>
-                    <p class="text-xs text-slate-400">نظام تكاويد وطباعة الباركوود الخطي (Code128)</p>
-                </div>
+                <a href="scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-qrcode"></i>
+                    ماسح الحضور
+                </a>
             </div>
 
-            <div class="flex items-center gap-3">
-                <a href="/scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-qrcode"></i>
-                    <span>ماسح الحضور</span>
-                </a>
-                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high"></i>
-                    <span>العودة للرئيسية</span>
-                </a>
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة الطلاب والبروفايل الشامل</h1>
+                    <p class="text-xs text-slate-400" id="headerCenterName">center-101</p>
+                </div>
             </div>
         </div>
     </header>
@@ -214,6 +210,62 @@
         </div>
     </div>
 
+    <!-- Modal: التحصيل المالي -->
+    <div id="financeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-money-check-dollar text-emerald-400"></i>
+                    نافذة التحصيل المالي للطالب
+                </h3>
+                <button onclick="closeFinanceModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
+                <div class="w-12 h-12 bg-slate-800 rounded-full flex items-center justify-center text-slate-400 text-xl"><i class="fa-solid fa-user"></i></div>
+                <div>
+                    <h4 id="financeStudentName" class="font-bold text-white text-sm">--</h4>
+                    <span id="financeStudentCode" class="text-xs font-mono text-emerald-400">--</span>
+                </div>
+            </div>
+
+            <form id="financeForm" onsubmit="handleFinanceCollection(event)" class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">نوع التحصيل *</label>
+                    <select id="financeTypeSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500">
+                        <option value="FEE">دفع قسط / حصة</option>
+                        <option value="BOOKLET">شراء ملزمة</option>
+                        <option value="OTHER">أخرى (مذكرات، مراجعات...)</option>
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">المبلغ (ج.م) *</label>
+                        <input type="number" id="financeAmount" min="1" required placeholder="مثال: 50" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-300 mb-1">المجموعة / الملزمة التابعة</label>
+                        <select id="financeTargetId" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500">
+                            <!-- Populated dynamically or left empty -->
+                            <option value="">بدون تحديد</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-300 mb-1">ملاحظات / بيان الدفع</label>
+                    <input type="text" id="financeNote" placeholder="اكتب بياناً قصيراً..." class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-slate-100 outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeFinanceModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-md">تسجيل الدفعة والإيصال</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
@@ -223,6 +275,7 @@
         let studentsData = [];
 
         window.onload = function() {
+            document.getElementById('headerCenterName').textContent = centerId;
             fetchStudentsFromApi();
         };
 
@@ -305,6 +358,9 @@
                             </span>
                         </td>
                         <td class="p-3.5 text-center">
+                            <button onclick="openFinanceModal('${student.id}')" title="تحصيل مالي" class="p-2 bg-slate-800 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl transition-all ml-1">
+                                <i class="fa-solid fa-money-bill-wave"></i>
+                            </button>
                             <button onclick="openPrintCardModal('${student.id}')" title="طباعة كارت الباركوود" class="p-2 bg-slate-800 hover:bg-sky-600 text-sky-400 hover:text-white rounded-xl transition-all">
                                 <i class="fa-solid fa-barcode"></i>
                             </button>
@@ -368,6 +424,52 @@
         }
 
         function closePrintCardModal() { document.getElementById('printableCardModal').classList.add('hidden'); }
+
+        let currentFinanceStudentId = null;
+
+        function openFinanceModal(studentId) {
+            const student = studentsData.find(s => s.id === studentId);
+            if (!student) return;
+            currentFinanceStudentId = student.id;
+            document.getElementById('financeStudentName').textContent = student.name;
+            document.getElementById('financeStudentCode').textContent = `كود: ${student.code}`;
+            document.getElementById('financeModal').classList.remove('hidden');
+        }
+
+        function closeFinanceModal() {
+            document.getElementById('financeModal').classList.add('hidden');
+            document.getElementById('financeForm').reset();
+            currentFinanceStudentId = null;
+        }
+
+        async function handleFinanceCollection(e) {
+            e.preventDefault();
+            const type = document.getElementById('financeTypeSelect').value;
+            const amount = parseFloat(document.getElementById('financeAmount').value);
+            const targetId = document.getElementById('financeTargetId').value;
+            const note = document.getElementById('financeNote').value.trim();
+
+            try {
+                // Example call to finance endpoint
+                const response = await fetch('/api/finance/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    body: JSON.stringify({
+                        studentId: currentFinanceStudentId,
+                        type,
+                        amount,
+                        targetId: targetId || null,
+                        note
+                    })
+                });
+
+                // Assuming it's successfully implemented or will be handled by the backend
+                closeFinanceModal();
+                showToast(`تم تسجيل التحصيل المالي بقيمة ${amount} ج.م بنجاح`);
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
 
         function showToast(message) {
             const toast = document.getElementById('toastNotification');

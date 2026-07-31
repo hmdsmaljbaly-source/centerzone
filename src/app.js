@@ -28,7 +28,7 @@ app.use(express.static(publicDir));
 app.use(express.static(path.resolve('public')));
 
 app.use((req, res, next) => {
-  req.centerId = req.headers['x-center-id'] || 'center-101';
+  req.centerId = req.headers['x-center-id'] || (req.user && req.user.centerId) || 'center-101';
   next();
 });
 
@@ -104,9 +104,11 @@ apiRouter.get('/super-admin/centers', async (req, res) => {
 
 apiRouter.post('/super-admin/centers', async (req, res) => {
   try {
-    const { name, phone, username, password, plan, expiry } = req.body;
+    const { name, phone, username, password, plan, expiry, allowedStudentCodes, managerPassword } = req.body;
     const plainPassword = password || '123456';
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    const mngrPassword = managerPassword || '123456';
+    const managerPasswordHash = await bcrypt.hash(mngrPassword, 10);
 
     const center = await prisma.center.create({
       data: {
@@ -115,7 +117,9 @@ apiRouter.post('/super-admin/centers', async (req, res) => {
         email: `${username}@saas-center.com`,
         password_hash: hashedPassword,
         subscription_status: plan || 'ACTIVE',
-        expires_at: expiry ? new Date(expiry) : new Date('2026-12-31')
+        expires_at: expiry ? new Date(expiry) : new Date('2026-12-31'),
+        allowedStudentCodes: parseInt(allowedStudentCodes) || 0,
+        managerPasswordHash
       }
     });
 
@@ -138,7 +142,7 @@ apiRouter.post('/super-admin/centers', async (req, res) => {
 apiRouter.get('/students', async (req, res) => {
   try {
     const { alert_status } = req.query;
-    const where = { center_id: req.centerId };
+    const where = { centerId: req.centerId };
 
     if (alert_status && alert_status !== 'ALL') {
       if (alert_status === 'NORMAL') where.alert_status = false;
@@ -152,7 +156,7 @@ apiRouter.get('/students', async (req, res) => {
 
     const formatted = students.map(s => ({
       id: s.id,
-      code: s.student_code,
+      code: s.code,
       name: s.name,
       student_phone: s.student_phone || '',
       parent_phone: s.parent_phone,
@@ -174,17 +178,29 @@ apiRouter.post('/students', async (req, res) => {
       return res.status(400).json({ success: false, message: 'اسم الطالب ورقم ولي الأمر مطلوبان' });
     }
 
+    const center = await prisma.center.findUnique({ where: { id: req.centerId } });
+    if (center.usedStudentCodes >= center.allowedStudentCodes) {
+      return res.status(403).json({ error: 'استنفذت باقة الأكواد المتاحة للسنتر. يرجى التواصل مع الإدارة' });
+    }
+
     const newCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
     const student = await prisma.student.create({
       data: {
-        center_id: req.centerId,
-        student_code: newCode,
+        centerId: req.centerId,
+        code: newCode,
         name: name.trim(),
         student_phone: student_phone || null,
         parent_phone: parent_phone.trim(),
         alert_status: alert_status === 'WARNING' || alert_status === 'BLOCKED',
-        alert_note: alert_note || null
+        alert_note: alert_note || null,
+        isBlocked: alert_status === 'BLOCKED',
+        hasFinancialWarning: alert_status === 'WARNING'
       }
+    });
+
+    await prisma.center.update({
+      where: { id: req.centerId },
+      data: { usedStudentCodes: { increment: 1 } }
     });
 
     res.status(201).json({
@@ -192,7 +208,7 @@ apiRouter.post('/students', async (req, res) => {
       message: 'تم إضافة الطالب بنجاح وتوليد الكود والباركوود',
       data: {
         id: student.id,
-        code: student.student_code,
+        code: student.code,
         name: student.name,
         parent_phone: student.parent_phone,
         student_phone: student.student_phone,
@@ -212,7 +228,12 @@ apiRouter.patch('/students/:id/alert', async (req, res) => {
 
     const updated = await prisma.student.update({
       where: { id: req.params.id },
-      data: { alert_status: isAlert, alert_note: alert_note }
+      data: { 
+        alert_status: isAlert, 
+        alert_note: alert_note,
+        isBlocked: alert_status === 'BLOCKED',
+        hasFinancialWarning: alert_status === 'WARNING'
+      }
     });
 
     res.status(200).json({ success: true, message: 'تم تحديث تنبيه الطالب', data: updated });
@@ -237,19 +258,19 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
     }
 
     const student = await prisma.student.findFirst({
-      where: { center_id: req.centerId, OR: [{ student_code: code }, { id: code }] }
+      where: { centerId: req.centerId, OR: [{ code: code }, { id: code }] }
     });
 
     if (!student) {
       return res.status(404).json({ success: false, is_allowed: false, message: 'كود الطالب غير مسجل بالسنتر' });
     }
 
-    if (student.alert_status && student.alert_note && student.alert_note.includes('محظور')) {
+    if (student.isBlocked || (student.alert_status && student.alert_note && student.alert_note.includes('محظور'))) {
       return res.status(403).json({
         success: false,
         is_allowed: false,
         message: 'طالب محظور من دخول القاعة!',
-        student: { id: student.id, name: student.name, code: student.student_code }
+        student: { id: student.id, name: student.name, code: student.code }
       });
     }
 
@@ -279,12 +300,12 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
       data: {
         student: {
           id: student.id,
-          code: student.student_code,
+          code: student.code,
           name: student.name,
           parent_phone: student.parent_phone,
           student_phone: student.student_phone
         },
-        alert_notice: student.alert_status ? {
+        alert_notice: student.hasFinancialWarning || student.alert_status ? {
           has_warning: true,
           note: student.alert_note || 'يوجد تنبيه مالي على الطالب'
         } : null
@@ -299,8 +320,8 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
 apiRouter.get('/groups/today', async (req, res) => {
   try {
     const groups = await prisma.group.findMany({
-      where: { center_id: req.centerId },
-      include: { teacher: true }
+      where: { centerId: req.centerId },
+      include: { teacher: true, hall: true }
     });
     res.status(200).json({ success: true, count: groups.length, data: groups });
   } catch (error) {
@@ -310,19 +331,43 @@ apiRouter.get('/groups/today', async (req, res) => {
 
 apiRouter.post('/groups', async (req, res) => {
   try {
-    const { teacher_id, name, price, days } = req.body;
+    const { teacher_id, hall_id, name, price, dayOfWeek, startTime, endTime, grade } = req.body;
 
     if (!teacher_id || !name) {
       return res.status(400).json({ success: false, message: 'المدرس واسم المجموعة مطلوبان' });
     }
 
+    // Smart Schedule Conflict Engine
+    if (hall_id && dayOfWeek && startTime && endTime) {
+      const existingGroups = await prisma.group.findMany({
+        where: {
+          centerId: req.centerId,
+          hallId: hall_id,
+          dayOfWeek: dayOfWeek
+        }
+      });
+      
+      const isConflict = existingGroups.some(g => {
+        // Simple string comparison for times works if formats are consistent (e.g. "14:00")
+        return (startTime < g.endTime && endTime > g.startTime);
+      });
+
+      if (isConflict) {
+        return res.status(409).json({ success: false, message: 'يوجد تعارض في الجدول مع مجموعة أخرى في نفس القاعة والتوقيت' });
+      }
+    }
+
     const group = await prisma.group.create({
       data: {
-        center_id: req.centerId,
-        teacher_id,
+        centerId: req.centerId,
+        teacherId: teacher_id,
+        hallId: hall_id || null,
         name: name.trim(),
         price: price || 0,
-        schedule_days: days || []
+        dayOfWeek: dayOfWeek || "",
+        startTime: startTime || "",
+        endTime: endTime || "",
+        grade: grade || ""
       }
     });
 
@@ -374,12 +419,12 @@ apiRouter.post('/teachers', async (req, res) => {
 // Inventory POS Endpoints
 apiRouter.get('/inventory', async (req, res) => {
   try {
-    const services = await prisma.teacherService.findMany({
-      where: { center_id: req.centerId },
-      include: { teacher: true },
+    const booklets = await prisma.booklet.findMany({
+      where: { centerId: req.centerId },
+      include: { center: true },
       orderBy: { createdAt: 'desc' }
     });
-    res.status(200).json({ success: true, count: services.length, data: services });
+    res.status(200).json({ success: true, count: booklets.length, data: booklets });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -393,15 +438,14 @@ apiRouter.post('/inventory', async (req, res) => {
       return res.status(400).json({ success: false, message: 'جميع بيانات الملزمة مطلوبة (الاسم، المدرس، السعر، والكمية)' });
     }
 
-    const newBook = await prisma.teacherService.create({
+    const newBook = await prisma.booklet.create({
       data: {
-        center_id: req.centerId,
-        service_name: title.trim(),
+        centerId: req.centerId,
+        title: title.trim(),
         price: parseFloat(price),
-        stock_quantity: parseInt(stock_quantity),
-        teacher_id: teacher_id
-      },
-      include: { teacher: true }
+        quantity: parseInt(stock_quantity),
+        teacherId: teacher_id
+      }
     });
 
     res.status(201).json({ success: true, message: 'تمت إضافة الملزمة للمخزن بنجاح', data: newBook });
@@ -412,7 +456,7 @@ apiRouter.post('/inventory', async (req, res) => {
 
 apiRouter.delete('/inventory/:id', async (req, res) => {
   try {
-    await prisma.teacherService.delete({
+    await prisma.booklet.delete({
       where: { id: req.params.id }
     });
     res.status(200).json({ success: true, message: 'تم حذف الملزمة من المخزن بنجاح' });
@@ -421,31 +465,91 @@ apiRouter.delete('/inventory/:id', async (req, res) => {
   }
 });
 
-apiRouter.post('/inventory/pos-sale', async (req, res) => {
+apiRouter.post('/finance/collect', async (req, res) => {
   try {
-    const { student_id, service_id, quantity } = req.body;
-    const qty = parseInt(quantity) || 1;
-
-    const service = await prisma.teacherService.findUnique({ where: { id: service_id } });
-    if (!service || service.stock_quantity < qty) {
-      return res.status(400).json({ success: false, message: 'الكمية المطلوب بيعها غير متاحة بالمخزن' });
+    const { studentId, groupId, serviceId, bookletId, amount, paymentType, monthYear, secretaryName, quantity } = req.body;
+    
+    // Auto-Inventory POS integration
+    if (bookletId) {
+      const qty = parseInt(quantity) || 1;
+      const booklet = await prisma.booklet.findUnique({ where: { id: bookletId } });
+      
+      if (!booklet || booklet.quantity < qty) {
+        return res.status(400).json({ success: false, message: 'الكمية المطلوبة غير متوفرة في المخزن' });
+      }
+      
+      await prisma.booklet.update({
+        where: { id: bookletId },
+        data: { quantity: { decrement: qty } }
+      });
+      
+      await prisma.inventoryTransaction.create({
+        data: {
+          centerId: req.centerId,
+          type: "SALE",
+          bookletId: bookletId,
+          studentId: studentId,
+          quantityChanged: -qty,
+          totalPrice: parseFloat(amount)
+        }
+      });
     }
 
-    await prisma.teacherService.update({
-      where: { id: service_id },
-      data: { stock_quantity: { decrement: qty } }
-    });
-
-    const sale = await prisma.serviceSale.create({
+    const payment = await prisma.studentFeePayment.create({
       data: {
-        center_id: req.centerId,
-        student_id,
-        service_id,
-        amount_paid: Number(service.price) * qty
+        centerId: req.centerId,
+        studentId: studentId || "",
+        groupId: groupId || "",
+        serviceId: serviceId || null,
+        bookletId: bookletId || null,
+        amount: parseFloat(amount),
+        paymentType: paymentType, // "MONTHLY", "ADVANCE_MONTH", "TERM_RESERVATION", "NIGHT_REVIEW", "BOOKLET_ONLY"
+        monthYear: monthYear || "",
+        secretaryName: secretaryName || "System"
       }
     });
 
-    res.status(200).json({ success: true, message: 'تم تسليم المطبوعة بنجاح وتحديث المخزن', data: sale });
+    res.status(200).json({ success: true, message: 'تم تحصيل الدفعة بنجاح', data: payment });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.post('/finance/closing', async (req, res) => {
+  try {
+    const { managerPassword, monthYear } = req.body;
+    
+    if (!managerPassword || !monthYear) {
+      return res.status(400).json({ success: false, message: 'كلمة مرور المدير والشهر مطلوبان' });
+    }
+
+    const center = await prisma.center.findUnique({ where: { id: req.centerId } });
+    if (!center) return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+
+    const isMatch = await bcrypt.compare(managerPassword, center.managerPasswordHash);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'كلمة مرور المدير غير صحيحة' });
+    }
+
+    // Calculate revenue
+    const payments = await prisma.studentFeePayment.findMany({
+      where: { centerId: req.centerId, monthYear: monthYear }
+    });
+    
+    const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalBookletSales = payments.filter(p => p.bookletId).reduce((sum, p) => sum + p.amount, 0);
+
+    const closing = await prisma.monthlyClosing.create({
+      data: {
+        centerId: req.centerId,
+        monthYear: monthYear,
+        totalRevenue: totalRevenue,
+        totalBookletSales: totalBookletSales,
+        closedByManager: center.name
+      }
+    });
+
+    res.status(200).json({ success: true, message: 'تم إغلاق الشهر بنجاح', data: closing });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

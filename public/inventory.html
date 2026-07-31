@@ -27,25 +27,24 @@
     <!-- Top Navbar -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center space-x-3 space-x-reverse">
-                <a href="/index.html" class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 p-0.5 shadow-lg shadow-amber-500/20 hover:scale-105 transition-transform flex items-center justify-center">
-                    <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center text-amber-400 font-black text-lg">
-                        <i class="fa-solid fa-boxes-stacked"></i>
-                    </div>
+            
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
                 </a>
-                <div>
-                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المخزن والمطبوعات (POS)</h1>
-                    <p class="text-xs text-slate-400">متابعة المخزون وملازم المدرسين والبيع المباشر</p>
-                </div>
+                <a href="students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-users"></i>
+                    إدارة الطلاب
+                </a>
             </div>
 
-            <div class="flex items-center gap-2.5">
-                <a href="/students.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sky-400 rounded-xl text-xs font-bold transition-all">
-                    <i class="fa-solid fa-users ml-1"></i> إدارة الطلاب
-                </a>
-                <a href="/index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all">
-                    <i class="fa-solid fa-gauge-high ml-1"></i> العودة للرئيسية
-                </a>
+            <!-- Top Left: Title and Dynamic Center Name -->
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-lg text-white leading-tight">إدارة المخزن والمطبوعات (POS)</h1>
+                    <p class="text-xs text-slate-400" id="headerCenterName">center-101</p>
+                </div>
             </div>
         </div>
     </header>
@@ -94,8 +93,18 @@
             </div>
         </section>
 
-        <!-- Main Table Section -->
-        <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <!-- Dual-Tab Navigation -->
+        <div class="flex gap-2 border-b border-slate-800">
+            <button onclick="switchTab('inventoryTab')" id="btn-inventoryTab" class="px-4 py-2 text-xs font-bold transition-all border-b-2 border-amber-500 text-amber-400">
+                <i class="fa-solid fa-boxes-stacked mr-1"></i> المخزن والملازم
+            </button>
+            <button onclick="switchTab('auditTab')" id="btn-auditTab" class="px-4 py-2 text-xs font-bold transition-all border-b-2 border-transparent text-slate-500 hover:text-slate-300">
+                <i class="fa-solid fa-clock-rotate-left mr-1"></i> سجل حركات المخزن (Audit Trail)
+            </button>
+        </div>
+
+        <!-- Main Table Section: Inventory List -->
+        <section id="inventoryTab" class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden tab-content block">
             <div class="overflow-x-auto">
                 <table class="w-full text-xs text-right text-slate-300">
                     <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
@@ -114,6 +123,33 @@
                 </table>
                 <div id="inventoryEmptyState" class="hidden p-8 text-center text-slate-500 text-xs">
                     لا توجد ملازم مطابقة لبحثك في قاعدة البيانات.
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Table Section: Audit Trail -->
+        <section id="auditTab" class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden tab-content hidden">
+            <div class="p-4 flex justify-between items-center bg-slate-950/50 border-b border-slate-800">
+                <h3 class="text-sm font-bold text-white">سجل حركات الملازم ونقاط البيع</h3>
+                <button onclick="fetchAuditTrail()" class="text-xs text-sky-400 hover:text-sky-300"><i class="fa-solid fa-rotate-right"></i> تحديث</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs text-right text-slate-300">
+                    <thead class="bg-slate-950/80 text-slate-400 font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="p-3.5">التاريخ والوقت</th>
+                            <th class="p-3.5">نوع الحركة</th>
+                            <th class="p-3.5">الملزمة</th>
+                            <th class="p-3.5">الكمية</th>
+                            <th class="p-3.5">الطالب / الملاحظة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated via API -->
+                    </tbody>
+                </table>
+                <div id="auditEmptyState" class="hidden p-8 text-center text-slate-500 text-xs">
+                    لا يوجد سجل حركات في الوقت الحالي.
                 </div>
             </div>
         </section>
@@ -216,9 +252,11 @@
         let studentsList = [];
 
         window.onload = function() {
+            document.getElementById('headerCenterName').textContent = centerId;
             fetchInventoryFromApi();
             fetchTeachersFromApi();
             fetchStudentsFromApi();
+            fetchAuditTrail();
         };
 
         async function fetchInventoryFromApi() {
@@ -473,6 +511,66 @@
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
+        }
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('[id^="btn-"]').forEach(el => {
+                el.classList.remove('border-amber-500', 'text-amber-400');
+                el.classList.add('border-transparent', 'text-slate-500');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            document.getElementById('btn-' + tabId).classList.remove('border-transparent', 'text-slate-500');
+            document.getElementById('btn-' + tabId).classList.add('border-amber-500', 'text-amber-400');
+        }
+
+        async function fetchAuditTrail() {
+            const tbody = document.getElementById('auditTableBody');
+            const emptyState = document.getElementById('auditEmptyState');
+            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">جاري التحميل...</td></tr>';
+            emptyState.classList.add('hidden');
+
+            try {
+                // Mock endpoint or use a real one if implemented
+                const response = await fetch('/api/inventory/audit', {
+                    headers: { 'x-center-id': centerId }
+                });
+                
+                if (response.ok) {
+                    const resData = await response.json();
+                    if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+                        tbody.innerHTML = resData.data.map(txn => {
+                            let typeBadge = txn.type === 'SALE' 
+                                ? '<span class="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400">بيع (SALE)</span>'
+                                : '<span class="px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-400">إضافة (ADD)</span>';
+                                
+                            const dateStr = new Date(txn.createdAt).toLocaleString('ar-EG');
+                            const studentName = txn.student ? txn.student.name : (txn.note || '--');
+                            
+                            return `
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="p-3.5 font-mono text-[10px] text-slate-400">${dateStr}</td>
+                                <td class="p-3.5">${typeBadge}</td>
+                                <td class="p-3.5 font-bold">${txn.booklet ? txn.booklet.title : 'ملزمة محذوفة'}</td>
+                                <td class="p-3.5 font-mono text-white" dir="ltr">${txn.type === 'SALE' ? '-' : '+'}${txn.quantity}</td>
+                                <td class="p-3.5 text-slate-300">${studentName}</td>
+                            </tr>`;
+                        }).join('');
+                    } else {
+                        tbody.innerHTML = '';
+                        emptyState.classList.remove('hidden');
+                    }
+                } else {
+                    // Fallback to mock UI if endpoint doesn't exist
+                    tbody.innerHTML = '';
+                    emptyState.classList.remove('hidden');
+                    emptyState.textContent = 'سجل الحركات غير متوفر حالياً';
+                }
+            } catch (e) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                emptyState.textContent = 'تعذر جلب سجل الحركات';
+            }
         }
     </script>
 </body>
