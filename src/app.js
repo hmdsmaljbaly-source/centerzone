@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const path = require('path');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const prisma = require('./config/prisma');
 
 let QRCode;
@@ -16,6 +17,7 @@ try {
 }
 
 const app = express();
+const JWT_SECRET = process.env.JWT_SECRET || 'centerzone_saas_secret_key_2026';
 
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
@@ -24,7 +26,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const publicDir = path.resolve(__dirname, '../public');
-app.use(express.static(publicDir));
+app.use(express.static(path.resolve(__dirname, '../public')));
 app.use(express.static(path.resolve('public')));
 
 app.use((req, res, next) => {
@@ -32,22 +34,44 @@ app.use((req, res, next) => {
   next();
 });
 
-// HTML Routes Direct Mapping
-app.get('/', (req, res) => res.redirect('/login.html'));
-app.get('/login', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
-app.get('/login.html', (req, res) => res.sendFile(path.join(publicDir, 'login.html')));
+// Seeding Super Admin
+async function seedSuperAdmin() {
+  try {
+    const count = await prisma.superAdmin.count();
+    if (count === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await prisma.superAdmin.create({
+        data: {
+          username: 'admin',
+          email: 'admin@centerzone.com',
+          password: hashedPassword,
+          name: 'Super Admin'
+        }
+      });
+      console.log('✅ Default Super Admin account seeded: admin / admin123');
+    }
+  } catch (error) {
+    console.error('Error seeding Super Admin:', error.message);
+  }
+}
+seedSuperAdmin();
 
-app.get('/dashboard', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
-app.get('/index.html', (req, res) => res.sendFile(path.join(publicDir, 'index.html')));
+// HTML Routes Direct Mapping (Linux compatible)
+app.get('/', (req, res) => res.sendFile(path.resolve(__dirname, '../public/login.html')));
+app.get('/login', (req, res) => res.sendFile(path.resolve(__dirname, '../public/login.html')));
+app.get('/login.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/login.html')));
 
-app.get('/super-admin', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
-app.get('/super-admin.html', (req, res) => res.sendFile(path.join(publicDir, 'super-admin.html')));
+app.get('/dashboard', (req, res) => res.sendFile(path.resolve(__dirname, '../public/index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/index.html')));
 
-app.get('/students.html', (req, res) => res.sendFile(path.join(publicDir, 'students.html')));
-app.get('/teachers.html', (req, res) => res.sendFile(path.join(publicDir, 'teachers.html')));
-app.get('/inventory.html', (req, res) => res.sendFile(path.join(publicDir, 'inventory.html')));
-app.get('/scanner.html', (req, res) => res.sendFile(path.join(publicDir, 'scanner.html')));
-app.get('/settings.html', (req, res) => res.sendFile(path.join(publicDir, 'settings.html')));
+app.get('/super-admin', (req, res) => res.sendFile(path.resolve(__dirname, '../public/super-admin.html')));
+app.get('/super-admin.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/super-admin.html')));
+
+app.get('/students.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/students.html')));
+app.get('/teachers.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/teachers.html')));
+app.get('/inventory.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/inventory.html')));
+app.get('/scanner.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/scanner.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/settings.html')));
 
 app.get('/health', async (req, res) => {
   try {
@@ -60,31 +84,100 @@ app.get('/health', async (req, res) => {
 
 const apiRouter = express.Router();
 
+// Auth Middleware for /api/* except /auth/login
+apiRouter.use(async (req, res, next) => {
+  if (req.path === '/auth/login' || req.path === '/auth/login/') {
+    return next();
+  }
+  const authHeader = req.headers.authorization || req.headers['authorization'];
+  if (!authHeader) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+  const token = authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : authHeader;
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    if (decoded.centerId) {
+      req.centerId = decoded.centerId;
+    }
+    next();
+  } catch (error) {
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+});
+
 // Authentication Endpoint
 apiRouter.post('/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { username } });
-
-    if (!user) {
-      return res.status(401).json({ success: false, message: 'اسم المستخدم أو كلمة السر غير صحيحة' });
+    if (!username || !password) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password).catch(() => user.password === password);
-    if (!isPasswordValid) {
-      return res.status(401).json({ success: false, message: 'اسم المستخدم أو كلمة السر غير صحيحة' });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'تم تسجيل الدخول بنجاح',
-      data: {
-        id: user.id,
-        username: user.username,
-        role: user.role,
-        centerId: user.centerId || 'center-101'
-      }
+    // 1. Check SuperAdmin
+    const superAdmin = await prisma.superAdmin.findFirst({
+      where: { OR: [{ username: username }, { email: username }] }
     });
+    if (superAdmin) {
+      const isMatch = await bcrypt.compare(password, superAdmin.password).catch(() => superAdmin.password === password);
+      if (isMatch || superAdmin.password === password) {
+        const token = jwt.sign({ id: superAdmin.id, username: superAdmin.username, role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.status(200).json({
+          success: true,
+          message: 'تم تسجيل الدخول بنجاح كـ Super Admin',
+          data: {
+            token,
+            userRole: 'SUPER_ADMIN',
+            centerId: ''
+          }
+        });
+      }
+    }
+
+    // 2. Check Center Users
+    const user = await prisma.user.findUnique({ where: { username } });
+    if (user) {
+      const isPasswordValid = await bcrypt.compare(password, user.password).catch(() => user.password === password);
+      if (isPasswordValid || user.password === password) {
+        let targetCenterId = user.centerId || 'center-101';
+        if (user.centerId) {
+          const c = await prisma.center.findUnique({ where: { id: user.centerId } }).catch(() => null);
+          if (c && c.centerId) targetCenterId = c.centerId;
+        }
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role || 'CENTER_ADMIN', centerId: targetCenterId }, JWT_SECRET, { expiresIn: '24h' });
+        return res.status(200).json({
+          success: true,
+          message: 'تم تسجيل الدخول بنجاح',
+          data: {
+            token,
+            userRole: user.role || 'CENTER_ADMIN',
+            centerId: targetCenterId
+          }
+        });
+      }
+    }
+
+    // 3. Check Center direct login (by code or centerId or email)
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ code: username }, { centerId: username }, { email: username }] }
+    });
+    if (center && center.password_hash) {
+      const isMatch = await bcrypt.compare(password, center.password_hash).catch(() => center.password_hash === password);
+      if (isMatch || center.password_hash === password) {
+        const token = jwt.sign({ id: center.id, username: center.centerId, role: 'CENTER_ADMIN', centerId: center.centerId }, JWT_SECRET, { expiresIn: '24h' });
+        return res.status(200).json({
+          success: true,
+          message: 'تم تسجيل الدخول بنجاح',
+          data: {
+            token,
+            userRole: 'CENTER_ADMIN',
+            centerId: center.centerId || 'center-101'
+          }
+        });
+      }
+    }
+
+    return res.status(401).json({ success: false, message: 'Unauthorized' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -94,7 +187,11 @@ apiRouter.post('/auth/login', async (req, res) => {
 apiRouter.get('/super-admin/centers', async (req, res) => {
   try {
     const centers = await prisma.center.findMany({
-      include: { users: { select: { username: true } } }
+      include: {
+        users: { select: { username: true } },
+        _count: { select: { students: true, teachers: true } }
+      },
+      orderBy: { createdAt: 'desc' }
     });
     res.status(200).json({ success: true, count: centers.length, data: centers });
   } catch (error) {
@@ -104,35 +201,106 @@ apiRouter.get('/super-admin/centers', async (req, res) => {
 
 apiRouter.post('/super-admin/centers', async (req, res) => {
   try {
-    const { name, phone, username, password, plan, expiry, allowedStudentCodes, managerPassword } = req.body;
+    const { name, code, centerId, plan, expiresAt, phone, username, password, allowedStudentCodes, managerPassword } = req.body;
     const plainPassword = password || '123456';
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
     const mngrPassword = managerPassword || '123456';
     const managerPasswordHash = await bcrypt.hash(mngrPassword, 10);
+    const finalCenterId = centerId || `center-${Math.floor(100 + Math.random() * 900)}`;
+    const finalCode = code || `CODE-${Math.floor(1000 + Math.random() * 9000)}`;
+    const finalUsername = username || finalCenterId;
 
     const center = await prisma.center.create({
       data: {
-        name,
-        phone,
-        email: `${username}@saas-center.com`,
+        name: name || 'السنتر التعليمي',
+        centerId: finalCenterId,
+        code: finalCode,
+        plan: plan || 'ACTIVE',
+        isActive: true,
+        phone: phone || null,
+        email: `${finalUsername}@saas-center.com`,
         password_hash: hashedPassword,
-        subscription_status: plan || 'ACTIVE',
-        expires_at: expiry ? new Date(expiry) : new Date('2026-12-31'),
-        allowedStudentCodes: parseInt(allowedStudentCodes) || 0,
+        subscription_status: plan === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
+        expiresAt: expiresAt ? new Date(expiresAt) : new Date('2026-12-31'),
+        expires_at: expiresAt ? new Date(expiresAt) : new Date('2026-12-31'),
+        allowedStudentCodes: parseInt(allowedStudentCodes) || 100,
         managerPasswordHash
       }
     });
 
     await prisma.user.create({
       data: {
-        username,
+        username: finalUsername,
         password: hashedPassword,
         role: 'CENTER_ADMIN',
         centerId: center.id
       }
-    });
+    }).catch(e => console.log('User creation skipped/error:', e.message));
 
     res.status(201).json({ success: true, message: 'تم إنشاء السنتر وتكاويد حساب المدير', data: center });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.patch('/super-admin/centers/:idOrCode/status', async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    const newIsActive = !center.isActive;
+    const updated = await prisma.center.update({
+      where: { id: center.id },
+      data: {
+        isActive: newIsActive,
+        subscription_status: newIsActive ? 'ACTIVE' : 'SUSPENDED'
+      }
+    });
+    res.status(200).json({ success: true, message: `تم تعديل حالة السنتر إلى ${updated.isActive ? 'نشط' : 'موقوف'}`, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.put('/super-admin/profile', async (req, res) => {
+  try {
+    const { currentPassword, newPassword, newUsername, newEmail } = req.body;
+    if (!currentPassword) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال كلمة المرور الحالية للتأكيد' });
+    }
+    let admin = null;
+    if (req.user && req.user.id) {
+      admin = await prisma.superAdmin.findFirst({ where: { OR: [{ id: req.user.id }, { username: req.user.username }] } });
+    }
+    if (!admin) {
+      admin = await prisma.superAdmin.findFirst();
+    }
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'حساب السوبر أدمن غير موجود' });
+    }
+    const isMatch = await bcrypt.compare(currentPassword, admin.password).catch(() => admin.password === currentPassword);
+    if (!isMatch && admin.password !== currentPassword) {
+      return res.status(401).json({ success: false, message: 'كلمة المرور الحالية غير صحيحة' });
+    }
+    const updateData = {};
+    if (newPassword) {
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
+    if (newUsername) {
+      updateData.username = newUsername;
+    }
+    if (newEmail) {
+      updateData.email = newEmail;
+    }
+    const updatedAdmin = await prisma.superAdmin.update({
+      where: { id: admin.id },
+      data: updateData
+    });
+    res.status(200).json({ success: true, message: 'تم تحديث إعدادات حساب السوبر أدمن بنجاح', data: { username: updatedAdmin.username, email: updatedAdmin.email } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

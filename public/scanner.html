@@ -34,6 +34,45 @@
         .pulse-success { animation: pulse-success 1.5s infinite; }
         .pulse-danger { animation: pulse-danger 1.5s infinite; }
     </style>
+    <!-- Auth Guard & Global Fetch Interceptor -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('centerzone_token');
+            if (!token) {
+                sessionStorage.setItem('redirect_after_login', window.location.pathname);
+                window.location.href = '/login.html';
+                return;
+            }
+            const originalFetch = window.fetch;
+            window.fetch = async function(url, options = {}) {
+                options.headers = options.headers || {};
+                const currentToken = localStorage.getItem('centerzone_token');
+                const currentCenterId = localStorage.getItem('x-center-id') || localStorage.getItem('centerId');
+                if (url && url.toString().startsWith('/api/')) {
+                    if (options.headers instanceof Headers) {
+                        if (currentToken && !options.headers.has('Authorization')) {
+                            options.headers.set('Authorization', 'Bearer ' + currentToken);
+                        }
+                        if (currentCenterId && !options.headers.has('x-center-id')) {
+                            options.headers.set('x-center-id', currentCenterId);
+                        }
+                    } else {
+                        options.headers['Authorization'] = options.headers['Authorization'] || (currentToken ? 'Bearer ' + currentToken : undefined);
+                        if (currentCenterId && !options.headers['x-center-id']) {
+                            options.headers['x-center-id'] = currentCenterId;
+                        }
+                    }
+                }
+                const response = await originalFetch.call(this, url, options);
+                if (response.status === 401) {
+                    localStorage.clear();
+                    alert("جلسة العمل انتهت، يرجى إعادة الدخول");
+                    window.location.href = '/login.html';
+                }
+                return response;
+            };
+        })();
+    </script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500 selection:text-white">
 

@@ -29,8 +29,8 @@
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
             </div>
-            <h2 class="text-2xl font-black text-white tracking-tight">نظام إدارة السناتر (Center SaaS)</h2>
-            <p class="text-xs text-slate-400">سجل دخولك للوصول إلى لوحة تحكم السنتر أو لوحة الإدارة</p>
+            <h2 class="text-2xl font-black text-white tracking-tight">Center Zone System</h2>
+            <p class="text-xs text-slate-400">سجل دخولك للوصول إلى لوحة التحكم أو لوحة الإدارة</p>
         </div>
 
         <div id="loginAlert" class="hidden p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs flex items-center gap-2">
@@ -42,7 +42,7 @@
             <div>
                 <label class="block text-xs font-bold text-slate-300 mb-1.5">اسم المستخدم (Username) *</label>
                 <div class="relative">
-                    <input type="text" id="username" required placeholder="center101 أو superadmin"
+                    <input type="text" id="username" required placeholder="أدخل اسم المستخدم أو البريد الإلكتروني"
                         class="w-full bg-slate-950 border border-slate-800 text-slate-100 rounded-xl pr-10 pl-4 py-3 text-xs focus:ring-2 focus:ring-sky-500 outline-none transition-all">
                     <i class="fa-solid fa-user absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                 </div>
@@ -62,24 +62,6 @@
                 <span>تسجيل الدخول</span>
             </button>
         </form>
-
-        <div class="p-4 bg-slate-950/80 border border-slate-800/80 rounded-2xl space-y-3">
-            <span class="text-[11px] font-bold text-slate-400 flex items-center gap-1.5">
-                <i class="fa-solid fa-lightbulb text-amber-400"></i>
-                حسابات تجريبية للاختبار السريع (Demo Login):
-            </span>
-            <div class="grid grid-cols-2 gap-2 text-center text-xs">
-                <button type="button" onclick="fillCreds('center101', 'center123')" class="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all text-right">
-                    <span class="block font-bold text-sky-400 text-[11px]"><i class="fa-solid fa-school ml-1"></i> مدير سنتر</span>
-                    <span class="block text-[10px] text-slate-400 font-mono mt-0.5">center101 / center123</span>
-                </button>
-                <button type="button" onclick="fillCreds('superadmin', 'admin123')" class="p-2.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl transition-all text-right">
-                    <span class="block font-bold text-purple-400 text-[11px]"><i class="fa-solid fa-user-shield ml-1"></i> Super Admin</span>
-                    <span class="block text-[10px] text-slate-400 font-mono mt-0.5">superadmin / admin123</span>
-                </button>
-            </div>
-        </div>
-
     </div>
 
     <script>
@@ -101,29 +83,33 @@
 
                 const resData = await response.json();
 
-                if (resData.success && resData.data) {
-                    localStorage.setItem('centerId', resData.data.centerId || 'center-101');
-                    localStorage.setItem('username', resData.data.username);
+                if (response.ok && resData.success && resData.data) {
+                    const { token, userRole, centerId } = resData.data;
+                    localStorage.setItem('centerzone_token', token);
+                    localStorage.setItem('userRole', userRole);
+                    if (centerId) {
+                        localStorage.setItem('x-center-id', centerId);
+                        localStorage.setItem('centerId', centerId);
+                    }
+                    localStorage.setItem('username', username);
                     
-                    if (resData.data.role === 'SUPER_ADMIN') {
+                    const redirectUrl = sessionStorage.getItem('redirect_after_login');
+                    if (redirectUrl) {
+                        sessionStorage.removeItem('redirect_after_login');
+                        window.location.href = redirectUrl;
+                    } else if (userRole === 'SUPER_ADMIN') {
                         window.location.href = '/super-admin.html';
                     } else {
                         window.location.href = '/index.html';
                     }
                 } else {
-                    alertText.textContent = resData.message || 'بيانات الدخول غير صحيحة';
+                    alertText.textContent = resData.message || 'اسم المستخدم أو كلمة السر غير صحيحة';
                     alertBox.classList.remove('hidden');
                 }
             } catch (error) {
                 alertText.textContent = 'خطأ في الاتصال بالسيرفر وقاعدة البيانات';
                 alertBox.classList.remove('hidden');
             }
-        }
-
-        function fillCreds(u, p) {
-            document.getElementById('username').value = u;
-            document.getElementById('password').value = p;
-            document.getElementById('loginAlert').classList.add('hidden');
         }
     </script>
 </body>

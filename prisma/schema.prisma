@@ -27,6 +27,17 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+model SuperAdmin {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+
+  @@map("super_admins")
+}
+
 model User {
   id        String   @id @default(uuid())
   username  String   @unique
@@ -42,10 +53,15 @@ model User {
 
 model Center {
   id                  String             @id @default(uuid())
+  centerId            String?            @unique @default(uuid())
   name                String
-  email               String             @unique
+  code                String?            @unique @default(uuid())
+  plan                String             @default("ACTIVE")
+  isActive            Boolean            @default(true)
+  expiresAt           DateTime?
+  email               String?            @unique
   phone               String?
-  password_hash       String
+  password_hash       String?
   subscription_status SubscriptionStatus @default(TRIAL)
   expires_at          DateTime?
   whatsapp_template   String?            @db.Text
