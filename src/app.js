@@ -37,18 +37,39 @@ app.use((req, res, next) => {
 // Seeding Super Admin
 async function seedSuperAdmin() {
   try {
-    const count = await prisma.superAdmin.count();
-    if (count === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await prisma.superAdmin.create({
+    const hashedPassword = await bcrypt.hash('gebo777', 10);
+    const existingAdmin = await prisma.superAdmin.findFirst({
+      where: {
+        OR: [
+          { username: 'admin' },
+          { username: 'super_admain' },
+          { email: 'admin@centerzone.com' },
+          { email: 'superadmin@centerzone.com' }
+        ]
+      }
+    });
+
+    if (existingAdmin) {
+      await prisma.superAdmin.update({
+        where: { id: existingAdmin.id },
         data: {
-          username: 'admin',
-          email: 'admin@centerzone.com',
+          username: 'super_admain',
+          email: 'superadmin@centerzone.com',
           password: hashedPassword,
           name: 'Super Admin'
         }
       });
-      console.log('✅ Default Super Admin account seeded: admin / admin123');
+      console.log('✅ Super Admin account updated to: super_admain / gebo777');
+    } else {
+      await prisma.superAdmin.create({
+        data: {
+          username: 'super_admain',
+          email: 'superadmin@centerzone.com',
+          password: hashedPassword,
+          name: 'Super Admin'
+        }
+      });
+      console.log('✅ Default Super Admin account seeded: super_admain / gebo777');
     }
   } catch (error) {
     console.error('Error seeding Super Admin:', error.message);
