@@ -235,8 +235,21 @@
                             class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-purple-500 outline-none">
                     </div>
                     <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">كود السنتر (Tenant Code) *</label>
+                        <input type="text" id="inputCenterCode" required placeholder="مثال: AWAEL-2026" 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">رقم الهاتف *</label>
                         <input type="text" id="inputCenterPhone" required placeholder="010XXXXXXXX" 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">عدد الأكواد المسموح بها (Quota) *</label>
+                        <input type="number" id="inputMaxStudentCodes" required value="500" min="1" 
                             class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-purple-500 outline-none">
                     </div>
                 </div>
@@ -399,9 +412,17 @@
                         <td class="p-3.5"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${badgeClass}">${statusLabel}</span></td>
                         <td class="p-3.5 font-mono text-slate-400">${center.expiry}</td>
                         <td class="p-3.5 text-center">
-                            <button onclick="toggleCenterStatus('${center.id}')" class="px-3 py-1.5 ${center.status === 'ACTIVE' ? 'bg-rose-600/20 hover:bg-rose-600 text-rose-300' : 'bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300'} hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all">
-                                ${center.status === 'ACTIVE' ? 'إيقاف الخدمة 🔴' : 'تفعيل الخدمة 🟢'}
-                            </button>
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button onclick="toggleCenterStatus('${center.id}')" class="px-2.5 py-1.5 ${center.status === 'ACTIVE' ? 'bg-amber-600/20 hover:bg-amber-600 text-amber-300' : 'bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300'} hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all" title="تفعيل/تجميد">
+                                    ${center.status === 'ACTIVE' ? 'تجميد 🟡' : 'تفعيل 🟢'}
+                                </button>
+                                <button onclick="changeCenterPassword('${center.id}', '${center.name}')" class="px-2.5 py-1.5 bg-sky-600/20 hover:bg-sky-600 text-sky-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all" title="تغيير كلمة السر">
+                                    <i class="fa-solid fa-key mr-1"></i>كلمة السر
+                                </button>
+                                <button onclick="deleteCenter('${center.id}', '${center.name}')" class="px-2.5 py-1.5 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-slate-700 rounded-xl text-xs font-bold transition-all" title="حذف السنتر بالكامل">
+                                    <i class="fa-solid fa-trash mr-1"></i>حذف
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -438,6 +459,42 @@
             }
         }
 
+        async function changeCenterPassword(centerId, centerName) {
+            const newPass = prompt(`أدخل كلمة المرور الجديدة لحساب مدير سنتر: (${centerName})`);
+            if (!newPass || !newPass.trim()) return;
+            try {
+                const res = await fetch(`/api/super-admin/centers/${centerId}/password`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ newPassword: newPass.trim() })
+                });
+                const data = await res.json();
+                showToast(data.message || 'تم تغيير كلمة المرور');
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
+
+        async function deleteCenter(centerId, centerName) {
+            if (!confirm(`⚠️ تحذير خطير: هل أنت متأكد من رغبتك في حذف (${centerName}) وجميع البيانات المربوطة به بالكامل (طلاب، معلمين، فصول، مبيعات)؟ لا يمكن التراجع عن هذا الإجراء!`)) {
+                return;
+            }
+            try {
+                const res = await fetch(`/api/super-admin/centers/${centerId}`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message);
+                    fetchCentersFromApi();
+                } else {
+                    showToast(data.message || 'فشل حذف السنتر');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
+
         function openAddCenterModal() {
             document.getElementById('addCenterModal').classList.remove('hidden');
         }
@@ -449,17 +506,19 @@
         async function handleCreateCenter(e) {
             e.preventDefault();
             const name = document.getElementById('inputCenterName').value.trim();
+            const code = document.getElementById('inputCenterCode').value.trim();
             const phone = document.getElementById('inputCenterPhone').value.trim();
-            const username = document.getElementById('inputAdminUsername').value.trim();
-            const password = document.getElementById('inputAdminPassword').value.trim();
+            const maxStudentCodes = document.getElementById('inputMaxStudentCodes').value;
+            const adminUsername = document.getElementById('inputAdminUsername').value.trim();
+            const adminPassword = document.getElementById('inputAdminPassword').value.trim();
             const plan = document.getElementById('inputSubscriptionPlan').value;
-            const expiry = document.getElementById('inputExpiryDate').value;
+            const expiresAt = document.getElementById('inputExpiryDate').value;
 
             try {
                 const response = await fetch('/api/super-admin/centers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, phone, username, password, plan, expiry })
+                    body: JSON.stringify({ name, code, phone, maxStudentCodes, adminUsername, adminPassword, plan, expiresAt })
                 });
 
                 const resData = await response.json();

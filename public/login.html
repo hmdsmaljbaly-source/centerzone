@@ -93,11 +93,8 @@
                     }
                     localStorage.setItem('username', username);
                     
-                    const redirectUrl = sessionStorage.getItem('redirect_after_login');
-                    if (redirectUrl) {
-                        sessionStorage.removeItem('redirect_after_login');
-                        window.location.href = redirectUrl;
-                    } else if (userRole === 'SUPER_ADMIN') {
+                    sessionStorage.removeItem('redirect_after_login');
+                    if (userRole === 'SUPER_ADMIN' || resData.redirectUrl === '/super-admin.html' || (resData.data && resData.data.redirectUrl === '/super-admin.html')) {
                         window.location.href = '/super-admin.html';
                     } else {
                         window.location.href = '/index.html';

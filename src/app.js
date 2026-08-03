@@ -145,11 +145,15 @@ apiRouter.post('/auth/login', async (req, res) => {
         const token = jwt.sign({ id: superAdmin.id, username: superAdmin.username, role: 'SUPER_ADMIN' }, JWT_SECRET, { expiresIn: '24h' });
         return res.status(200).json({
           success: true,
+          userRole: 'SUPER_ADMIN',
+          token,
+          redirectUrl: '/super-admin.html',
           message: 'تم تسجيل الدخول بنجاح كـ Super Admin',
           data: {
             token,
             userRole: 'SUPER_ADMIN',
-            centerId: ''
+            centerId: '',
+            redirectUrl: '/super-admin.html'
           }
         });
       }
@@ -222,45 +226,51 @@ apiRouter.get('/super-admin/centers', async (req, res) => {
 
 apiRouter.post('/super-admin/centers', async (req, res) => {
   try {
-    const { name, code, centerId, plan, expiresAt, phone, username, password, allowedStudentCodes, managerPassword } = req.body;
-    const plainPassword = password || '123456';
+    const { name, code, centerId, plan, expiresAt, expiry, phone, username, password, adminUsername, adminPassword, maxStudentCodes, allowedStudentCodes, managerPassword } = req.body;
+    const plainPassword = adminPassword || password || '123456';
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
     const mngrPassword = managerPassword || '123456';
     const managerPasswordHash = await bcrypt.hash(mngrPassword, 10);
-    const finalCenterId = centerId || `center-${Math.floor(100 + Math.random() * 900)}`;
-    const finalCode = code || `CODE-${Math.floor(1000 + Math.random() * 9000)}`;
-    const finalUsername = username || finalCenterId;
+    const finalCode = code || centerId || `CODE-${Math.floor(1000 + Math.random() * 9000)}`;
+    const finalCenterId = centerId || code || `center-${Math.floor(100 + Math.random() * 900)}`;
+    const finalUsername = adminUsername || username || finalCenterId;
+    const quota = parseInt(maxStudentCodes) || parseInt(allowedStudentCodes) || 500;
+    const finalExpiry = expiresAt || expiry || '2026-12-31';
 
-    const center = await prisma.center.create({
-      data: {
-        name: name || 'السنتر التعليمي',
-        centerId: finalCenterId,
-        code: finalCode,
-        plan: plan || 'ACTIVE',
-        isActive: true,
-        phone: phone || null,
-        email: `${finalUsername}@saas-center.com`,
-        password_hash: hashedPassword,
-        subscription_status: plan === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
-        expiresAt: expiresAt ? new Date(expiresAt) : new Date('2026-12-31'),
-        expires_at: expiresAt ? new Date(expiresAt) : new Date('2026-12-31'),
-        allowedStudentCodes: parseInt(allowedStudentCodes) || 100,
-        managerPasswordHash
-      }
+    const result = await prisma.$transaction(async (tx) => {
+      const center = await tx.center.create({
+        data: {
+          name: name || 'السنتر التعليمي',
+          centerId: finalCenterId,
+          code: finalCode,
+          plan: plan || 'ACTIVE',
+          isActive: true,
+          phone: phone || null,
+          email: `${finalUsername}_${Date.now()}@saas-center.com`,
+          password_hash: hashedPassword,
+          subscription_status: plan === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
+          expiresAt: new Date(finalExpiry),
+          expires_at: new Date(finalExpiry),
+          allowedStudentCodes: quota,
+          managerPasswordHash
+        }
+      });
+
+      const user = await tx.user.create({
+        data: {
+          username: finalUsername,
+          password: hashedPassword,
+          role: 'CENTER_ADMIN',
+          centerId: center.id
+        }
+      });
+
+      return { center, user };
     });
 
-    await prisma.user.create({
-      data: {
-        username: finalUsername,
-        password: hashedPassword,
-        role: 'CENTER_ADMIN',
-        centerId: center.id
-      }
-    }).catch(e => console.log('User creation skipped/error:', e.message));
-
-    res.status(201).json({ success: true, message: 'تم إنشاء السنتر وتكاويد حساب المدير', data: center });
+    res.status(201).json({ success: true, message: 'تم إنشاء السنتر وتكاويد حساب المدير بنجاح', data: result.center, user: { username: result.user.username } });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: error.message || 'فشل إنشاء السنتر' });
   }
 });
 
@@ -282,6 +292,57 @@ apiRouter.patch('/super-admin/centers/:idOrCode/status', async (req, res) => {
       }
     });
     res.status(200).json({ success: true, message: `تم تعديل حالة السنتر إلى ${updated.isActive ? 'نشط' : 'موقوف'}`, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.put('/super-admin/centers/:idOrCode/password', async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const { newPassword, adminPassword, password } = req.body;
+    const targetPassword = newPassword || adminPassword || password;
+    if (!targetPassword) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال كلمة المرور الجديدة' });
+    }
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] },
+      include: { users: true }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    const hashedPassword = await bcrypt.hash(targetPassword, 10);
+    await prisma.center.update({
+      where: { id: center.id },
+      data: { password_hash: hashedPassword }
+    });
+    if (center.users && center.users.length > 0) {
+      await prisma.user.updateMany({
+        where: { centerId: center.id },
+        data: { password: hashedPassword }
+      });
+    }
+    res.status(200).json({ success: true, message: 'تم تغيير كلمة مرور مدير السنتر بنجاح' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.delete('/super-admin/centers/:idOrCode', async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    await prisma.$transaction(async (tx) => {
+      await tx.user.deleteMany({ where: { OR: [{ centerId: center.id }, { centerId: center.centerId }] } });
+      await tx.center.delete({ where: { id: center.id } });
+    });
+    res.status(200).json({ success: true, message: 'تم حذف السنتر وجميع بياناته المربوطة بنجاح' });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
