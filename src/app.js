@@ -93,6 +93,8 @@ app.get('/teachers.html', (req, res) => res.sendFile(path.resolve(__dirname, '..
 app.get('/inventory.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/inventory.html')));
 app.get('/scanner.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/scanner.html')));
 app.get('/settings.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/settings.html')));
+app.get('/financials', (req, res) => res.sendFile(path.resolve(__dirname, '../public/financials.html')));
+app.get('/financials.html', (req, res) => res.sendFile(path.resolve(__dirname, '../public/financials.html')));
 
 app.get('/health', async (req, res) => {
   try {
@@ -802,6 +804,242 @@ apiRouter.post('/finance/closing', async (req, res) => {
     res.status(200).json({ success: true, message: 'تم إغلاق الشهر بنجاح', data: closing });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// ==========================================
+// Financials & Accounting Live DB Endpoints
+// ==========================================
+async function resolveCenterIds(req) {
+  const rawId = req.headers['x-center-id'] || req.centerId || (req.user && req.user.centerId);
+  if (!rawId) throw new Error('مُعرف السنتر مطلوب في ترويسة الطلب (x-center-id)');
+  const center = await prisma.center.findFirst({
+    where: { OR: [{ centerId: rawId }, { id: rawId }, { code: rawId }] }
+  });
+  const ids = [rawId];
+  if (center) {
+    if (center.id && !ids.includes(center.id)) ids.push(center.id);
+    if (center.centerId && !ids.includes(center.centerId)) ids.push(center.centerId);
+    if (center.code && !ids.includes(center.code)) ids.push(center.code);
+  }
+  return { dbId: center ? center.id : rawId, allIds: ids };
+}
+
+apiRouter.get('/financials/summary', async (req, res) => {
+  try {
+    const { allIds } = await resolveCenterIds(req);
+
+    // 1. Gross Revenue (StudentFeePayment + ServiceSale)
+    const [feePayments, serviceSales, expenses, teachers] = await Promise.all([
+      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } } }),
+      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } } }),
+      prisma.expense.findMany({ where: { centerId: { in: allIds } } }),
+      prisma.teacher.findMany({
+        where: { center_id: { in: allIds } },
+        include: { groups: true, services: true, payouts: true }
+      })
+    ]);
+
+    const feeRevenue = feePayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+    const serviceRevenue = serviceSales.reduce((sum, s) => sum + (parseFloat(s.amount_paid) || 0), 0);
+    const grossRevenue = feeRevenue + serviceRevenue;
+
+    // 2. Operational Expenses
+    const operationalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+    // 3. Teachers Breakdown for share and unsettled balance
+    let totalTeacherShare = 0;
+    let unsettledTeacherBalances = 0;
+
+    for (const t of teachers) {
+      const groupIds = (t.groups || []).map(g => g.id);
+      const serviceIds = (t.services || []).map(s => s.id);
+      
+      const tFeeRev = feePayments.filter(p => groupIds.includes(p.groupId)).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+      const tServRev = serviceSales.filter(s => serviceIds.includes(s.service_id)).reduce((s, x) => s + (parseFloat(x.amount_paid) || 0), 0);
+      const tTotalCol = tFeeRev + tServRev;
+
+      const split = t.centerPercentage != null ? parseFloat(t.centerPercentage) : 30.0;
+      const teacherPercent = 100.0 - split;
+      const teacherShare = tTotalCol * (teacherPercent / 100.0);
+      totalTeacherShare += teacherShare;
+
+      const tPaidOut = (t.payouts || []).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+      const remain = teacherShare - tPaidOut;
+      if (remain > 0) unsettledTeacherBalances += remain;
+    }
+
+    // 4. Center Net Profit = (Gross Revenue - Total Teacher Share) - Operational Expenses
+    const centerNetProfit = (grossRevenue - totalTeacherShare) - operationalExpenses;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        grossRevenue: Number(grossRevenue.toFixed(2)),
+        operationalExpenses: Number(operationalExpenses.toFixed(2)),
+        centerNetProfit: Number(centerNetProfit.toFixed(2)),
+        unsettledTeacherBalances: Number(unsettledTeacherBalances.toFixed(2))
+      }
+    });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/financials/teachers-breakdown', async (req, res) => {
+  try {
+    const { allIds } = await resolveCenterIds(req);
+    const teachers = await prisma.teacher.findMany({
+      where: { center_id: { in: allIds } },
+      include: { groups: true, services: true, payouts: true }
+    });
+
+    const [feePayments, serviceSales] = await Promise.all([
+      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } } }),
+      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } } })
+    ]);
+
+    const breakdown = teachers.map(t => {
+      const groupIds = (t.groups || []).map(g => g.id);
+      const serviceIds = (t.services || []).map(s => s.id);
+
+      const tFees = feePayments.filter(p => groupIds.includes(p.groupId));
+      const tServs = serviceSales.filter(s => serviceIds.includes(s.service_id));
+
+      const paidStudentsCount = tFees.length + tServs.length;
+      const totalCollected = tFees.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) + tServs.reduce((s, x) => s + (parseFloat(x.amount_paid) || 0), 0);
+
+      const centerPercentage = t.centerPercentage != null ? parseFloat(t.centerPercentage) : 30.0;
+      const teacherPercentage = 100.0 - centerPercentage;
+
+      const centerShare = totalCollected * (centerPercentage / 100.0);
+      const teacherShare = totalCollected * (teacherPercentage / 100.0);
+      const totalPaidOut = (t.payouts || []).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+      const remainingBalance = teacherShare - totalPaidOut;
+
+      return {
+        id: t.id,
+        name: t.name,
+        subject: t.subject || 'عام',
+        phone: t.phone || '',
+        centerPercentage,
+        teacherPercentage,
+        paidStudentsCount,
+        totalCollected: Number(totalCollected.toFixed(2)),
+        centerShare: Number(centerShare.toFixed(2)),
+        teacherShare: Number(teacherShare.toFixed(2)),
+        totalPaidOut: Number(totalPaidOut.toFixed(2)),
+        remainingBalance: Number(remainingBalance.toFixed(2))
+      };
+    });
+
+    res.status(200).json({ success: true, data: breakdown });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.post('/financials/expenses', async (req, res) => {
+  try {
+    const { dbId } = await resolveCenterIds(req);
+    const { title, category, amount } = req.body;
+    if (!title || !amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال عنوان المصروف ومقدار مالي صحيح' });
+    }
+    const expense = await prisma.expense.create({
+      data: {
+        centerId: dbId,
+        title: title.trim(),
+        category: category || 'أخرى',
+        amount: parseFloat(amount)
+      }
+    });
+    res.status(201).json({ success: true, message: 'تم تسجيل المصروف التشغيلي بنجاح', data: expense });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/financials/expenses', async (req, res) => {
+  try {
+    const { allIds } = await resolveCenterIds(req);
+    const expenses = await prisma.expense.findMany({
+      where: { centerId: { in: allIds } },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, data: expenses });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.post('/financials/payouts', async (req, res) => {
+  try {
+    const { dbId } = await resolveCenterIds(req);
+    const { teacherId, amount, notes } = req.body;
+    if (!teacherId || !amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ success: false, message: 'بيانات التسوية غير مكتملة أو المبلغ غير صحيح' });
+    }
+    const payout = await prisma.teacherPayout.create({
+      data: {
+        centerId: dbId,
+        teacherId,
+        amount: parseFloat(amount),
+        notes: notes || 'تسوية مستحقات مالية'
+      }
+    });
+    res.status(201).json({ success: true, message: 'تم تسديد الدفعة للمدرس بنجاح', data: payout });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/financials/audit-stream', async (req, res) => {
+  try {
+    const { allIds } = await resolveCenterIds(req);
+    const [feePayments, serviceSales, expenses, payouts] = await Promise.all([
+      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' } }),
+      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' }, include: { service: true } }),
+      prisma.expense.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' } }),
+      prisma.teacherPayout.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' }, include: { teacher: { select: { name: true } } } })
+    ]);
+
+    const stream = [
+      ...feePayments.map(p => ({
+        id: 'FEE-' + p.id,
+        title: `تحصيل رسوم طالب (${p.paymentType}) - بواسطة ${p.secretaryName || 'الأدمين'}`,
+        amount: parseFloat(p.amount) || 0,
+        type: 'INCOME',
+        date: p.createdAt
+      })),
+      ...serviceSales.map(s => ({
+        id: 'SRV-' + s.id,
+        title: `مبيعات أونلاين/مذكرات: ${s.service ? s.service.title : 'خدمة مدرس'}`,
+        amount: parseFloat(s.amount_paid) || 0,
+        type: 'INCOME',
+        date: s.createdAt
+      })),
+      ...expenses.map(e => ({
+        id: 'EXP-' + e.id,
+        title: `مصروف تشغيلي (${e.category}): ${e.title}`,
+        amount: -(parseFloat(e.amount) || 0),
+        type: 'EXPENSE',
+        date: e.createdAt
+      })),
+      ...payouts.map(x => ({
+        id: 'PYT-' + x.id,
+        title: `تسوية مالية للمدرس (${x.teacher ? x.teacher.name : ''}): ${x.notes || 'دفعة نقدية'}`,
+        amount: -(parseFloat(x.amount) || 0),
+        type: 'PAYOUT',
+        date: x.createdAt
+      }))
+    ];
+
+    stream.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    res.status(200).json({ success: true, data: stream.slice(0, 50) });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
   }
 });
 

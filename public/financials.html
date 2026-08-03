@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الحسابات والتسويات المالية - CenterZone SaaS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Cairo', 'Inter', 'sans-serif'] },
+                    colors: { odoo: { bg: '#0F172A', card: '#1E293B', accent: '#3B82F6' } }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+        .tab-active {
+            border-bottom: 2px solid #ec4899;
+            color: #ec4899;
+            font-weight: 700;
+            background-color: rgba(236, 72, 153, 0.08);
+        }
+    </style>
+    <!-- Auth Guard & Global Fetch Interceptor -->
+    <script>
+        (function() {
+            const token = localStorage.getItem('centerzone_token') || localStorage.getItem('token');
+            if (!token) {
+                sessionStorage.setItem('redirect_after_login', window.location.pathname);
+                window.location.href = '/login.html';
+                return;
+            }
+            const originalFetch = window.fetch;
+            window.fetch = async function(url, options = {}) {
+                options.headers = options.headers || {};
+                const currentToken = localStorage.getItem('centerzone_token') || localStorage.getItem('token');
+                const currentCenterId = localStorage.getItem('x-center-id') || localStorage.getItem('centerId') || 'center-101';
+                if (url && url.toString().startsWith('/api/')) {
+                    if (options.headers instanceof Headers) {
+                        if (currentToken && !options.headers.has('Authorization')) options.headers.set('Authorization', 'Bearer ' + currentToken);
+                        if (currentCenterId && !options.headers.has('x-center-id')) options.headers.set('x-center-id', currentCenterId);
+                    } else {
+                        options.headers['Authorization'] = options.headers['Authorization'] || (currentToken ? 'Bearer ' + currentToken : undefined);
+                        if (currentCenterId && !options.headers['x-center-id']) options.headers['x-center-id'] = currentCenterId;
+                    }
+                }
+                const response = await originalFetch.call(this, url, options);
+                if (response.status === 401) {
+                    localStorage.clear();
+                    alert("جلسة العمل انتهت، يرجى إعادة الدخول");
+                    window.location.href = '/login.html';
+                }
+                return response;
+            };
+        })();
+    </script>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern min-h-screen">
+
+    <!-- Top Navbar -->
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
+                </a>
+                <span class="px-3 py-1 bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-xl text-xs font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-calculator"></i>
+                    وحدة الإدارة المالية والتسويات
+                </span>
+            </div>
+
+            <!-- Top Left: Title and Dynamic Center Identity -->
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-base sm:text-lg text-white leading-tight">الحسابات والتسويات المالية</h1>
+                    <p class="text-[11px] text-slate-400 font-mono" id="headerCenterName">Tenant: loading...</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Hub -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Stat Cards (Real DB Aggregations, starting at 0) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-emerald-500/40 transition-all">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">إجمالي الإيرادات (Gross Revenue)</span>
+                    <div class="text-2xl font-black text-emerald-400 font-mono tracking-tight" id="valGrossRevenue">0.00 <span class="text-xs font-normal text-slate-500">ج.م</span></div>
+                    <span class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fa-solid fa-diagram-project text-emerald-500"></i> حصيلة الرسوم والمبيعات</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-sack-dollar"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-rose-500/40 transition-all">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">المصروفات التشغيلية (Expenses)</span>
+                    <div class="text-2xl font-black text-rose-400 font-mono tracking-tight" id="valExpenses">0.00 <span class="text-xs font-normal text-slate-500">ج.م</span></div>
+                    <span class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fa-solid fa-wallet text-rose-500"></i> فواتير، إيجار، وصيانة</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-sky-500/40 transition-all">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">صافي أرباح السنتر (Net Profit)</span>
+                    <div class="text-2xl font-black text-sky-400 font-mono tracking-tight" id="valNetProfit">0.00 <span class="text-xs font-normal text-slate-500">ج.م</span></div>
+                    <span class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fa-solid fa-chart-line text-sky-500"></i> حصة السنتر - المصروفات</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-400 border border-sky-500/20 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-vault"></i>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/90 border border-slate-800 p-5 rounded-2xl shadow-xl flex items-center justify-between relative overflow-hidden group hover:border-amber-500/40 transition-all">
+                <div class="space-y-1">
+                    <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">مستحقات المدرسين (Unsettled)</span>
+                    <div class="text-2xl font-black text-amber-400 font-mono tracking-tight" id="valUnsettledTeachers">0.00 <span class="text-xs font-normal text-slate-500">ج.م</span></div>
+                    <span class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fa-solid fa-hourglass-half text-amber-500"></i> أرصدة معلقة لم تسدد</span>
+                </div>
+                <div class="w-12 h-12 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xl shadow-lg group-hover:scale-110 transition-transform">
+                    <i class="fa-solid fa-users-viewfinder"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation Bar -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-1.5 shadow-xl flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-1 w-full sm:w-auto overflow-x-auto">
+                <button onclick="switchTab('teachers')" id="btnTabTeachers" class="tab-btn tab-active px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap">
+                    <i class="fa-solid fa-user-tie text-pink-400"></i>
+                    حسابات المدرسين والتسويات
+                </button>
+                <button onclick="switchTab('expenses')" id="btnTabExpenses" class="tab-btn text-slate-400 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap hover:bg-slate-800/60">
+                    <i class="fa-solid fa-list-check text-rose-400"></i>
+                    المصروفات التشغيلية
+                </button>
+                <button onclick="switchTab('audit')" id="btnTabAudit" class="tab-btn text-slate-400 hover:text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap hover:bg-slate-800/60">
+                    <i class="fa-solid fa-history text-cyan-400"></i>
+                    السجل المالي العام (Audit Feed)
+                </button>
+            </div>
+            <div class="px-3 flex items-center gap-2 text-xs text-slate-400">
+                <button onclick="loadAllFinancialData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl font-bold transition-all flex items-center gap-1.5" title="تحديث الفعال للحسابات">
+                    <i class="fa-solid fa-arrows-rotate text-pink-400"></i> تحديث مباشر
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB 1: Teachers Accounts & Payouts -->
+        <div id="sectionTeachers" class="space-y-4 transition-all duration-300">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h3 class="font-bold text-base text-white flex items-center gap-2">
+                            <i class="fa-solid fa-user-check text-pink-400"></i>
+                            كشوف حسابات المدرسين ونسب التحصيل
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">يتم احتساب المستحقات آلياً بناءً على الحجوزات، الرسوم الشهرية، ومبيعات الأونلاين وفقاً لنسبة المشاركة.</p>
+                    </div>
+                    <div class="relative w-full sm:w-72">
+                        <input type="text" id="teacherSearchInput" oninput="filterTeachersTable()" placeholder="ابحث عن مدرس أو مادة..." 
+                            class="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-2 text-xs text-slate-200 focus:outline-none focus:border-pink-500 font-mono pr-9">
+                        <i class="fa-solid fa-magnifying-glass absolute top-2.5 right-3.5 text-slate-500 text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-800">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 uppercase text-[11px]">
+                            <tr>
+                                <th class="p-4 text-center">المدرس / المادة</th>
+                                <th class="p-4 text-center">نسبة التقسيم (%)</th>
+                                <th class="p-4 text-center">عدد التحصيلات</th>
+                                <th class="p-4 text-center">إجمالي المحصل</th>
+                                <th class="p-4 text-center">حصة السنتر</th>
+                                <th class="p-4 text-center">مستحقات المدرس</th>
+                                <th class="p-4 text-center">ما تم سداده</th>
+                                <th class="p-4 text-center">الرصيد المتبقي</th>
+                                <th class="p-4 text-center">إجراء تسوية</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachersTableBody" class="divide-y divide-slate-800 text-slate-200">
+                            <tr><td colspan="9" class="p-8 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> جاري تحميل سجلات حسابات المدرسين...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Operational Expenses Form & Log Table -->
+        <div id="sectionExpenses" class="space-y-6 hidden transition-all duration-300">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Record New Expense Form -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl h-fit space-y-4">
+                    <div class="flex items-center gap-2.5 border-b border-slate-800 pb-3">
+                        <div class="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-file-invoice"></i>
+                        </div>
+                        <h3 class="font-bold text-sm text-white">تسجيل مصروف تشغيلي جديد</h3>
+                    </div>
+
+                    <form id="expenseForm" onsubmit="handleRecordExpense(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">عنوان المصروف / البيان *</label>
+                            <input type="text" id="expenseTitle" required placeholder="مثال: فاتورة كهرباء شهر أغسطس" 
+                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">فئة المصروف (Category) *</label>
+                            <select id="expenseCategory" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-rose-500 outline-none">
+                                <option value="Electricity">⚡ كهرباء (Electricity)</option>
+                                <option value="Water">💧 مياه (Water)</option>
+                                <option value="Rent">🏢 إيجار المقر (Rent)</option>
+                                <option value="Maintenance">🔧 صيانة ونظافة (Maintenance)</option>
+                                <option value="Other">📝 أخرى (Other Expenses)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-1.5">المبلغ المدفوع (ج.م) *</label>
+                            <input type="number" step="0.01" min="0.01" id="expenseAmount" required placeholder="0.00" 
+                                class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-rose-500 outline-none">
+                        </div>
+
+                        <button type="submit" id="btnSubmitExpense" class="w-full py-2.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-xl font-bold text-xs shadow-lg shadow-rose-600/30 transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus-circle"></i>
+                            حفظ وتسجيل المصروف
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Expenses Log Table -->
+                <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                            <i class="fa-solid fa-list-ul text-rose-400"></i>
+                            سجل المصروفات التشغيلية
+                        </h3>
+                        <span class="text-xs text-slate-400 font-mono" id="totalExpensesCount">Total: 0</span>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-2xl border border-slate-800 max-h-[480px]">
+                        <table class="w-full text-right text-xs">
+                            <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 uppercase text-[11px] sticky top-0">
+                                <tr>
+                                    <th class="p-3.5 text-right">البيان / العنوان</th>
+                                    <th class="p-3.5 text-center">الفئة</th>
+                                    <th class="p-3.5 text-center">المبلغ</th>
+                                    <th class="p-3.5 text-center">تاريخ التسجيل</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expensesTableBody" class="divide-y divide-slate-800 text-slate-200">
+                                <tr><td colspan="4" class="p-8 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> جاري تحميل سجل المصروفات...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: Real-time General Financial Audit Stream -->
+        <div id="sectionAudit" class="space-y-4 hidden transition-all duration-300">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <h3 class="font-bold text-base text-white flex items-center gap-2">
+                            <i class="fa-solid fa-feed text-cyan-400"></i>
+                            السجل المالي العام (Live Audit Feed)
+                        </h3>
+                        <p class="text-xs text-slate-400 mt-1">تتبع حي ومتسلسل لجميع الحركات المالية داخل السنتر من إيرادات، مبيعات ملازم، مصروفات، وتسويات للمدرسين.</p>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto rounded-2xl border border-slate-800">
+                    <table class="w-full text-right text-xs">
+                        <thead class="bg-slate-950 text-slate-400 font-bold border-b border-slate-800 uppercase text-[11px]">
+                            <tr>
+                                <th class="p-4 text-center">الرمز (Trx ID)</th>
+                                <th class="p-4 text-right">البيان والتفاصيل</th>
+                                <th class="p-4 text-center">التصنيف</th>
+                                <th class="p-4 text-center">القيمة المالية</th>
+                                <th class="p-4 text-center">التاريخ والوقت</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTableBody" class="divide-y divide-slate-800 text-slate-200">
+                            <tr><td colspan="5" class="p-8 text-center text-slate-500"><i class="fa-solid fa-spinner fa-spin mr-2"></i> جاري تحميل السجل المالي...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: Teacher Payout Settlement -->
+    <div id="payoutModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-base">
+                        <i class="fa-solid fa-hand-holding-dollar"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">تسوية مستحقات مدرس</h3>
+                        <p class="text-[11px] text-slate-400" id="modalTeacherName">المدرس: ...</p>
+                    </div>
+                </div>
+                <button onclick="closePayoutModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="payoutForm" onsubmit="handleSubmitPayout(event)" class="space-y-3.5">
+                <input type="hidden" id="modalTeacherId" value="">
+                
+                <div class="p-3 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-between">
+                    <span class="text-xs text-slate-400 font-bold">الرصيد المتبقي للمدرس حالياً:</span>
+                    <span class="text-sm font-black text-amber-400 font-mono" id="modalTeacherBalance">0.00 ج.م</span>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">المبلغ المراد تسديده (ج.م) *</label>
+                    <input type="number" step="0.01" min="0.01" id="payoutAmountInput" required placeholder="0.00" 
+                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono focus:ring-2 focus:ring-amber-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">ملاحظات / بيان الدفع (اختياري)</label>
+                    <textarea id="payoutNotesInput" rows="2" placeholder="مثال: تسوية عن شهر أغسطس..." 
+                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-amber-500 outline-none"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2 border-t border-slate-800">
+                    <button type="button" onclick="closePayoutModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold hover:bg-slate-700">إلغاء</button>
+                    <button type="submit" id="btnSubmitPayout" class="px-5 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-amber-600/30">تأكيد الدفع والتسوية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Live Toast Notification Popup -->
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none flex items-center gap-2">
+        <i class="fa-solid fa-circle-check text-pink-400"></i>
+        <span id="toastMessage">إشعار النظام</span>
+    </div>
+
+    <script>
+        // STRICT RULE: No hardcoded mock data anywhere in JS. Start all lists as empty arrays.
+        let teachersList = [];
+        let expensesList = [];
+        let auditList = [];
+
+        window.onload = function() {
+            const tenant = localStorage.getItem('x-center-id') || localStorage.getItem('centerId') || 'center-101';
+            document.getElementById('headerCenterName').textContent = `Tenant: ${tenant}`;
+            loadAllFinancialData();
+        };
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach(b => {
+                b.classList.remove('tab-active');
+                b.classList.add('text-slate-400');
+            });
+            document.getElementById('sectionTeachers').classList.add('hidden');
+            document.getElementById('sectionExpenses').classList.add('hidden');
+            document.getElementById('sectionAudit').classList.add('hidden');
+
+            if (tabId === 'teachers') {
+                document.getElementById('btnTabTeachers').classList.add('tab-active');
+                document.getElementById('btnTabTeachers').classList.remove('text-slate-400');
+                document.getElementById('sectionTeachers').classList.remove('hidden');
+            } else if (tabId === 'expenses') {
+                document.getElementById('btnTabExpenses').classList.add('tab-active');
+                document.getElementById('btnTabExpenses').classList.remove('text-slate-400');
+                document.getElementById('sectionExpenses').classList.remove('hidden');
+            } else if (tabId === 'audit') {
+                document.getElementById('btnTabAudit').classList.add('tab-active');
+                document.getElementById('btnTabAudit').classList.remove('text-slate-400');
+                document.getElementById('sectionAudit').classList.remove('hidden');
+            }
+        }
+
+        async function loadAllFinancialData() {
+            await Promise.all([
+                fetchSummary(),
+                fetchTeachersBreakdown(),
+                fetchExpenses(),
+                fetchAuditStream()
+            ]);
+        }
+
+        async function fetchSummary() {
+            try {
+                const res = await fetch('/api/financials/summary');
+                const data = await res.json();
+                if (data.success && data.data) {
+                    document.getElementById('valGrossRevenue').innerHTML = `${(data.data.grossRevenue || 0).toLocaleString()} <span class="text-xs font-normal text-slate-500">ج.م</span>`;
+                    document.getElementById('valExpenses').innerHTML = `${(data.data.operationalExpenses || 0).toLocaleString()} <span class="text-xs font-normal text-slate-500">ج.م</span>`;
+                    document.getElementById('valNetProfit').innerHTML = `${(data.data.centerNetProfit || 0).toLocaleString()} <span class="text-xs font-normal text-slate-500">ج.م</span>`;
+                    document.getElementById('valUnsettledTeachers').innerHTML = `${(data.data.unsettledTeacherBalances || 0).toLocaleString()} <span class="text-xs font-normal text-slate-500">ج.م</span>`;
+                }
+            } catch (err) {
+                console.error('Error fetching financial summary:', err);
+            }
+        }
+
+        async function fetchTeachersBreakdown() {
+            try {
+                const res = await fetch('/api/financials/teachers-breakdown');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    teachersList = data.data;
+                } else {
+                    teachersList = [];
+                }
+                renderTeachersTable(teachersList);
+            } catch (err) {
+                console.error('Error fetching teachers breakdown:', err);
+                teachersList = [];
+                renderTeachersTable(teachersList);
+            }
+        }
+
+        function renderTeachersTable(list) {
+            const tbody = document.getElementById('teachersTableBody');
+            tbody.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-8 text-center text-slate-500">لا توجد بيانات مدرسين مسجلة بالداتابيز لهذا السنتر.</td></tr>`;
+                return;
+            }
+
+            list.forEach(t => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                
+                let badgeRemain = 'text-slate-300';
+                if (t.remainingBalance > 0) badgeRemain = 'text-amber-400 font-black';
+                else if (t.remainingBalance < 0) badgeRemain = 'text-rose-400 font-bold';
+
+                tr.innerHTML = `
+                    <td class="p-4 text-center font-bold text-white">
+                        <div>${t.name}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${t.subject || 'مادة عامة'}</div>
+                    </td>
+                    <td class="p-4 text-center font-mono text-xs">
+                        <span class="text-pink-400 font-bold" title="حصة المدرس">${t.teacherPercentage}%</span> /
+                        <span class="text-sky-400 font-bold" title="حصة السنتر">${t.centerPercentage}%</span>
+                    </td>
+                    <td class="p-4 text-center font-mono text-slate-300 font-bold">${t.paidStudentsCount}</td>
+                    <td class="p-4 text-center font-mono text-emerald-400 font-bold">${(t.totalCollected || 0).toLocaleString()} ج.م</td>
+                    <td class="p-4 text-center font-mono text-sky-300 font-bold">${(t.centerShare || 0).toLocaleString()} ج.م</td>
+                    <td class="p-4 text-center font-mono text-pink-300 font-bold">${(t.teacherShare || 0).toLocaleString()} ج.م</td>
+                    <td class="p-4 text-center font-mono text-emerald-500">${(t.totalPaidOut || 0).toLocaleString()} ج.م</td>
+                    <td class="p-4 text-center font-mono ${badgeRemain}">${(t.remainingBalance || 0).toLocaleString()} ج.م</td>
+                    <td class="p-4 text-center">
+                        <button onclick="openPayoutModal('${t.id}', '${t.name}', ${t.remainingBalance})" class="px-3 py-1.5 bg-amber-600/20 hover:bg-amber-600 text-amber-300 hover:text-white border border-amber-600/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 mx-auto">
+                            <i class="fa-solid fa-comments-dollar"></i> تسوية / دفع
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function filterTeachersTable() {
+            const query = document.getElementById('teacherSearchInput').value.trim().toLowerCase();
+            const filtered = teachersList.filter(t => t.name.toLowerCase().includes(query) || (t.subject && t.subject.toLowerCase().includes(query)));
+            renderTeachersTable(filtered);
+        }
+
+        async function fetchExpenses() {
+            try {
+                const res = await fetch('/api/financials/expenses');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    expensesList = data.data;
+                } else {
+                    expensesList = [];
+                }
+                renderExpensesTable(expensesList);
+            } catch (err) {
+                console.error('Error fetching expenses:', err);
+                expensesList = [];
+                renderExpensesTable(expensesList);
+            }
+        }
+
+        function renderExpensesTable(list) {
+            const tbody = document.getElementById('expensesTableBody');
+            document.getElementById('totalExpensesCount').textContent = `Total: ${list.length}`;
+            tbody.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-500">لا توجد مصروفات تشغيلية مسجلة حتى الآن.</td></tr>`;
+                return;
+            }
+
+            const catLabels = {
+                'Electricity': '⚡ كهرباء',
+                'Water': '💧 مياه',
+                'Rent': '🏢 إيجار المقر',
+                'Maintenance': '🔧 صيانة ونظافة',
+                'Other': '📝 أخرى'
+            };
+
+            list.forEach(e => {
+                const dateStr = e.createdAt ? new Date(e.createdAt).toLocaleString('ar-EG') : 'الآن';
+                const catLabel = catLabels[e.category] || e.category || '📝 مصروف عام';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-3.5 text-right font-bold text-white">${e.title}</td>
+                    <td class="p-3.5 text-center font-bold text-slate-300 text-[11px]"><span class="px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700">${catLabel}</span></td>
+                    <td class="p-3.5 text-center font-mono font-bold text-rose-400">${(e.amount || 0).toLocaleString()} ج.م</td>
+                    <td class="p-3.5 text-center text-slate-400 font-mono text-[11px]">${dateStr}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        async function handleRecordExpense(e) {
+            e.preventDefault(); // STRICT RULE: prevent default form behavior
+            const btn = document.getElementById('btnSubmitExpense');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التسجيل...';
+
+            const title = document.getElementById('expenseTitle').value.trim();
+            const category = document.getElementById('expenseCategory').value;
+            const amount = document.getElementById('expenseAmount').value;
+
+            try {
+                const res = await fetch('/api/financials/expenses', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, category, amount })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('تم تسجيل المصروف التشغيلي بنجاح');
+                    document.getElementById('expenseForm').reset();
+                    await Promise.all([fetchExpenses(), fetchSummary(), fetchAuditStream()]);
+                } else {
+                    showToast(data.message || 'فشل تسجيل المصروف');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بسيرفر الداتابيز');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        async function fetchAuditStream() {
+            try {
+                const res = await fetch('/api/financials/audit-stream');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.data)) {
+                    auditList = data.data;
+                } else {
+                    auditList = [];
+                }
+                renderAuditTable(auditList);
+            } catch (err) {
+                console.error('Error fetching audit stream:', err);
+                auditList = [];
+                renderAuditTable(auditList);
+            }
+        }
+
+        function renderAuditTable(list) {
+            const tbody = document.getElementById('auditTableBody');
+            tbody.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-slate-500">لا توجد حركات مالية مسجلة بالسجل حتى الآن.</td></tr>`;
+                return;
+            }
+
+            list.forEach(a => {
+                let typeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                let typeLabel = '🟢 إيراد / تحصيل';
+                let amountStr = `+${(a.amount || 0).toLocaleString()} ج.م`;
+                let amountColor = 'text-emerald-400';
+
+                if (a.type === 'EXPENSE') {
+                    typeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
+                    typeLabel = '🔴 مصروف تشغيلي';
+                    amountStr = `${(a.amount || 0).toLocaleString()} ج.م`;
+                    amountColor = 'text-rose-400';
+                } else if (a.type === 'PAYOUT') {
+                    typeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                    typeLabel = '🟡 تسوية مدرس';
+                    amountStr = `${(a.amount || 0).toLocaleString()} ج.م`;
+                    amountColor = 'text-amber-400';
+                }
+
+                const dateStr = a.date ? new Date(a.date).toLocaleString('ar-EG') : 'الآن';
+
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-800/40 transition-colors';
+                tr.innerHTML = `
+                    <td class="p-4 text-center font-mono font-bold text-slate-400 text-[11px]">${a.id || '---'}</td>
+                    <td class="p-4 text-right font-bold text-slate-200">${a.title || 'بدون عنوان'}</td>
+                    <td class="p-4 text-center"><span class="px-2.5 py-1 rounded-full text-[10px] font-bold border inline-block ${typeClass}">${typeLabel}</span></td>
+                    <td class="p-4 text-center font-mono font-black ${amountColor}">${amountStr}</td>
+                    <td class="p-4 text-center text-slate-400 font-mono text-[11px]">${dateStr}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openPayoutModal(teacherId, teacherName, remain) {
+            document.getElementById('modalTeacherId').value = teacherId;
+            document.getElementById('modalTeacherName').textContent = `المدرس: ${teacherName}`;
+            document.getElementById('modalTeacherBalance').textContent = `${(remain || 0).toLocaleString()} ج.م`;
+            if (remain > 0) {
+                document.getElementById('payoutAmountInput').value = remain.toFixed(2);
+            } else {
+                document.getElementById('payoutAmountInput').value = '';
+            }
+            document.getElementById('payoutNotesInput').value = `تسوية مستحقات الأستاذ ${teacherName}`;
+            document.getElementById('payoutModal').classList.remove('hidden');
+        }
+
+        function closePayoutModal() {
+            document.getElementById('payoutModal').classList.add('hidden');
+            document.getElementById('payoutForm').reset();
+        }
+
+        async function handleSubmitPayout(e) {
+            e.preventDefault(); // STRICT RULE: prevent default form behavior
+            const btn = document.getElementById('btnSubmitPayout');
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التنفيذ...';
+
+            const teacherId = document.getElementById('modalTeacherId').value;
+            const amount = document.getElementById('payoutAmountInput').value;
+            const notes = document.getElementById('payoutNotesInput').value.trim();
+
+            try {
+                const res = await fetch('/api/financials/payouts', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teacherId, amount, notes })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'تم تسديد الدفعة بنجاح');
+                    closePayoutModal();
+                    await Promise.all([fetchTeachersBreakdown(), fetchSummary(), fetchAuditStream()]);
+                } else {
+                    showToast(data.message || 'فشل تسديد الدفعة');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بسيرفر الداتابيز');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+    </script>
+</body>
+</html>

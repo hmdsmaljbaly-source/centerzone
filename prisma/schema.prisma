@@ -86,6 +86,8 @@ model Center {
   inventoryTxns   InventoryTransaction[]
   studentPayments StudentFeePayment[]
   monthlyClosings MonthlyClosing[]
+  expenses        Expense[]
+  teacherPayouts  TeacherPayout[]
 
   @@index([email])
   @@map("centers")
@@ -101,12 +103,14 @@ model Teacher {
   grades           Json?          @map("grades")
   commission_type  CommissionType @default(PERCENTAGE) @map("commission_type")
   commission_value Decimal        @default(0.00) @map("commission_value") @db.Decimal(10, 2)
+  centerPercentage Float          @default(30.0) @map("center_percentage")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
   center   Center           @relation(fields: [center_id], references: [id], onDelete: Cascade)
   services TeacherService[]
   groups   Group[]
+  payouts  TeacherPayout[]
 
   @@index([center_id])
   @@map("teachers")
@@ -350,4 +354,32 @@ model MonthlyClosing {
   center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
 
   @@index([centerId])
+}
+
+model Expense {
+  id        String   @id @default(uuid())
+  centerId  String
+  title     String
+  category  String   // "Electricity", "Water", "Rent", "Maintenance", "Other"
+  amount    Float
+  createdAt DateTime @default(now())
+
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  @@index([centerId])
+}
+
+model TeacherPayout {
+  id        String   @id @default(uuid())
+  centerId  String
+  teacherId String
+  amount    Float
+  notes     String?
+  createdAt DateTime @default(now())
+
+  center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  teacher   Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([centerId])
+  @@index([teacherId])
 }
