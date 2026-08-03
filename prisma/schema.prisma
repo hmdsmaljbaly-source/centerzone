@@ -84,10 +84,11 @@ model Center {
   halls           Hall[]
   booklets        Booklet[]
   inventoryTxns   InventoryTransaction[]
-  studentPayments StudentFeePayment[]
-  monthlyClosings MonthlyClosing[]
-  expenses        Expense[]
-  teacherPayouts  TeacherPayout[]
+  studentPayments    StudentFeePayment[]
+  monthlyClosings    MonthlyClosing[]
+  expenses           Expense[]
+  teacherPayouts     TeacherPayout[]
+  studentEnrollments StudentEnrollment[]
 
   @@index([email])
   @@map("centers")
@@ -107,10 +108,11 @@ model Teacher {
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  center   Center           @relation(fields: [center_id], references: [id], onDelete: Cascade)
-  services TeacherService[]
-  groups   Group[]
-  payouts  TeacherPayout[]
+  center      Center           @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  services    TeacherService[]
+  groups      Group[]
+  payouts     TeacherPayout[]
+  enrollments StudentEnrollment[]
 
   @@index([center_id])
   @@map("teachers")
@@ -144,6 +146,7 @@ model Student {
   code                String   @map("student_code")
   barcode             String   @default("")
   name                String
+  grade               String   @default("")
   student_phone       String?  @map("student_phone")
   parent_phone        String   @map("parent_phone")
   alert_status        Boolean  @default(false) @map("alert_status")
@@ -157,6 +160,7 @@ model Student {
   attendances Attendance[]
   grades      Grade[]
   sales       ServiceSale[]
+  enrollments StudentEnrollment[]
   group       Group?        @relation(fields: [groupId], references: [id])
 
   @@unique([centerId, code])
@@ -186,6 +190,7 @@ model Group {
   attendances Attendance[]
   evaluations Evaluation[]
   students    Student[]
+  enrollments StudentEnrollment[]
 
   @@index([centerId])
   @@index([teacherId])
@@ -382,4 +387,24 @@ model TeacherPayout {
 
   @@index([centerId])
   @@index([teacherId])
+}
+
+model StudentEnrollment {
+  id        String   @id @default(uuid())
+  centerId  String   @map("center_id")
+  studentId String   @map("student_id")
+  groupId   String   @map("group_id")
+  teacherId String?  @map("teacher_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  center  Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  teacher Teacher? @relation(fields: [teacherId], references: [id], onDelete: SetNull)
+
+  @@unique([studentId, groupId])
+  @@index([centerId])
+  @@index([studentId])
+  @@index([groupId])
+  @@map("student_enrollments")
 }

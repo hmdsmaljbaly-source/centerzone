@@ -393,28 +393,89 @@ apiRouter.put('/super-admin/profile', async (req, res) => {
 // Students API Endpoints
 apiRouter.get('/students', async (req, res) => {
   try {
-    const { alert_status } = req.query;
-    const where = { centerId: req.centerId };
-
-    if (alert_status && alert_status !== 'ALL') {
-      if (alert_status === 'NORMAL') where.alert_status = false;
-      else if (alert_status === 'WARNING' || alert_status === 'BLOCKED') where.alert_status = true;
-    }
+    const { alert_status, teacherId, subject, groupId, grade, status, search } = req.query;
 
     const students = await prisma.student.findMany({
-      where,
+      where: { centerId: req.centerId },
+      include: {
+        group: { include: { teacher: true } },
+        enrollments: { include: { group: true, teacher: true } }
+      },
       orderBy: { createdAt: 'desc' }
     });
 
-    const formatted = students.map(s => ({
-      id: s.id,
-      code: s.code,
-      name: s.name,
-      student_phone: s.student_phone || '',
-      parent_phone: s.parent_phone,
-      alert_status: s.alert_status ? (s.alert_note && s.alert_note.includes('محظور') ? 'BLOCKED' : 'WARNING') : 'NORMAL',
-      alert_note: s.alert_note || ''
-    }));
+    let formatted = students.map(s => {
+      const allGroups = [];
+      const allTeachers = [];
+      const allSubjects = new Set();
+
+      if (s.group) {
+        allGroups.push({ id: s.group.id, name: s.group.name, grade: s.group.grade || '', time: `${s.group.dayOfWeek} ${s.group.startTime}` });
+        if (s.group.teacher) {
+          allTeachers.push({ id: s.group.teacher.id, name: s.group.teacher.name, subject: s.group.teacher.subject });
+          allSubjects.add(s.group.teacher.subject);
+        }
+      }
+
+      if (s.enrollments && s.enrollments.length > 0) {
+        s.enrollments.forEach(en => {
+          if (en.group && !allGroups.some(g => g.id === en.group.id)) {
+            allGroups.push({ id: en.group.id, name: en.group.name, grade: en.group.grade || '', time: `${en.group.dayOfWeek} ${en.group.startTime}` });
+          }
+          if (en.teacher && !allTeachers.some(t => t.id === en.teacher.id)) {
+            allTeachers.push({ id: en.teacher.id, name: en.teacher.name, subject: en.teacher.subject });
+            allSubjects.add(en.teacher.subject);
+          }
+        });
+      }
+
+      let statusLabel = 'NORMAL';
+      if (s.isBlocked || (s.alert_note && s.alert_note.includes('محظور'))) statusLabel = 'BLOCKED';
+      else if (s.hasFinancialWarning || s.alert_status) statusLabel = 'WARNING';
+
+      return {
+        id: s.id,
+        code: s.code,
+        name: s.name,
+        grade: s.grade || (allGroups[0] && allGroups[0].grade ? allGroups[0].grade : 'الصف الأول الثانوي'),
+        student_phone: s.student_phone || '',
+        parent_phone: s.parent_phone,
+        alert_status: statusLabel,
+        alert_note: s.alert_note || '',
+        barcode: s.barcode || s.code,
+        createdAt: s.createdAt,
+        groups: allGroups,
+        teachers: allTeachers,
+        subjects: Array.from(allSubjects)
+      };
+    });
+
+    // 5-Tier filtering logic
+    const effStatus = status || alert_status;
+    if (teacherId && teacherId !== 'ALL') {
+      formatted = formatted.filter(s => s.teachers.some(t => t.id === teacherId));
+    }
+    if (subject && subject !== 'ALL') {
+      formatted = formatted.filter(s => s.subjects.some(sub => sub === subject || sub.toLowerCase().includes(subject.toLowerCase())));
+    }
+    if (groupId && groupId !== 'ALL') {
+      formatted = formatted.filter(s => s.groups.some(g => g.id === groupId));
+    }
+    if (grade && grade !== 'ALL') {
+      formatted = formatted.filter(s => s.grade === grade || s.groups.some(g => g.grade === grade));
+    }
+    if (effStatus && effStatus !== 'ALL') {
+      formatted = formatted.filter(s => s.alert_status === effStatus);
+    }
+    if (search && search.trim() !== '') {
+      const q = search.trim().toLowerCase();
+      formatted = formatted.filter(s => 
+        (s.name && s.name.toLowerCase().includes(q)) ||
+        (s.code && s.code.toLowerCase().includes(q)) ||
+        (s.student_phone && s.student_phone.includes(q)) ||
+        (s.parent_phone && s.parent_phone.includes(q))
+      );
+    }
 
     res.status(200).json({ success: true, count: formatted.length, data: formatted });
   } catch (error) {
@@ -424,7 +485,7 @@ apiRouter.get('/students', async (req, res) => {
 
 apiRouter.post('/students', async (req, res) => {
   try {
-    const { name, student_phone, parent_phone, alert_note, alert_status } = req.body;
+    const { name, student_phone, parent_phone, alert_note, alert_status, grade, groupId, teacherId } = req.body;
 
     if (!name || !parent_phone) {
       return res.status(400).json({ success: false, message: 'اسم الطالب ورقم ولي الأمر مطلوبان' });
@@ -440,15 +501,30 @@ apiRouter.post('/students', async (req, res) => {
       data: {
         centerId: req.centerId,
         code: newCode,
+        barcode: newCode,
         name: name.trim(),
+        grade: grade || 'الصف الأول الثانوي',
         student_phone: student_phone || null,
         parent_phone: parent_phone.trim(),
         alert_status: alert_status === 'WARNING' || alert_status === 'BLOCKED',
         alert_note: alert_note || null,
         isBlocked: alert_status === 'BLOCKED',
-        hasFinancialWarning: alert_status === 'WARNING'
+        hasFinancialWarning: alert_status === 'WARNING',
+        groupId: groupId || null
       }
     });
+
+    if (groupId) {
+      const group = await prisma.group.findUnique({ where: { id: groupId } });
+      await prisma.studentEnrollment.create({
+        data: {
+          centerId: req.centerId,
+          studentId: student.id,
+          groupId: groupId,
+          teacherId: group ? group.teacherId : (teacherId || null)
+        }
+      });
+    }
 
     await prisma.center.update({
       where: { id: req.centerId },
@@ -461,11 +537,159 @@ apiRouter.post('/students', async (req, res) => {
       data: {
         id: student.id,
         code: student.code,
+        barcode: student.barcode,
         name: student.name,
+        grade: student.grade,
         parent_phone: student.parent_phone,
         student_phone: student.student_phone,
         alert_status: student.alert_status ? 'WARNING' : 'NORMAL',
         alert_note: student.alert_note
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/students/:id/profile', async (req, res) => {
+  try {
+    const studentId = req.params.id;
+    const centerId = req.centerId;
+    
+    const student = await prisma.student.findFirst({
+      where: { id: studentId, centerId: centerId },
+      include: {
+        group: { include: { teacher: true, hall: true } },
+        enrollments: { include: { group: { include: { hall: true } }, teacher: true } },
+        attendances: { include: { group: true }, orderBy: { date: 'desc' }, take: 50 },
+        grades: { include: { evaluation: { include: { group: true } } }, orderBy: { createdAt: 'desc' }, take: 50 }
+      }
+    });
+
+    if (!student) {
+      return res.status(404).json({ success: false, message: 'الطالب غير موجود أو لا ينتمي لهذا السنتر' });
+    }
+
+    const [feePayments, serviceSales] = await Promise.all([
+      prisma.studentFeePayment.findMany({ where: { studentId: student.id, centerId: centerId }, orderBy: { createdAt: 'desc' } }),
+      prisma.serviceSale.findMany({ where: { student_id: student.id, center_id: centerId }, include: { service: true }, orderBy: { date: 'desc' } })
+    ]);
+
+    // Enrolled Teachers & Groups
+    const enrolledMap = new Map();
+    if (student.group && student.group.teacher) {
+      enrolledMap.set(`${student.group.id}-${student.group.teacher.id}`, {
+        groupId: student.group.id,
+        groupName: student.group.name,
+        schedule: `${student.group.dayOfWeek} (${student.group.startTime} - ${student.group.endTime})`,
+        hallName: student.group.hall ? student.group.hall.name : 'قاعة رئيسية',
+        teacherId: student.group.teacher.id,
+        teacherName: student.group.teacher.name,
+        subject: student.group.teacher.subject,
+        monthlyPrice: student.group.price || 0
+      });
+    }
+    if (student.enrollments) {
+      student.enrollments.forEach(en => {
+        if (en.group && en.teacher) {
+          const key = `${en.group.id}-${en.teacher.id}`;
+          if (!enrolledMap.has(key)) {
+            enrolledMap.set(key, {
+              groupId: en.group.id,
+              groupName: en.group.name,
+              schedule: `${en.group.dayOfWeek} (${en.group.startTime} - ${en.group.endTime})`,
+              hallName: en.group.hall ? en.group.hall.name : 'قاعة رئيسية',
+              teacherId: en.teacher.id,
+              teacherName: en.teacher.name,
+              subject: en.teacher.subject,
+              monthlyPrice: en.group.price || 0
+            });
+          }
+        }
+      });
+    }
+    const enrollmentsList = Array.from(enrolledMap.values());
+
+    // Financial Ledger per Teacher/Group
+    const financialLedger = enrollmentsList.map(en => {
+      const groupPayments = feePayments.filter(p => p.groupId === en.groupId);
+      const totalPaid = groupPayments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+      const lastPayment = groupPayments[0];
+      let status = 'UNPAID';
+      if (lastPayment && (lastPayment.paymentType === 'MONTHLY' || lastPayment.paymentType === 'ADVANCE_MONTH' || totalPaid >= en.monthlyPrice)) {
+        status = 'PAID';
+      } else if (totalPaid > 0) {
+        status = 'PARTIAL';
+      }
+      
+      return {
+        teacherName: en.teacherName,
+        subject: en.subject,
+        groupName: en.groupName,
+        monthlyPrice: en.monthlyPrice,
+        totalPaid: Number(totalPaid.toFixed(2)),
+        lastPaymentDate: lastPayment ? lastPayment.createdAt : null,
+        lastPaymentType: lastPayment ? lastPayment.paymentType : 'بدون',
+        paymentStatus: status,
+        history: groupPayments.map(gp => ({
+          id: gp.id,
+          amount: gp.amount,
+          monthYear: gp.monthYear || 'الشهر الحالي',
+          paymentType: gp.paymentType,
+          date: gp.createdAt,
+          secretaryName: gp.secretaryName || 'الأدمين'
+        }))
+      };
+    });
+
+    const generalPurchases = serviceSales.map(s => ({
+      id: s.id,
+      title: s.service ? s.service.title : 'شراء مذكرة أو أونلاين',
+      amount: parseFloat(s.amount_paid) || 0,
+      date: s.date
+    }));
+
+    const attendanceHistory = (student.attendances || []).map(a => ({
+      id: a.id,
+      groupName: a.group ? a.group.name : 'مجموعة عامة',
+      date: a.date,
+      status: a.status
+    }));
+
+    const examResults = (student.grades || []).map(g => ({
+      id: g.id,
+      examTitle: g.evaluation ? g.evaluation.title : 'اختبار قصير',
+      examType: g.evaluation ? g.evaluation.type : 'EXAM',
+      score: g.score,
+      maxScore: g.evaluation ? g.evaluation.max_score : 100,
+      groupName: g.evaluation && g.evaluation.group ? g.evaluation.group.name : 'مجموعة عامة',
+      date: g.createdAt
+    }));
+
+    let statusLabel = 'NORMAL';
+    if (student.isBlocked || (student.alert_note && student.alert_note.includes('محظور'))) statusLabel = 'BLOCKED';
+    else if (student.hasFinancialWarning || student.alert_status) statusLabel = 'WARNING';
+
+    res.status(200).json({
+      success: true,
+      data: {
+        personalInfo: {
+          id: student.id,
+          code: student.code,
+          barcode: student.barcode || student.code,
+          name: student.name,
+          grade: student.grade || (enrollmentsList[0] && enrollmentsList[0].groupName ? enrollmentsList[0].groupName : 'الصف الأول الثانوي'),
+          studentPhone: student.student_phone || 'غير مسجل',
+          parentPhone: student.parent_phone,
+          status: statusLabel,
+          alertNote: student.alert_note || '',
+          createdAt: student.createdAt
+        },
+        enrollments: enrollmentsList,
+        financialLedger: financialLedger,
+        generalPurchases: generalPurchases,
+        attendanceHistory: attendanceHistory,
+        examResults: examResults
       }
     });
   } catch (error) {
@@ -569,6 +793,18 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
 });
 
 // Groups & Teachers Endpoints
+apiRouter.get('/groups', async (req, res) => {
+  try {
+    const groups = await prisma.group.findMany({
+      where: { centerId: req.centerId },
+      include: { teacher: true, hall: true }
+    });
+    res.status(200).json({ success: true, count: groups.length, data: groups });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 apiRouter.get('/groups/today', async (req, res) => {
   try {
     const groups = await prisma.group.findMany({

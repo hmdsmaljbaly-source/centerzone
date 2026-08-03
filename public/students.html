@@ -138,24 +138,52 @@
         </section>
 
         <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div class="relative lg:col-span-2">
-                    <input type="text" id="searchInput" onkeyup="filterStudents()" placeholder="بحث باسم الطالب، الكود، أو رقم الهاتف..." 
-                        class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none">
-                    <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+            <div class="space-y-3">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="relative md:col-span-2">
+                        <input type="text" id="searchInput" oninput="handleFilterChange(event)" placeholder="بحث سريع باسم الطالب، الكود، أو رقم الهاتف..." 
+                            class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none shadow-inner transition-all">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    </div>
+                    <div>
+                        <select id="filterStatus" onchange="handleFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer shadow-inner transition-all">
+                            <option value="ALL">جميع الحالات: الكل</option>
+                            <option value="NORMAL">🟢 نشط</option>
+                            <option value="WARNING">🟡 متأخر عن الدفع / تنبيه</option>
+                            <option value="BLOCKED">🔴 محظور</option>
+                        </select>
+                    </div>
                 </div>
-
-                <div>
-                    <select id="statusFilter" onchange="filterStudents()" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer">
-                        <option value="ALL">جميع حالات التنبيه</option>
-                        <option value="NORMAL">🟢 نشطون (عادي)</option>
-                        <option value="WARNING">🟡 تنبيهات مالية</option>
-                        <option value="BLOCKED">🔴 محظورون</option>
-                    </select>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <div>
+                        <select id="filterTeacher" onchange="handleFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer shadow-inner transition-all">
+                            <option value="ALL">المدرس: الكل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="filterSubject" onchange="handleFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer shadow-inner transition-all">
+                            <option value="ALL">المادة: الكل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="filterGroup" onchange="handleFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer shadow-inner transition-all">
+                            <option value="ALL">المجموعة: الكل</option>
+                        </select>
+                    </div>
+                    <div>
+                        <select id="filterGrade" onchange="handleFilterChange(event)" class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-sky-500 outline-none cursor-pointer shadow-inner transition-all">
+                            <option value="ALL">السنة الدراسية: الكل</option>
+                            <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                            <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                            <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                            <option value="المرحلة الإعدادية">المرحلة الإعدادية</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
-            <div class="flex items-center justify-end pt-2">
+            <div class="flex items-center justify-between pt-2 border-t border-slate-800/60">
+                <span class="text-xs text-slate-400 font-medium">اضغط على اسم أو كود الطالب لعرض الملف الشخصي الكامل (Profile)</span>
                 <button onclick="openAddStudentModal()" class="px-4 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-sky-500/20 transition-all flex items-center gap-2">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>إضافة طالب جديد</span>
@@ -305,6 +333,180 @@
         </div>
     </div>
 
+    <!-- All-In-One Interactive Student Profile Modal -->
+    <div id="studentProfileModal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl transition-all">
+            <!-- Modal Header -->
+            <div class="bg-slate-950/80 p-6 border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-sky-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-2xl shadow-lg">
+                        <i class="fa-solid fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h3 id="profileName" class="text-xl font-black text-white">تحميل الباحث...</h3>
+                            <span id="profileStatusTag" class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">نشط</span>
+                        </div>
+                        <div class="flex items-center gap-3 mt-1 text-xs text-slate-400 font-mono">
+                            <span>الكود: <strong id="profileCode" class="text-sky-400">---</strong></span>
+                            <span>•</span>
+                            <span>الباركوود: <strong id="profileBarcode" class="text-indigo-300">---</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="bg-white p-1.5 rounded-xl shadow-md border border-slate-300 hidden sm:block">
+                        <svg id="profileBarcodeSvg" class="h-10"></svg>
+                    </div>
+                    <button onclick="closeStudentProfileModal()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Body with Scroll -->
+            <div class="p-6 overflow-y-auto space-y-6 flex-1 text-right">
+                <!-- Section 1: البيانات الشخصية -->
+                <section class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-5 shadow-inner">
+                    <h4 class="text-sm font-black text-indigo-400 flex items-center gap-2 mb-4">
+                        <i class="fa-solid fa-id-card"></i>
+                        <span>البيانات الشخصية والتعليقات</span>
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 shadow-sm">
+                            <span class="text-slate-400 block mb-1">هاتف الطالب</span>
+                            <span id="profileStudentPhone" class="font-mono font-bold text-white text-sm">---</span>
+                        </div>
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 shadow-sm">
+                            <span class="text-slate-400 block mb-1">هاتف ولي الأمر</span>
+                            <span id="profileParentPhone" class="font-mono font-bold text-amber-300 text-sm">---</span>
+                        </div>
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 shadow-sm">
+                            <span class="text-slate-400 block mb-1">السنة الدراسية (المرحلة)</span>
+                            <span id="profileGrade" class="font-bold text-white text-sm">---</span>
+                        </div>
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 shadow-sm">
+                            <span class="text-slate-400 block mb-1">تاريخ التسجيل بالسنتر</span>
+                            <span id="profileRegDate" class="font-mono font-bold text-slate-300 text-sm">---</span>
+                        </div>
+                    </div>
+                    <div id="profileAlertBox" class="mt-4 bg-amber-500/10 border border-amber-500/20 text-amber-300 p-3 rounded-xl text-xs flex items-center gap-2 hidden">
+                        <i class="fa-solid fa-circle-exclamation text-amber-400 text-base"></i>
+                        <span><strong>ملاحظة إدارية / مالية:</strong> <span id="profileAlertNote"></span></span>
+                    </div>
+                </section>
+
+                <!-- Section 2: المدرسون والمجموعات المسجل بها -->
+                <section class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-5 shadow-inner">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-black text-sky-400 flex items-center gap-2">
+                            <i class="fa-solid fa-chalkboard-user"></i>
+                            <span>المدرسون والمجموعات المسجل بها</span>
+                        </h4>
+                        <span id="profileEnrollmentCount" class="text-xs px-2.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full font-bold">0 مدرس</span>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+                        <table class="w-full text-xs text-right text-slate-300">
+                            <thead class="bg-slate-950/90 text-slate-400 border-b border-slate-800">
+                                <tr>
+                                    <th class="p-3">المدرس</th>
+                                    <th class="p-3">المادة الدراسية</th>
+                                    <th class="p-3">اسم المجموعة</th>
+                                    <th class="p-3">القاعة</th>
+                                    <th class="p-3">الميعاد والجدول</th>
+                                    <th class="p-3">الاشتراك الشهري</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profileEnrollmentsBody" class="divide-y divide-slate-800/60">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Section 3: المالية والاشتراكات -->
+                <section class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-5 shadow-inner">
+                    <div class="flex items-center justify-between mb-4">
+                        <h4 class="text-sm font-black text-emerald-400 flex items-center gap-2">
+                            <i class="fa-solid fa-money-check-dollar"></i>
+                            <span>المالية والاشتراكات (حسابات المدرسين والمجموعات)</span>
+                        </h4>
+                        <button onclick="openFinanceModal(currentProfileStudentId); closeStudentProfileModal();" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-emerald-600/20">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>تحصيل دفعة جديدة</span>
+                        </button>
+                    </div>
+                    <div id="profileFinancialCards" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- Section 4: الحضور والدرجات -->
+                <section class="bg-slate-950/50 border border-slate-800/80 rounded-2xl p-5 shadow-inner">
+                    <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+                        <h4 class="text-sm font-black text-amber-400 flex items-center gap-2">
+                            <i class="fa-solid fa-user-clock"></i>
+                            <span>سجل الحضور ونتائج الاختبارات</span>
+                        </h4>
+                        <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-xl border border-slate-800 text-xs font-bold">
+                            <button id="tabBtnAttendance" onclick="switchProfileTab('attendance')" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-md transition-all font-bold">سجل الحضور</button>
+                            <button id="tabBtnExams" onclick="switchProfileTab('exams')" class="px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all font-bold">نتائج الاختبارات</button>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Tab Content -->
+                    <div id="profileTabAttendance" class="space-y-3">
+                        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+                            <table class="w-full text-xs text-right text-slate-300">
+                                <thead class="bg-slate-950/90 text-slate-400 border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">التاريخ</th>
+                                        <th class="p-3">المجموعة</th>
+                                        <th class="p-3 font-semibold text-center">حالة الحضور</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profileAttendanceBody" class="divide-y divide-slate-800/60">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Exams Tab Content -->
+                    <div id="profileTabExams" class="space-y-3 hidden">
+                        <div class="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900">
+                            <table class="w-full text-xs text-right text-slate-300">
+                                <thead class="bg-slate-950/90 text-slate-400 border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">اسم الاختبار</th>
+                                        <th class="p-3">النوع</th>
+                                        <th class="p-3">المجموعة</th>
+                                        <th class="p-3">الدرجة</th>
+                                        <th class="p-3">التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profileExamsBody" class="divide-y divide-slate-800/60">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-950 p-4 border-t border-slate-800 flex justify-end gap-3">
+                <button onclick="openPrintCardModal(currentProfileStudentId); closeStudentProfileModal();" class="px-4 py-2 bg-sky-600/20 text-sky-400 hover:bg-sky-600 hover:text-white border border-sky-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-barcode"></i>
+                    <span>طباعة كارت الباركوود</span>
+                </button>
+                <button onclick="closeStudentProfileModal()" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition-all">
+                    إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0">
         <span id="toastMessage">إشعار النظام</span>
     </div>
@@ -315,39 +517,88 @@
 
         window.onload = function() {
             document.getElementById('headerCenterName').textContent = centerId;
-            fetchStudentsFromApi();
+            loadFilterDropdowns();
+            fetchFilteredStudents();
         };
 
-        async function fetchStudentsFromApi() {
+        async function loadFilterDropdowns() {
             try {
-                const response = await fetch('/api/students', {
+                const [resT, resG] = await Promise.all([
+                    fetch('/api/teachers', { headers: { 'x-center-id': centerId } }),
+                    fetch('/api/groups', { headers: { 'x-center-id': centerId } })
+                ]);
+                const dataT = await resT.json();
+                const dataG = await resG.json();
+
+                const teacherSelect = document.getElementById('filterTeacher');
+                const subjectSelect = document.getElementById('filterSubject');
+                const groupSelect = document.getElementById('filterGroup');
+
+                const subjectsSet = new Set();
+                if (dataT.success && Array.isArray(dataT.data)) {
+                    dataT.data.forEach(t => {
+                        teacherSelect.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} (${t.subject})</option>`);
+                        if (t.subject) subjectsSet.add(t.subject.trim());
+                    });
+                    Array.from(subjectsSet).forEach(sub => {
+                        subjectSelect.insertAdjacentHTML('beforeend', `<option value="${sub}">${sub}</option>`);
+                    });
+                }
+
+                if (dataG.success && Array.isArray(dataG.data)) {
+                    dataG.data.forEach(g => {
+                        groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.name : ''}</option>`);
+                    });
+                }
+            } catch (e) {
+                console.error('Error loading filter dropdowns:', e);
+            }
+        }
+
+        let filterTimeout = null;
+        function handleFilterChange(e) {
+            if (e && e.type === 'input') {
+                clearTimeout(filterTimeout);
+                filterTimeout = setTimeout(() => { fetchFilteredStudents(); }, 350);
+            } else {
+                fetchFilteredStudents();
+            }
+        }
+
+        function filterStudents() {
+            fetchFilteredStudents();
+        }
+
+        async function fetchFilteredStudents() {
+            const search = document.getElementById('searchInput').value.trim();
+            const teacherId = document.getElementById('filterTeacher').value;
+            const subject = document.getElementById('filterSubject').value;
+            const groupId = document.getElementById('filterGroup').value;
+            const grade = document.getElementById('filterGrade').value;
+            const status = document.getElementById('filterStatus').value;
+
+            const params = new URLSearchParams({
+                teacherId,
+                subject,
+                groupId,
+                grade,
+                status,
+                search
+            });
+
+            try {
+                const response = await fetch(`/api/students?${params.toString()}`, {
                     headers: { 'x-center-id': centerId }
                 });
                 const resData = await response.json();
                 if (resData.success && Array.isArray(resData.data)) {
                     studentsData = resData.data;
-                    filterStudents();
+                    renderTable(studentsData);
+                    updateSummaryStats(studentsData);
                 }
             } catch (e) {
-                console.error('Error fetching students:', e);
+                console.error('Error refetching filtered students:', e);
             }
-        }
-
-        function filterStudents() {
-            const query = document.getElementById('searchInput').value.trim().toLowerCase();
-            const statusFilter = document.getElementById('statusFilter').value;
-
-            const filtered = studentsData.filter(s => {
-                const matchQuery = !query || 
-                    s.name.toLowerCase().includes(query) || 
-                    s.code.toLowerCase().includes(query) || 
-                    (s.parent_phone && s.parent_phone.includes(query));
-                const matchStatus = (statusFilter === 'ALL' || s.alert_status === statusFilter);
-                return matchQuery && matchStatus;
-            });
-
-            renderTable(filtered);
-            updateSummaryStats(filtered);
         }
 
         function updateSummaryStats(filteredData) {
@@ -382,8 +633,8 @@
 
                 const rowHtml = `
                     <tr class="hover:bg-slate-800/40 transition-colors">
-                        <td class="p-3.5 font-mono font-bold text-sky-400">${student.code}</td>
-                        <td class="p-3.5 font-bold text-white">${student.name}</td>
+                        <td class="p-3.5 font-mono font-bold cursor-pointer text-indigo-400 hover:underline" onclick="openStudentProfileModal('${student.id}')">${student.code}</td>
+                        <td class="p-3.5 font-bold cursor-pointer text-indigo-400 hover:underline" onclick="openStudentProfileModal('${student.id}')">${student.name}</td>
                         <td class="p-3.5 font-mono text-slate-300">${student.student_phone || '--'}</td>
                         <td class="p-3.5 font-mono text-slate-300">${student.parent_phone}</td>
                         <td class="p-3.5">
@@ -516,6 +767,199 @@
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
             setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('translate-y-20', 'opacity-0'); }, 3000);
+        }
+
+        let currentProfileStudentId = null;
+
+        async function openStudentProfileModal(studentId) {
+            currentProfileStudentId = studentId;
+            const modal = document.getElementById('studentProfileModal');
+            modal.classList.remove('hidden');
+
+            document.getElementById('profileName').textContent = 'جاري تحميل الملف الشخصي...';
+            document.getElementById('profileCode').textContent = '---';
+            document.getElementById('profileBarcode').textContent = '---';
+
+            try {
+                const res = await fetch(`/api/students/${studentId}/profile`, {
+                    headers: { 'x-center-id': centerId }
+                });
+                const json = await res.json();
+                if (!json.success) {
+                    showToast(json.message || 'فشل في تحميل بروفايل الطالب');
+                    closeStudentProfileModal();
+                    return;
+                }
+
+                const data = json.data;
+                const info = data.personalInfo;
+
+                // Header
+                document.getElementById('profileName').textContent = info.name;
+                document.getElementById('profileCode').textContent = info.code;
+                document.getElementById('profileBarcode').textContent = info.barcode;
+                
+                const tag = document.getElementById('profileStatusTag');
+                if (info.status === 'BLOCKED') {
+                    tag.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                    tag.textContent = '🔴 محظور';
+                } else if (info.status === 'WARNING') {
+                    tag.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20';
+                    tag.textContent = '🟡 تنبيه مالي / تأخر';
+                } else {
+                    tag.className = 'px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                    tag.textContent = '🟢 نشط (عادي)';
+                }
+
+                try {
+                    JsBarcode("#profileBarcodeSvg", info.barcode, { format: "CODE128", height: 35, width: 1.5, displayValue: false, margin: 2, lineColor: "#000000" });
+                } catch(e){}
+
+                // Section 1: Personal Info
+                document.getElementById('profileStudentPhone').textContent = info.studentPhone || '--';
+                document.getElementById('profileParentPhone').textContent = info.parentPhone || '--';
+                document.getElementById('profileGrade').textContent = info.grade || 'عام';
+                document.getElementById('profileRegDate').textContent = new Date(info.createdAt).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                const alertBox = document.getElementById('profileAlertBox');
+                if (info.alertNote && info.alertNote.trim() !== '') {
+                    document.getElementById('profileAlertNote').textContent = info.alertNote;
+                    alertBox.classList.remove('hidden');
+                } else {
+                    alertBox.classList.add('hidden');
+                }
+
+                // Section 2: Enrollments
+                const enrolBody = document.getElementById('profileEnrollmentsBody');
+                enrolBody.innerHTML = '';
+                document.getElementById('profileEnrollmentCount').textContent = `${(data.enrollments || []).length} مجموعة/مدرس`;
+                
+                if (!data.enrollments || data.enrollments.length === 0) {
+                    enrolBody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500 font-bold">لا توجد مجموعات أو مدرسين مسجلين لهذا الطالب بعد</td></tr>`;
+                } else {
+                    data.enrollments.forEach(en => {
+                        enrolBody.insertAdjacentHTML('beforeend', `
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="p-3 font-bold text-white">${en.teacherName}</td>
+                                <td class="p-3 text-sky-400 font-bold">${en.subject}</td>
+                                <td class="p-3 font-medium text-slate-200">${en.groupName}</td>
+                                <td class="p-3 text-slate-400">${en.hallName}</td>
+                                <td class="p-3 font-mono text-slate-300">${en.schedule}</td>
+                                <td class="p-3 font-mono font-bold text-emerald-400">${en.monthlyPrice} <span class="text-[10px]">ج.م/شهر</span></td>
+                            </tr>
+                        `);
+                    });
+                }
+
+                // Section 3: Financials
+                const finContainer = document.getElementById('profileFinancialCards');
+                finContainer.innerHTML = '';
+                if (!data.financialLedger || data.financialLedger.length === 0) {
+                    finContainer.innerHTML = `<div class="md:col-span-2 p-6 bg-slate-900 border border-slate-800 rounded-2xl text-center text-slate-500 font-bold">لا يوجد سجل اشتراكات أو مدفوعات مسجل</div>`;
+                } else {
+                    data.financialLedger.forEach(led => {
+                        let statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">خالص (مدفوع)</span>`;
+                        if (led.paymentStatus === 'UNPAID') {
+                            statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">متأخر عن الدفع</span>`;
+                        } else if (led.paymentStatus === 'PARTIAL') {
+                            statusBadge = `<span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">مدفوع جزئياً</span>`;
+                        }
+
+                        finContainer.insertAdjacentHTML('beforeend', `
+                            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-md flex flex-col justify-between space-y-3">
+                                <div class="flex items-center justify-between border-b border-slate-800/60 pb-2.5">
+                                    <div>
+                                        <h5 class="font-black text-white text-sm">${led.teacherName} <span class="text-xs text-sky-400 font-normal">(${led.subject})</span></h5>
+                                        <span class="text-xs text-slate-400 block">${led.groupName}</span>
+                                    </div>
+                                    ${statusBadge}
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 text-xs font-mono bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/50">
+                                    <div>
+                                        <span class="text-[11px] text-slate-400 block font-sans">الاشتراك الشهري</span>
+                                        <span class="font-bold text-slate-200">${led.monthlyPrice} ج.م</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-[11px] text-slate-400 block font-sans">إجمالي ما تم دفعه</span>
+                                        <span class="font-bold text-emerald-400">${led.totalPaid} ج.م</span>
+                                    </div>
+                                </div>
+                                <div class="text-[11px] text-slate-400 flex items-center justify-between pt-1">
+                                    <span>آخر سداد: <strong class="text-slate-200">${led.lastPaymentDate ? new Date(led.lastPaymentDate).toLocaleDateString('ar-EG') : 'لا يوجد'}</strong></span>
+                                    <span>النوع: <strong class="text-slate-200">${led.lastPaymentType === 'MONTHLY' ? 'شهري' : (led.lastPaymentType === 'BOOKLET_ONLY' ? 'ملزمة' : led.lastPaymentType || 'بدون')}</strong></span>
+                                </div>
+                            </div>
+                        `);
+                    });
+                }
+
+                // Section 4: Attendance & Exams
+                const attBody = document.getElementById('profileAttendanceBody');
+                attBody.innerHTML = '';
+                if (!data.attendanceHistory || data.attendanceHistory.length === 0) {
+                    attBody.innerHTML = `<tr><td colspan="3" class="p-4 text-center text-slate-500 font-bold">لا يوجد سجل حضور مسجل</td></tr>`;
+                } else {
+                    data.attendanceHistory.forEach(a => {
+                        const badge = a.status === 'PRESENT' 
+                            ? `<span class="px-2 py-0.5 rounded text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 font-bold">حاضر 🟢</span>`
+                            : `<span class="px-2 py-0.5 rounded text-rose-400 bg-rose-500/10 border border-rose-500/20 font-bold">غائب 🔴</span>`;
+                        attBody.insertAdjacentHTML('beforeend', `
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="p-3 font-mono text-slate-300">${new Date(a.date).toLocaleDateString('ar-EG')}</td>
+                                <td class="p-3 font-bold text-white">${a.groupName}</td>
+                                <td class="p-3 text-center">${badge}</td>
+                            </tr>
+                        `);
+                    });
+                }
+
+                const exBody = document.getElementById('profileExamsBody');
+                exBody.innerHTML = '';
+                if (!data.examResults || data.examResults.length === 0) {
+                    exBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 font-bold">لا توجد نتائج اختبارات مسجلة</td></tr>`;
+                } else {
+                    data.examResults.forEach(ex => {
+                        const percentage = Math.round((ex.score / (ex.maxScore || 100)) * 100);
+                        let scoreColor = percentage >= 75 ? 'text-emerald-400' : (percentage >= 50 ? 'text-amber-400' : 'text-rose-400');
+                        exBody.insertAdjacentHTML('beforeend', `
+                            <tr class="hover:bg-slate-800/40 transition-colors">
+                                <td class="p-3 font-bold text-white">${ex.examTitle}</td>
+                                <td class="p-3 text-indigo-300">${ex.examType === 'QUIZ' ? 'كويز سريع' : 'امتحان شامل'}</td>
+                                <td class="p-3 text-slate-400">${ex.groupName}</td>
+                                <td class="p-3 font-mono font-bold ${scoreColor}">${ex.score} / ${ex.maxScore} (<span class="text-[10px]">${percentage}%</span>)</td>
+                                <td class="p-3 font-mono text-slate-400">${new Date(ex.date).toLocaleDateString('ar-EG')}</td>
+                            </tr>
+                        `);
+                    });
+                }
+            } catch (err) {
+                console.error('Error fetching profile:', err);
+                showToast('حدث خطأ في الاتصال بالسيرفر');
+                closeStudentProfileModal();
+            }
+        }
+
+        function closeStudentProfileModal() {
+            document.getElementById('studentProfileModal').classList.add('hidden');
+        }
+
+        function switchProfileTab(tab) {
+            const btnAtt = document.getElementById('tabBtnAttendance');
+            const btnEx = document.getElementById('tabBtnExams');
+            const contentAtt = document.getElementById('profileTabAttendance');
+            const contentEx = document.getElementById('profileTabExams');
+
+            if (tab === 'attendance') {
+                btnAtt.className = 'px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-md transition-all font-bold';
+                btnEx.className = 'px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all font-bold';
+                contentAtt.classList.remove('hidden');
+                contentEx.classList.add('hidden');
+            } else {
+                btnEx.className = 'px-4 py-1.5 rounded-lg bg-indigo-600 text-white shadow-md transition-all font-bold';
+                btnAtt.className = 'px-4 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all font-bold';
+                contentEx.classList.remove('hidden');
+                contentAtt.classList.add('hidden');
+            }
         }
     </script>
 </body>
