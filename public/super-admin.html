@@ -40,6 +40,11 @@
     </style>
     <!-- Super Admin Guard & Global Fetch Interceptor -->
     <script>
+        function getActiveCenterHeader() {
+            const centerId = localStorage.getItem('currentCenterId') || localStorage.getItem('x-center-id') || localStorage.getItem('centerId') || 'center-101';
+            return centerId;
+        }
+        window.getActiveCenterHeader = getActiveCenterHeader;
         (function() {
             const token = localStorage.getItem('centerzone_token');
             const role = localStorage.getItem('userRole');
@@ -52,7 +57,7 @@
             window.fetch = async function(url, options = {}) {
                 options.headers = options.headers || {};
                 const currentToken = localStorage.getItem('centerzone_token');
-                const currentCenterId = localStorage.getItem('x-center-id') || localStorage.getItem('centerId');
+                const currentCenterId = getActiveCenterHeader();
                 if (url && url.toString().startsWith('/api/')) {
                     if (options.headers instanceof Headers) {
                         if (currentToken && !options.headers.has('Authorization')) {
@@ -69,10 +74,25 @@
                     }
                 }
                 const response = await originalFetch.call(this, url, options);
-                if (response.status === 401) {
-                    localStorage.clear();
-                    alert("جلسة العمل انتهت، يرجى إعادة الدخول");
-                    window.location.href = '/login.html';
+                if (response.status === 401 || (response.status === 400 || response.status === 404) && url && url.toString().startsWith('/api/')) {
+                    if (response.status === 400 || response.status === 404) {
+                        const clone = response.clone();
+                        try {
+                            const data = await clone.json();
+                            if (data && data.error && (data.error.includes('tenant') || data.error.includes('Center ID') || data.error.includes('x-center-id'))) {
+                                localStorage.removeItem('x-center-id');
+                                localStorage.removeItem('currentCenterId');
+                                localStorage.removeItem('centerId');
+                                alert(data.error || "خطأ في مُعرف السنتر. يرجى تسجيل الدخول مجدداً.");
+                                window.location.href = '/login.html';
+                                return response;
+                            }
+                        } catch (e) {}
+                    } else if (response.status === 401) {
+                        localStorage.clear();
+                        alert("جلسة العمل انتهت، يرجى إعادة الدخول");
+                        window.location.href = '/login.html';
+                    }
                 }
                 return response;
             };

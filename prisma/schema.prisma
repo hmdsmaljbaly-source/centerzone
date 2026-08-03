@@ -80,7 +80,6 @@ model Center {
   serviceSales       ServiceSale[]
   systemLogsMessages SystemLogMessage[]
 
-  // New Relations
   halls           Hall[]
   booklets        Booklet[]
   inventoryTxns   InventoryTransaction[]
@@ -89,6 +88,9 @@ model Center {
   expenses           Expense[]
   teacherPayouts     TeacherPayout[]
   studentEnrollments StudentEnrollment[]
+  attendances        Attendance[]
+  evaluations        Evaluation[]
+  grades             Grade[]
 
   @@index([email])
   @@map("centers")
@@ -199,6 +201,7 @@ model Group {
 
 model Attendance {
   id         String           @id @default(uuid())
+  centerId   String?          @map("center_id")
   student_id String           @map("student_id")
   group_id   String           @map("group_id")
   date       DateTime         @db.Date
@@ -206,10 +209,12 @@ model Attendance {
   createdAt  DateTime         @default(now()) @map("created_at")
   updatedAt  DateTime         @updatedAt @map("updated_at")
 
-  student Student @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  group   Group   @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  center  Center?  @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [group_id], references: [id], onDelete: Cascade)
 
   @@unique([student_id, group_id, date])
+  @@index([centerId])
   @@index([student_id])
   @@index([group_id])
   @@map("attendance")
@@ -217,6 +222,7 @@ model Attendance {
 
 model Evaluation {
   id        String   @id @default(uuid())
+  centerId  String?  @map("center_id")
   group_id  String   @map("group_id")
   type      String
   title     String
@@ -225,15 +231,18 @@ model Evaluation {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
+  center Center? @relation(fields: [centerId], references: [id], onDelete: Cascade)
   group  Group   @relation(fields: [group_id], references: [id], onDelete: Cascade)
   grades Grade[]
 
+  @@index([centerId])
   @@index([group_id])
   @@map("evaluations")
 }
 
 model Grade {
   id            String   @id @default(uuid())
+  centerId      String?  @map("center_id")
   evaluation_id String   @map("evaluation_id")
   student_id    String   @map("student_id")
   score         Float
@@ -241,10 +250,12 @@ model Grade {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
+  center     Center?    @relation(fields: [centerId], references: [id], onDelete: Cascade)
   evaluation Evaluation @relation(fields: [evaluation_id], references: [id], onDelete: Cascade)
   student    Student    @relation(fields: [student_id], references: [id], onDelete: Cascade)
 
   @@unique([evaluation_id, student_id])
+  @@index([centerId])
   @@index([evaluation_id])
   @@index([student_id])
   @@map("grades")
