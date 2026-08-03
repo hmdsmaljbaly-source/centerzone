@@ -308,14 +308,14 @@
     </main>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
         let audioEnabled = true;
         let audioCtx = null;
 
         let stats = { success: 0, warning: 0, blocked: 0 };
 
         window.onload = function () {
-            document.getElementById('headerCenterName').textContent = centerId;
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
             setInterval(updateClock, 1000);
             updateClock();
             fetchTodaysGroups();
@@ -413,12 +413,10 @@
             selectEl.innerHTML = '<option value="">جاري التحميل من قاعدة البيانات...</option>';
 
             try {
-                const response = await fetch('/api/groups/today', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/groups/today');
                 const resData = await response.json();
 
-                if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+                if (resData?.success && Array.isArray(resData.data) && resData.data.length > 0) {
                     selectEl.innerHTML = resData.data.map(g => 
                         `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.subject : ''} (${g.teacher ? g.teacher.name : ''})</option>`
                     ).join('');
@@ -432,7 +430,7 @@
         }
 
         async function processAttendance(codeOrPayload) {
-            const groupId = document.getElementById('groupSelect').value;
+            const groupId = document.getElementById('groupSelect')?.value || '';
             
             if (!groupId) {
                 alert('يرجى اختيار المجموعة الدراسية أولاً من القائمة أعلاه!');
@@ -443,10 +441,7 @@
             try {
                 const response = await fetch('/api/attendance/scan-qr', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-center-id': centerId
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         qr_payload: codeOrPayload,
                         group_id: groupId

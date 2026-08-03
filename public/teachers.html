@@ -353,7 +353,6 @@
     </div>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
         let masterTeachers = [];
         let masterGroups = [];
         let masterHalls = [];
@@ -366,7 +365,8 @@
         };
 
         window.onload = function() {
-            document.getElementById('headerCenterName').textContent = centerId;
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
             fetchTeachersFromApi();
             fetchGroupsFromApi();
             fetchHallsFromApi();
@@ -374,11 +374,9 @@
 
         async function fetchTeachersFromApi() {
             try {
-                const response = await fetch('/api/teachers', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/teachers');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     masterTeachers = resData.data;
                     renderTeachersCards();
                     populateGroupTeacherDropdown();
@@ -390,11 +388,9 @@
 
         async function fetchGroupsFromApi() {
             try {
-                const response = await fetch('/api/groups/today', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/groups/today');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     masterGroups = resData.data;
                     renderTeachersCards();
                 }
@@ -500,17 +496,17 @@
 
         async function handleCreateTeacher(e) {
             e.preventDefault();
-            const name = document.getElementById('teacherNameInput').value.trim();
-            const subject = document.getElementById('teacherSubjectInput').value.trim();
-            const phone = document.getElementById('teacherPhoneInput').value.trim();
-            const stage = document.getElementById('teacherStageSelect').value;
+            const name = document.getElementById('teacherNameInput')?.value?.trim() || '';
+            const subject = document.getElementById('teacherSubjectInput')?.value?.trim() || '';
+            const phone = document.getElementById('teacherPhoneInput')?.value?.trim() || '';
+            const stage = document.getElementById('teacherStageSelect')?.value || null;
 
             const selectedGrades = Array.from(document.querySelectorAll('input[name="teacherGrades"]:checked')).map(cb => cb.value);
 
             try {
                 const response = await fetch('/api/teachers', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         name,
                         subject,
@@ -523,89 +519,105 @@
                 });
 
                 const resData = await response.json();
-                if (response.ok || resData.success) {
-                    closeAddTeacherModal();
-                    showToast(`تم حفظ المدرس ${name} بنجاح`);
-                    fetchTeachersFromApi();
-                } else {
-                    showToast(resData.message || 'حدث خطأ أثناء الحفظ');
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'حدث خطأ أثناء حفظ المدرس');
+                    return;
                 }
-            } catch (err) {
                 closeAddTeacherModal();
+                showToast(`تم حفظ المدرس ${name} بنجاح`);
+                fetchTeachersFromApi();
+            } catch (err) {
                 showToast('حدث خطأ في الاتصال بالسيرفر');
             }
         }
 
         async function handleCreateGroup(e) {
             e.preventDefault();
-            const teacherId = document.getElementById('groupTeacherSelect').value;
-            const name = document.getElementById('groupNameInput').value.trim();
-            const price = parseFloat(document.getElementById('groupPriceInput').value) || 0;
+            const teacherId = document.getElementById('groupTeacherSelect')?.value || '';
+            const hallId = document.getElementById('groupHallSelect')?.value || '';
+            const name = document.getElementById('groupNameInput')?.value?.trim() || '';
+            const price = parseFloat(document.getElementById('groupPriceInput')?.value) || 0;
             const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
 
             try {
                 const response = await fetch('/api/groups', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         teacher_id: teacherId,
+                        hall_id: hallId || null,
                         name,
                         price,
                         days: selectedDays
                     })
                 });
 
+                const resData = await response.json();
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'حدث خطأ أثناء حفظ المجموعة');
+                    return;
+                }
                 closeAddGroupModal();
                 showToast(`تم حفظ مجموعة (${name}) بنجاح`);
                 fetchGroupsFromApi();
             } catch (err) {
-                closeAddGroupModal();
                 showToast('حدث خطأ أثناء حفظ المجموعة');
             }
         }
 
         async function fetchHallsFromApi() {
             try {
-                // Mocking halls API if not exists, but let's assume /api/halls works.
-                // If it fails we mock it.
-                const response = await fetch('/api/halls', { headers: { 'x-center-id': centerId } });
+                const response = await fetch('/api/halls');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     masterHalls = resData.data;
                 }
             } catch (e) {
-                console.warn("Halls API error or not implemented, using empty halls.");
+                console.warn("Halls API error:", e);
             }
             populateGroupHallDropdown();
         }
 
         function populateGroupHallDropdown() {
             const select = document.getElementById('groupHallSelect');
-            if (masterHalls.length === 0) {
+            if (!select) return;
+            if (!masterHalls || masterHalls.length === 0) {
                 select.innerHTML = '<option value="">لا يوجد قاعات - أضف قاعة أولاً</option>';
                 return;
             }
-            select.innerHTML = masterHalls.map(h => `<option value="${h.id}">${h.name} (سعة: ${h.capacity})</option>`).join('');
+            select.innerHTML = '<option value="">اختر القاعة...</option>' + masterHalls.map(h => `<option value="${h.id}">${h.name} (سعة: ${h.capacity})</option>`).join('');
         }
 
-        function openAddHallModal() { document.getElementById('addHallModal').classList.remove('hidden'); }
+        function openAddHallModal() { document.getElementById('addHallModal')?.classList.remove('hidden'); }
         function closeAddHallModal() { 
-            document.getElementById('addHallModal').classList.add('hidden'); 
-            document.getElementById('addHallForm').reset();
+            document.getElementById('addHallModal')?.classList.add('hidden'); 
+            document.getElementById('addHallForm')?.reset();
         }
 
         async function handleCreateHall(e) {
             e.preventDefault();
-            const name = document.getElementById('hallNameInput').value.trim();
-            const capacity = parseInt(document.getElementById('hallCapacityInput').value) || 0;
+            const name = document.getElementById('hallNameInput')?.value?.trim() || '';
+            const capacity = parseInt(document.getElementById('hallCapacityInput')?.value) || 0;
+
+            if (!name || capacity <= 0) {
+                showToast('يرجى إدخال اسم القاعة وسعة صحيحة');
+                return;
+            }
 
             try {
-                // Use fetch to POST /api/halls
-                // Since there might not be a backend route yet, we'll just mock success for the UI logic.
-                masterHalls.push({ id: 'hall_' + Date.now(), name, capacity });
+                const response = await fetch('/api/halls', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, capacity })
+                });
+                const resData = await response.json();
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'حدث خطأ أثناء حفظ القاعة');
+                    return;
+                }
                 closeAddHallModal();
                 showToast(`تم إضافة القاعة ${name} بنجاح`);
-                populateGroupHallDropdown();
+                fetchHallsFromApi();
             } catch (err) {
                 showToast('حدث خطأ أثناء حفظ القاعة');
             }

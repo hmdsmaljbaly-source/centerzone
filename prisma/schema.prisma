@@ -98,7 +98,7 @@ model Center {
 
 model Teacher {
   id               String         @id @default(uuid())
-  center_id        String         @map("center_id")
+  centerId         String         @map("center_id")
   name             String
   subject          String
   phone            String
@@ -110,13 +110,13 @@ model Teacher {
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  center      Center           @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  center      Center           @relation(fields: [centerId], references: [id], onDelete: Cascade)
   services    TeacherService[]
   groups      Group[]
   payouts     TeacherPayout[]
   enrollments StudentEnrollment[]
 
-  @@index([center_id])
+  @@index([centerId])
   @@map("teachers")
 }
 
@@ -133,8 +133,9 @@ model TeacherService {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  teacher Teacher       @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  sales   ServiceSale[]
+  teacher     Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  sales       ServiceSale[]
+  feePayments StudentFeePayment[]
 
   @@index([teacherId])
   @@index([centerId])
@@ -158,12 +159,13 @@ model Student {
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
-  center      Center        @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  center      Center              @relation(fields: [centerId], references: [id], onDelete: Cascade)
   attendances Attendance[]
   grades      Grade[]
   sales       ServiceSale[]
   enrollments StudentEnrollment[]
-  group       Group?        @relation(fields: [groupId], references: [id])
+  group       Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  feePayments StudentFeePayment[]
 
   @@unique([centerId, code])
   @@index([centerId])
@@ -186,13 +188,14 @@ model Group {
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  center      Center       @relation(fields: [centerId], references: [id], onDelete: Cascade)
-  teacher     Teacher      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  hall        Hall?        @relation(fields: [hallId], references: [id])
+  center      Center              @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  teacher     Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  hall        Hall?               @relation(fields: [hallId], references: [id], onDelete: SetNull)
   attendances Attendance[]
   evaluations Evaluation[]
   students    Student[]
   enrollments StudentEnrollment[]
+  feePayments StudentFeePayment[]
 
   @@index([centerId])
   @@index([teacherId])
@@ -263,7 +266,7 @@ model Grade {
 
 model ServiceSale {
   id          String   @id @default(uuid())
-  center_id   String   @map("center_id")
+  centerId    String   @map("center_id")
   student_id  String   @map("student_id")
   service_id  String   @map("service_id")
   amount_paid Decimal  @map("amount_paid") @db.Decimal(10, 2)
@@ -271,11 +274,11 @@ model ServiceSale {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  center  Center         @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  center  Center         @relation(fields: [centerId], references: [id], onDelete: Cascade)
   student Student        @relation(fields: [student_id], references: [id], onDelete: Cascade)
   service TeacherService @relation(fields: [service_id], references: [id], onDelete: Cascade)
 
-  @@index([center_id])
+  @@index([centerId])
   @@index([student_id])
   @@index([service_id])
   @@map("service_sales")
@@ -283,20 +286,20 @@ model ServiceSale {
 
 model SystemLogMessage {
   id            String   @id @default(uuid())
-  center_id     String   @map("center_id")
+  centerId      String   @map("center_id")
   message_count Int      @default(1) @map("message_count")
   date          DateTime @default(now())
   createdAt     DateTime @default(now()) @map("created_at")
 
-  center Center @relation(fields: [center_id], references: [id], onDelete: Cascade)
+  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
 
-  @@index([center_id])
+  @@index([centerId])
   @@map("system_logs_messages")
 }
 
 model Hall {
   id        String   @id @default(uuid())
-  centerId  String
+  centerId  String   @map("center_id")
   name      String
   capacity  Int
   createdAt DateTime @default(now())
@@ -305,11 +308,12 @@ model Hall {
   groups Group[]
 
   @@index([centerId])
+  @@map("halls")
 }
 
 model Booklet {
   id        String   @id @default(uuid())
-  centerId  String
+  centerId  String   @map("center_id")
   teacherId String
   title     String
   price     Float
@@ -320,11 +324,12 @@ model Booklet {
 
   @@index([centerId])
   @@index([teacherId])
+  @@map("booklets")
 }
 
 model InventoryTransaction {
   id              String   @id @default(uuid())
-  centerId        String
+  centerId        String   @map("center_id")
   type            String // "SALE", "ADD", "RETURN", "ADJUSTMENT"
   bookletId       String
   studentId       String?
@@ -337,30 +342,35 @@ model InventoryTransaction {
 
   @@index([centerId])
   @@index([bookletId])
+  @@map("inventory_transactions")
 }
 
 model StudentFeePayment {
   id            String   @id @default(uuid())
-  centerId      String
-  studentId     String
-  groupId       String
-  serviceId     String?
-  bookletId     String?
+  centerId      String   @map("center_id")
+  studentId     String?  @map("student_id")
+  groupId       String?  @map("group_id")
+  serviceId     String?  @map("service_id")
+  bookletId     String?  @map("booklet_id")
   amount        Float
   paymentType   String // "MONTHLY", "ADVANCE_MONTH", "TERM_RESERVATION", "NIGHT_REVIEW", "BOOKLET_ONLY"
   monthYear     String
   secretaryName String
   createdAt     DateTime @default(now())
 
-  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  center  Center          @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  student Student?        @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  group   Group?          @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  service TeacherService? @relation(fields: [serviceId], references: [id], onDelete: SetNull)
 
   @@index([centerId])
   @@index([studentId])
+  @@map("student_fee_payments")
 }
 
 model MonthlyClosing {
   id                String   @id @default(uuid())
-  centerId          String
+  centerId          String   @map("center_id")
   monthYear         String
   totalRevenue      Float
   totalBookletSales Float
@@ -370,11 +380,12 @@ model MonthlyClosing {
   center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
 
   @@index([centerId])
+  @@map("monthly_closings")
 }
 
 model Expense {
   id        String   @id @default(uuid())
-  centerId  String
+  centerId  String   @map("center_id")
   title     String
   category  String   // "Electricity", "Water", "Rent", "Maintenance", "Other"
   amount    Float
@@ -383,11 +394,12 @@ model Expense {
   center    Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
 
   @@index([centerId])
+  @@map("expenses")
 }
 
 model TeacherPayout {
   id        String   @id @default(uuid())
-  centerId  String
+  centerId  String   @map("center_id")
   teacherId String
   amount    Float
   notes     String?
@@ -398,6 +410,7 @@ model TeacherPayout {
 
   @@index([centerId])
   @@index([teacherId])
+  @@map("teacher_payouts")
 }
 
 model StudentEnrollment {

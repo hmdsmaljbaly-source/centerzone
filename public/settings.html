@@ -125,10 +125,9 @@
     </div>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
-        
         window.onload = function() {
-            document.getElementById('headerCenterName').textContent = centerId;
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
         };
 
         function saveCurrentTemplate() {

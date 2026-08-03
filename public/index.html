@@ -273,39 +273,42 @@
     </main>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
-
         window.onload = function() {
             const centerBadge = document.getElementById('currentCenterBadge');
-            if (centerBadge) centerBadge.textContent = centerId;
+            if (centerBadge && window.getActiveCenterHeader) {
+                centerBadge.textContent = window.getActiveCenterHeader();
+            }
             fetchDashboardMetrics();
         };
 
         async function fetchDashboardMetrics() {
-            const headers = { 'x-center-id': centerId };
             try {
-                const stuRes = await fetch('/api/students', { headers });
+                const stuRes = await fetch('/api/students');
                 const stuData = await stuRes.json();
-                if (stuData.success && Array.isArray(stuData.data)) {
-                    document.getElementById('kpiTotalStudents').textContent = stuData.data.length;
+                if (stuData?.success && Array.isArray(stuData.data)) {
+                    const el = document.getElementById('kpiTotalStudents');
+                    if (el) el.textContent = stuData.data.length;
                 }
 
-                const grpRes = await fetch('/api/groups/today', { headers });
+                const grpRes = await fetch('/api/groups/today');
                 const grpData = await grpRes.json();
-                if (grpData.success && Array.isArray(grpData.data)) {
-                    document.getElementById('kpiActiveGroups').textContent = grpData.data.length;
+                if (grpData?.success && Array.isArray(grpData.data)) {
+                    const el = document.getElementById('kpiActiveGroups');
+                    if (el) el.textContent = grpData.data.length;
                 }
 
-                const tchRes = await fetch('/api/teachers', { headers });
+                const tchRes = await fetch('/api/teachers');
                 const tchData = await tchRes.json();
-                if (tchData.success && Array.isArray(tchData.data)) {
-                    document.getElementById('kpiTeachersCount').textContent = tchData.data.length;
+                if (tchData?.success && Array.isArray(tchData.data)) {
+                    const el = document.getElementById('kpiTeachersCount');
+                    if (el) el.textContent = tchData.data.length;
                 }
 
-                const invRes = await fetch('/api/inventory', { headers });
+                const invRes = await fetch('/api/inventory');
                 const invData = await invRes.json();
-                if (invData.success && Array.isArray(invData.data)) {
-                    document.getElementById('kpiInventoryCount').textContent = invData.data.length;
+                if (invData?.success && Array.isArray(invData.data)) {
+                    const el = document.getElementById('kpiInventoryCount');
+                    if (el) el.textContent = invData.data.length;
                 }
             } catch (e) {
                 console.warn('API error fetching metrics:', e);

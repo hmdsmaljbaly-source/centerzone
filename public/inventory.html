@@ -305,13 +305,13 @@
     </div>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
         let inventoryBooks = [];
         let teachersList = [];
         let studentsList = [];
 
         window.onload = function() {
-            document.getElementById('headerCenterName').textContent = centerId;
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
             fetchInventoryFromApi();
             fetchTeachersFromApi();
             fetchStudentsFromApi();
@@ -320,11 +320,9 @@
 
         async function fetchInventoryFromApi() {
             try {
-                const response = await fetch('/api/inventory', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/inventory');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     inventoryBooks = resData.data;
                     renderInventoryTable(inventoryBooks);
                     updateInventoryMetrics();
@@ -336,11 +334,9 @@
 
         async function fetchTeachersFromApi() {
             try {
-                const response = await fetch('/api/teachers', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/teachers');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     teachersList = resData.data;
                     populateTeachersDropdown();
                 }
@@ -351,11 +347,9 @@
 
         async function fetchStudentsFromApi() {
             try {
-                const response = await fetch('/api/students', {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch('/api/students');
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     studentsList = resData.data;
                 }
             } catch (e) {
@@ -448,17 +442,16 @@
 
             try {
                 const response = await fetch(`/api/inventory/${bookId}`, {
-                    method: 'DELETE',
-                    headers: { 'x-center-id': centerId }
+                    method: 'DELETE'
                 });
 
                 const resData = await response.json();
-                if (resData.success) {
-                    showToast('تم حذف الملزمة بنجاح!');
-                    fetchInventoryFromApi();
-                } else {
-                    showToast(resData.message || 'خطأ أثناء حذف الملزمة');
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'خطأ أثناء حذف الملزمة');
+                    return;
                 }
+                showToast('تم حذف الملزمة بنجاح!');
+                fetchInventoryFromApi();
             } catch (err) {
                 showToast('تعذر الاتصال بالسيرفر');
             }
@@ -487,15 +480,15 @@
 
         async function handleCreateBook(e) {
             e.preventDefault();
-            const title = document.getElementById('bookTitleInput').value.trim();
-            const teacherId = document.getElementById('bookTeacherSelect').value;
-            const price = parseFloat(document.getElementById('bookPriceInput').value);
-            const stock = parseInt(document.getElementById('bookStockInput').value);
+            const title = document.getElementById('bookTitleInput')?.value?.trim() || '';
+            const teacherId = document.getElementById('bookTeacherSelect')?.value || '';
+            const price = parseFloat(document.getElementById('bookPriceInput')?.value) || 0;
+            const stock = parseInt(document.getElementById('bookStockInput')?.value) || 0;
 
             try {
                 const response = await fetch('/api/inventory', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         title: title,
                         teacher_id: teacherId,
@@ -505,13 +498,13 @@
                 });
 
                 const resData = await response.json();
-                if (resData.success) {
-                    closeAddBookModal();
-                    showToast('تمت إضافة الملزمة للمخزن بنجاح!');
-                    fetchInventoryFromApi();
-                } else {
-                    showToast(resData.message || 'خطأ أثناء إضافة الملزمة');
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'خطأ أثناء إضافة الملزمة');
+                    return;
                 }
+                closeAddBookModal();
+                showToast('تمت إضافة الملزمة للمخزن بنجاح!');
+                fetchInventoryFromApi();
             } catch (err) {
                 showToast('تعذر الاتصال بالسيرفر');
             }
@@ -537,25 +530,25 @@
 
         async function handleExecutePosSale(e) {
             e.preventDefault();
-            const studentId = document.getElementById('posStudentSelect').value;
-            const serviceId = document.getElementById('posBookSelect').value;
-            const qty = parseInt(document.getElementById('posQuantityInput').value) || 1;
+            const studentId = document.getElementById('posStudentSelect')?.value || '';
+            const serviceId = document.getElementById('posBookSelect')?.value || '';
+            const qty = parseInt(document.getElementById('posQuantityInput')?.value) || 1;
 
             try {
                 const response = await fetch('/api/inventory/pos-sale', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ student_id: studentId, service_id: serviceId, quantity: qty })
                 });
 
                 const resData = await response.json();
-                if (resData.success) {
-                    closePosModal();
-                    showToast('تم تنفيذ البيع وخصم المخزون بنجاح!');
-                    fetchInventoryFromApi();
-                } else {
-                    showToast(resData.message || 'خطأ أثناء عملية البيع');
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || 'خطأ أثناء عملية البيع');
+                    return;
                 }
+                closePosModal();
+                showToast('تم تنفيذ البيع وخصم المخزون بنجاح!');
+                fetchInventoryFromApi();
             } catch (err) {
                 showToast('تعذر الاتصال بالسيرفر');
             }
@@ -590,11 +583,7 @@
             emptyState.classList.add('hidden');
 
             try {
-                // Mock endpoint or use a real one if implemented
-                const response = await fetch('/api/inventory/audit', {
-                    headers: { 'x-center-id': centerId }
-                });
-                
+                const response = await fetch('/api/inventory/audit');
                 if (response.ok) {
                     const resData = await response.json();
                     if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {

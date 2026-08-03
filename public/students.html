@@ -559,13 +559,13 @@
     </div>
 
     <script>
-        const centerId = localStorage.getItem('centerId') || 'center-101';
         let studentsData = [];
         let allTeachersList = [];
         let allGroupsList = [];
 
         window.onload = function() {
-            document.getElementById('headerCenterName').textContent = centerId;
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
             loadFilterDropdowns();
             fetchFilteredStudents();
         };
@@ -573,8 +573,8 @@
         async function loadFilterDropdowns() {
             try {
                 const [resT, resG] = await Promise.all([
-                    fetch('/api/teachers', { headers: { 'x-center-id': centerId } }),
-                    fetch('/api/groups', { headers: { 'x-center-id': centerId } })
+                    fetch('/api/teachers'),
+                    fetch('/api/groups')
                 ]);
                 const dataT = await resT.json();
                 const dataG = await resG.json();
@@ -638,11 +638,9 @@
             });
 
             try {
-                const response = await fetch(`/api/students?${params.toString()}`, {
-                    headers: { 'x-center-id': centerId }
-                });
+                const response = await fetch(`/api/students?${params.toString()}`);
                 const resData = await response.json();
-                if (resData.success && Array.isArray(resData.data)) {
+                if (resData?.success && Array.isArray(resData.data)) {
                     studentsData = resData.data;
                     renderTable(studentsData);
                     updateSummaryStats(studentsData);
@@ -764,16 +762,16 @@
 
         async function handleCreateStudent(e) {
             e.preventDefault();
-            // Safely check usedStudentCodes to prevent any null reference errors on settings
-            const usedStudentCodes = (window.settings && window.settings.usedStudentCodes) ? window.settings.usedStudentCodes : [];
+            // Safely check usedStudentCodes using defensive null-coalescing operator
+            const usedStudentCodes = window.settings?.usedStudentCodes ?? [];
             
-            const name = document.getElementById('inputStudentName').value.trim();
-            const parentPhone = document.getElementById('inputParentPhone').value.trim();
-            const studentPhone = document.getElementById('inputStudentPhone').value.trim();
-            const alertNote = document.getElementById('inputAlertNote').value.trim();
-            const grade = document.getElementById('inputStudentGrade') ? document.getElementById('inputStudentGrade').value : 'الصف الأول الثانوي';
-            const teacherId = document.getElementById('studentTeacherSelect') ? document.getElementById('studentTeacherSelect').value : '';
-            const groupId = document.getElementById('studentGroupSelect') ? document.getElementById('studentGroupSelect').value : '';
+            const name = document.getElementById('inputStudentName')?.value?.trim() || '';
+            const parentPhone = document.getElementById('inputParentPhone')?.value?.trim() || '';
+            const studentPhone = document.getElementById('inputStudentPhone')?.value?.trim() || '';
+            const alertNote = document.getElementById('inputAlertNote')?.value?.trim() || '';
+            const grade = document.getElementById('inputStudentGrade')?.value || 'الصف الأول الثانوي';
+            const teacherId = document.getElementById('studentTeacherSelect')?.value || '';
+            const groupId = document.getElementById('studentGroupSelect')?.value || '';
 
             try {
                 const payload = { 
@@ -792,18 +790,18 @@
 
                 const response = await fetch('/api/students', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 const resData = await response.json();
-                if (resData.success) {
-                    closeAddStudentModal();
-                    showToast(`تم حفظ الطالب ${name} وتوليد الكود بنجاح`);
-                    fetchFilteredStudents();
-                } else {
-                    showToast(resData.message || resData.error || 'حدث خطأ أثناء حفظ الطالب');
+                if (!response.ok || !resData.success) {
+                    showToast(resData?.message || resData?.error || 'حدث خطأ أثناء حفظ الطالب');
+                    return;
                 }
+                closeAddStudentModal();
+                showToast(`تم حفظ الطالب ${name} وتوليد الكود بنجاح`);
+                fetchFilteredStudents();
             } catch (err) {
                 showToast('خطأ في الاتصال بالسيرفر');
             }
@@ -839,16 +837,15 @@
 
         async function handleFinanceCollection(e) {
             e.preventDefault();
-            const type = document.getElementById('financeTypeSelect').value;
-            const amount = parseFloat(document.getElementById('financeAmount').value);
-            const targetId = document.getElementById('financeTargetId').value;
-            const note = document.getElementById('financeNote').value.trim();
+            const type = document.getElementById('financeTypeSelect')?.value || '';
+            const amount = parseFloat(document.getElementById('financeAmount')?.value) || 0;
+            const targetId = document.getElementById('financeTargetId')?.value || '';
+            const note = document.getElementById('financeNote')?.value?.trim() || '';
 
             try {
-                // Example call to finance endpoint
                 const response = await fetch('/api/finance/collect', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         studentId: currentFinanceStudentId,
                         type,
@@ -858,7 +855,10 @@
                     })
                 });
 
-                // Assuming it's successfully implemented or will be handled by the backend
+                if (!response.ok) {
+                    showToast('حدث خطأ أثناء تسديد الرسوم');
+                    return;
+                }
                 closeFinanceModal();
                 showToast(`تم تسجيل التحصيل المالي بقيمة ${amount} ج.م بنجاح`);
             } catch (err) {
@@ -886,11 +886,9 @@
             document.getElementById('profileBarcode').textContent = '---';
 
             try {
-                const res = await fetch(`/api/students/${studentId}/profile`, {
-                    headers: { 'x-center-id': centerId }
-                });
+                const res = await fetch(`/api/students/${studentId}/profile`);
                 const json = await res.json();
-                if (!json.success) {
+                if (!res.ok || !json?.success) {
                     showToast(json.message || 'فشل في تحميل بروفايل الطالب');
                     closeStudentProfileModal();
                     return;

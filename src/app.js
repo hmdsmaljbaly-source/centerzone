@@ -667,7 +667,7 @@ apiRouter.get('/students/:id/profile', async (req, res) => {
 
     const [feePayments, serviceSales] = await Promise.all([
       prisma.studentFeePayment.findMany({ where: { studentId: student.id, centerId: centerId }, orderBy: { createdAt: 'desc' } }),
-      prisma.serviceSale.findMany({ where: { student_id: student.id, center_id: centerId }, include: { service: true }, orderBy: { date: 'desc' } })
+      prisma.serviceSale.findMany({ where: { student_id: student.id, centerId: centerId }, include: { service: true }, orderBy: { date: 'desc' } })
     ]);
 
     // Enrolled Teachers & Groups
@@ -963,7 +963,7 @@ apiRouter.post('/groups', async (req, res) => {
 apiRouter.get('/teachers', async (req, res) => {
   try {
     const teachers = await prisma.teacher.findMany({
-      where: { center_id: req.tenantId },
+      where: { centerId: req.tenantId },
       include: { groups: true }
     });
     res.status(200).json({ success: true, count: teachers.length, data: teachers });
@@ -982,7 +982,7 @@ apiRouter.post('/teachers', async (req, res) => {
 
     const teacher = await prisma.teacher.create({
       data: {
-        center_id: req.tenantId,
+        centerId: req.tenantId,
         name: name.trim(),
         subject: subject.trim(),
         phone: phone.trim(),
@@ -994,6 +994,38 @@ apiRouter.post('/teachers', async (req, res) => {
     });
 
     res.status(201).json({ success: true, message: 'تم حفظ بيانات المدرس بنجاح', data: teacher });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Halls Endpoints
+apiRouter.get('/halls', async (req, res) => {
+  try {
+    const halls = await prisma.hall.findMany({
+      where: { centerId: req.tenantId },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, count: halls.length, data: halls });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.post('/halls', async (req, res) => {
+  try {
+    const { name, capacity } = req.body;
+    if (!name || !capacity || parseInt(capacity) <= 0) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال اسم القاعة وسعة صحيحة أكبر من صفر' });
+    }
+    const hall = await prisma.hall.create({
+      data: {
+        centerId: req.tenantId,
+        name: name.trim(),
+        capacity: parseInt(capacity)
+      }
+    });
+    res.status(201).json({ success: true, message: 'تم حفظ القاعة بنجاح', data: hall });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1184,38 +1216,15 @@ apiRouter.post('/finance/closing', async (req, res) => {
 // ==========================================
 // Financials & Accounting Live DB Endpoints
 // ==========================================
-async function resolveCenterIds(req) {
-  if (req.tenantId && req.tenant) {
-    const ids = [req.tenant.id];
-    if (req.tenant.centerId && !ids.includes(req.tenant.centerId)) ids.push(req.tenant.centerId);
-    if (req.tenant.code && !ids.includes(req.tenant.code)) ids.push(req.tenant.code);
-    return { dbId: req.tenantId, allIds: ids };
-  }
-  const rawId = req.tenantId || req.headers['x-center-id'] || req.centerId || (req.user && req.user.centerId);
-  if (!rawId) throw new Error('مُعرف السنتر مطلوب في ترويسة الطلب (x-center-id)');
-  const center = await prisma.center.findFirst({
-    where: { OR: [{ centerId: rawId }, { id: rawId }, { code: rawId }] }
-  });
-  const ids = [rawId];
-  if (center) {
-    if (center.id && !ids.includes(center.id)) ids.push(center.id);
-    if (center.centerId && !ids.includes(center.centerId)) ids.push(center.centerId);
-    if (center.code && !ids.includes(center.code)) ids.push(center.code);
-  }
-  return { dbId: center ? center.id : rawId, allIds: ids };
-}
-
 apiRouter.get('/financials/summary', async (req, res) => {
   try {
-    const { allIds } = await resolveCenterIds(req);
-
     // 1. Gross Revenue (StudentFeePayment + ServiceSale)
     const [feePayments, serviceSales, expenses, teachers] = await Promise.all([
-      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } } }),
-      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } } }),
-      prisma.expense.findMany({ where: { centerId: { in: allIds } } }),
+      prisma.studentFeePayment.findMany({ where: { centerId: req.tenantId } }),
+      prisma.serviceSale.findMany({ where: { centerId: req.tenantId } }),
+      prisma.expense.findMany({ where: { centerId: req.tenantId } }),
       prisma.teacher.findMany({
-        where: { center_id: { in: allIds } },
+        where: { centerId: req.tenantId },
         include: { groups: true, services: true, payouts: true }
       })
     ]);
@@ -1268,15 +1277,14 @@ apiRouter.get('/financials/summary', async (req, res) => {
 
 apiRouter.get('/financials/teachers-breakdown', async (req, res) => {
   try {
-    const { allIds } = await resolveCenterIds(req);
     const teachers = await prisma.teacher.findMany({
-      where: { center_id: { in: allIds } },
+      where: { centerId: req.tenantId },
       include: { groups: true, services: true, payouts: true }
     });
 
     const [feePayments, serviceSales] = await Promise.all([
-      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } } }),
-      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } } })
+      prisma.studentFeePayment.findMany({ where: { centerId: req.tenantId } }),
+      prisma.serviceSale.findMany({ where: { centerId: req.tenantId } })
     ]);
 
     const breakdown = teachers.map(t => {
@@ -1341,9 +1349,8 @@ apiRouter.post('/financials/expenses', async (req, res) => {
 
 apiRouter.get('/financials/expenses', async (req, res) => {
   try {
-    const { allIds } = await resolveCenterIds(req);
     const expenses = await prisma.expense.findMany({
-      where: { centerId: { in: allIds } },
+      where: { centerId: req.tenantId },
       orderBy: { createdAt: 'desc' }
     });
     res.status(200).json({ success: true, data: expenses });
@@ -1357,6 +1364,12 @@ apiRouter.post('/financials/payouts', async (req, res) => {
     const { teacherId, amount, notes } = req.body;
     if (!teacherId || !amount || parseFloat(amount) <= 0) {
       return res.status(400).json({ success: false, message: 'بيانات التسوية غير مكتملة أو المبلغ غير صحيح' });
+    }
+    const teacher = await prisma.teacher.findFirst({
+      where: { id: teacherId, centerId: req.tenantId }
+    });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'المدرس غير موجود أو لا يتبع لهذا السنتر' });
     }
     const payout = await prisma.teacherPayout.create({
       data: {
@@ -1374,12 +1387,11 @@ apiRouter.post('/financials/payouts', async (req, res) => {
 
 apiRouter.get('/financials/audit-stream', async (req, res) => {
   try {
-    const { allIds } = await resolveCenterIds(req);
     const [feePayments, serviceSales, expenses, payouts] = await Promise.all([
-      prisma.studentFeePayment.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' } }),
-      prisma.serviceSale.findMany({ where: { center_id: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' }, include: { service: true } }),
-      prisma.expense.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' } }),
-      prisma.teacherPayout.findMany({ where: { centerId: { in: allIds } }, take: 30, orderBy: { createdAt: 'desc' }, include: { teacher: { select: { name: true } } } })
+      prisma.studentFeePayment.findMany({ where: { centerId: req.tenantId }, take: 30, orderBy: { createdAt: 'desc' } }),
+      prisma.serviceSale.findMany({ where: { centerId: req.tenantId }, take: 30, orderBy: { createdAt: 'desc' }, include: { service: true } }),
+      prisma.expense.findMany({ where: { centerId: req.tenantId }, take: 30, orderBy: { createdAt: 'desc' } }),
+      prisma.teacherPayout.findMany({ where: { centerId: req.tenantId }, take: 30, orderBy: { createdAt: 'desc' }, include: { teacher: { select: { name: true } } } })
     ]);
 
     const stream = [
