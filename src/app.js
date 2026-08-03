@@ -485,51 +485,95 @@ apiRouter.get('/students', async (req, res) => {
 
 apiRouter.post('/students', async (req, res) => {
   try {
-    const { name, student_phone, parent_phone, alert_note, alert_status, grade, groupId, teacherId } = req.body;
+    const { 
+      name, 
+      phone, student_phone, 
+      parentPhone, parent_phone, 
+      notes, alert_note, 
+      alert_status, 
+      grade, 
+      groupId, 
+      teacherId,
+      studentCode, code,
+      barcode: paramBarcode
+    } = req.body;
 
-    if (!name || !parent_phone) {
+    const finalStudentPhone = phone || student_phone || null;
+    const finalParentPhone = parentPhone || parent_phone;
+    const finalNote = notes || alert_note || null;
+    const finalGroupId = (groupId && groupId !== 'ALL' && groupId !== '') ? groupId : null;
+    const finalTeacherId = (teacherId && teacherId !== 'ALL' && teacherId !== '') ? teacherId : null;
+
+    if (!name || !finalParentPhone) {
       return res.status(400).json({ success: false, message: 'اسم الطالب ورقم ولي الأمر مطلوبان' });
     }
 
-    const center = await prisma.center.findUnique({ where: { id: req.centerId } });
-    if (center.usedStudentCodes >= center.allowedStudentCodes) {
-      return res.status(403).json({ error: 'استنفذت باقة الأكواد المتاحة للسنتر. يرجى التواصل مع الإدارة' });
-    }
-
-    const newCode = `STU-${Math.floor(1000 + Math.random() * 9000)}`;
-    const student = await prisma.student.create({
-      data: {
-        centerId: req.centerId,
-        code: newCode,
-        barcode: newCode,
-        name: name.trim(),
-        grade: grade || 'الصف الأول الثانوي',
-        student_phone: student_phone || null,
-        parent_phone: parent_phone.trim(),
-        alert_status: alert_status === 'WARNING' || alert_status === 'BLOCKED',
-        alert_note: alert_note || null,
-        isBlocked: alert_status === 'BLOCKED',
-        hasFinancialWarning: alert_status === 'WARNING',
-        groupId: groupId || null
+    const center = await prisma.center.findFirst({
+      where: {
+        OR: [
+          { id: req.centerId },
+          { centerId: req.centerId },
+          { code: req.centerId }
+        ]
       }
     });
 
-    if (groupId) {
-      const group = await prisma.group.findUnique({ where: { id: groupId } });
+    const usedStudentCodes = (center && center.usedStudentCodes !== undefined && center.usedStudentCodes !== null) ? center.usedStudentCodes : 0;
+    const allowedStudentCodes = (center && center.allowedStudentCodes !== undefined && center.allowedStudentCodes !== null) ? center.allowedStudentCodes : 0;
+
+    if (center && allowedStudentCodes > 0 && usedStudentCodes >= allowedStudentCodes) {
+      return res.status(403).json({ success: false, error: 'استنفذت باقة الأكواد المتاحة للسنتر. يرجى التواصل مع الإدارة', message: 'استنفذت باقة الأكواد المتاحة للسنتر. يرجى التواصل مع الإدارة' });
+    }
+
+    let finalCode = studentCode || code;
+    if (!finalCode || finalCode.trim() === '') {
+      const existingCount = await prisma.student.count({ where: { centerId: req.centerId } });
+      const randomDigits = Math.floor(1000 + Math.random() * 9000);
+      finalCode = `STU-${existingCount + 1}-${randomDigits}`;
+    }
+    const finalBarcode = paramBarcode || finalCode;
+
+    let group = null;
+    if (finalGroupId) {
+      group = await prisma.group.findFirst({
+        where: { id: finalGroupId, centerId: req.centerId }
+      });
+    }
+
+    const student = await prisma.student.create({
+      data: {
+        centerId: req.centerId,
+        code: finalCode,
+        barcode: finalBarcode,
+        name: name.trim(),
+        grade: grade || (group && group.grade ? group.grade : 'الصف الأول الثانوي'),
+        student_phone: finalStudentPhone,
+        parent_phone: finalParentPhone.trim(),
+        alert_status: alert_status === 'WARNING' || alert_status === 'BLOCKED',
+        alert_note: finalNote,
+        isBlocked: alert_status === 'BLOCKED',
+        hasFinancialWarning: alert_status === 'WARNING',
+        groupId: group ? group.id : null
+      }
+    });
+
+    if (finalGroupId && group) {
       await prisma.studentEnrollment.create({
         data: {
           centerId: req.centerId,
           studentId: student.id,
-          groupId: groupId,
-          teacherId: group ? group.teacherId : (teacherId || null)
+          groupId: group.id,
+          teacherId: finalTeacherId || group.teacherId || null
         }
       });
     }
 
-    await prisma.center.update({
-      where: { id: req.centerId },
-      data: { usedStudentCodes: { increment: 1 } }
-    });
+    if (center && center.id) {
+      await prisma.center.update({
+        where: { id: center.id },
+        data: { usedStudentCodes: { increment: 1 } }
+      });
+    }
 
     res.status(201).json({
       success: true,
@@ -543,10 +587,13 @@ apiRouter.post('/students', async (req, res) => {
         parent_phone: student.parent_phone,
         student_phone: student.student_phone,
         alert_status: student.alert_status ? 'WARNING' : 'NORMAL',
-        alert_note: student.alert_note
+        alert_note: student.alert_note,
+        groupId: student.groupId,
+        teacherId: finalTeacherId || (group ? group.teacherId : null)
       }
     });
   } catch (error) {
+    console.error('Error creating student:', error);
     res.status(500).json({ success: false, message: error.message });
   }
 });

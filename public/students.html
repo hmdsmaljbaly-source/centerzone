@@ -241,8 +241,35 @@
                     </div>
                 </div>
 
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">المدرس التابع له</label>
+                        <select id="studentTeacherSelect" onchange="handleTeacherSelectChange()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
+                            <option value="">اختر المدرس...</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">المجموعة الدراسية</label>
+                        <select id="studentGroupSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
+                            <option value="">اختر المجموعة أولاً...</option>
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">سبب التنبيه أو الملاحظات الماليات</label>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية (المرحلة)</label>
+                    <select id="inputStudentGrade" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                        <option value="المرحلة الإعدادية">المرحلة الإعدادية</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">سبب التنبيه أو الملاحظات المالية</label>
                     <input type="text" id="inputAlertNote" placeholder="سبب التنبيه إن وجد..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
                 </div>
 
@@ -514,6 +541,8 @@
     <script>
         const centerId = localStorage.getItem('centerId') || 'center-101';
         let studentsData = [];
+        let allTeachersList = [];
+        let allGroupsList = [];
 
         window.onload = function() {
             document.getElementById('headerCenterName').textContent = centerId;
@@ -536,6 +565,7 @@
 
                 const subjectsSet = new Set();
                 if (dataT.success && Array.isArray(dataT.data)) {
+                    allTeachersList = dataT.data;
                     dataT.data.forEach(t => {
                         teacherSelect.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} (${t.subject})</option>`);
                         if (t.subject) subjectsSet.add(t.subject.trim());
@@ -546,6 +576,7 @@
                 }
 
                 if (dataG.success && Array.isArray(dataG.data)) {
+                    allGroupsList = dataG.data;
                     dataG.data.forEach(g => {
                         groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.name : ''}</option>`);
                     });
@@ -674,30 +705,84 @@
             });
         }
 
-        function openAddStudentModal() { document.getElementById('addStudentModal').classList.remove('hidden'); }
-        function closeAddStudentModal() { document.getElementById('addStudentModal').classList.add('hidden'); document.getElementById('addStudentForm').reset(); }
+        function openAddStudentModal() {
+            document.getElementById('addStudentModal').classList.remove('hidden');
+            const teacherSelect = document.getElementById('studentTeacherSelect');
+            const groupSelect = document.getElementById('studentGroupSelect');
+            
+            if (teacherSelect && groupSelect) {
+                teacherSelect.innerHTML = '<option value="">اختر المدرس...</option>';
+                groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+                
+                allTeachersList.forEach(t => {
+                    teacherSelect.insertAdjacentHTML('beforeend', `<option value="${t.id}">${t.name} (${t.subject})</option>`);
+                });
+
+                allGroupsList.forEach(g => {
+                    groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} (${g.teacher ? g.teacher.name : 'عام'})</option>`);
+                });
+            }
+        }
+
+        function closeAddStudentModal() {
+            document.getElementById('addStudentModal').classList.add('hidden');
+            document.getElementById('addStudentForm').reset();
+        }
+
+        function handleTeacherSelectChange() {
+            const selectedTeacherId = document.getElementById('studentTeacherSelect').value;
+            const groupSelect = document.getElementById('studentGroupSelect');
+            if (!groupSelect) return;
+            groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+
+            const filteredGroups = selectedTeacherId ? allGroupsList.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId)) : allGroupsList;
+            
+            filteredGroups.forEach(g => {
+                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} ${g.startTime || ''}</option>`);
+            });
+        }
 
         async function handleCreateStudent(e) {
             e.preventDefault();
+            // Safely check usedStudentCodes to prevent any null reference errors on settings
+            const usedStudentCodes = (window.settings && window.settings.usedStudentCodes) ? window.settings.usedStudentCodes : [];
+            
             const name = document.getElementById('inputStudentName').value.trim();
             const parentPhone = document.getElementById('inputParentPhone').value.trim();
             const studentPhone = document.getElementById('inputStudentPhone').value.trim();
             const alertNote = document.getElementById('inputAlertNote').value.trim();
+            const grade = document.getElementById('inputStudentGrade') ? document.getElementById('inputStudentGrade').value : 'الصف الأول الثانوي';
+            const teacherId = document.getElementById('studentTeacherSelect') ? document.getElementById('studentTeacherSelect').value : '';
+            const groupId = document.getElementById('studentGroupSelect') ? document.getElementById('studentGroupSelect').value : '';
 
             try {
+                const payload = { 
+                    name, 
+                    phone: studentPhone,
+                    student_phone: studentPhone, 
+                    parentPhone,
+                    parent_phone: parentPhone, 
+                    grade,
+                    teacherId: teacherId || null,
+                    groupId: groupId || null,
+                    notes: alertNote,
+                    alert_note: alertNote,
+                    alert_status: alertNote ? 'WARNING' : 'NORMAL' 
+                };
+
                 const response = await fetch('/api/students', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'x-center-id': centerId },
-                    body: JSON.stringify({ name, parent_phone: parentPhone, student_phone: studentPhone, alert_status: alertNote ? 'WARNING' : 'NORMAL', alert_note: alertNote })
+                    body: JSON.stringify(payload)
                 });
 
                 const resData = await response.json();
                 if (resData.success) {
                     closeAddStudentModal();
-                    showToast(`تم حفظ الطالب ${name} بالداتابيز`);
-                    fetchStudentsFromApi();
+                    showToast(`تم حفظ الطالب ${name} وتوليد الكود بنجاح`);
+                    fetchFilteredStudents();
                 } else {
-                    showToast(resData.message || 'حدث خطأ أثناء حفظ الطالب');
+                    showToast(resData.message || resData.error || 'حدث خطأ أثناء حفظ الطالب');
                 }
             } catch (err) {
                 showToast('خطأ في الاتصال بالسيرفر');
