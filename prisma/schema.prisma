@@ -183,8 +183,9 @@ model Group {
   startTime     String   @default("")
   endTime       String   @default("")
   grade         String   @default("")
-  price         Float
-  schedule_days Json?    @map("schedule_days") // Kept for backward compatibility if needed, but not required
+  price            Float
+  sessionsPerMonth Int      @default(4) @map("sessions_per_month")
+  schedule_days    Json?    @map("schedule_days") // Kept for backward compatibility if needed, but not required
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 

@@ -893,9 +893,18 @@ apiRouter.get('/groups', async (req, res) => {
   try {
     const groups = await prisma.group.findMany({
       where: { centerId: req.tenantId },
-      include: { teacher: true, hall: true }
+      include: { 
+        teacher: true, 
+        hall: true,
+        _count: { select: { students: true, enrollments: true } }
+      }
     });
-    res.status(200).json({ success: true, count: groups.length, data: groups });
+    const formattedGroups = groups.map(g => ({
+      ...g,
+      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      sessionsPerMonth: g.sessionsPerMonth ?? 4
+    }));
+    res.status(200).json({ success: true, count: formattedGroups.length, data: formattedGroups });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -905,9 +914,18 @@ apiRouter.get('/groups/today', async (req, res) => {
   try {
     const groups = await prisma.group.findMany({
       where: { centerId: req.tenantId },
-      include: { teacher: true, hall: true }
+      include: { 
+        teacher: true, 
+        hall: true,
+        _count: { select: { students: true, enrollments: true } }
+      }
     });
-    res.status(200).json({ success: true, count: groups.length, data: groups });
+    const formattedGroups = groups.map(g => ({
+      ...g,
+      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      sessionsPerMonth: g.sessionsPerMonth ?? 4
+    }));
+    res.status(200).json({ success: true, count: formattedGroups.length, data: formattedGroups });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -915,7 +933,7 @@ apiRouter.get('/groups/today', async (req, res) => {
 
 apiRouter.post('/groups', async (req, res) => {
   try {
-    const { teacher_id, hall_id, name, price, dayOfWeek, startTime, endTime, grade } = req.body;
+    const { teacher_id, hall_id, name, price, dayOfWeek, startTime, endTime, grade, sessionsPerMonth } = req.body;
 
     if (!teacher_id || !name) {
       return res.status(400).json({ success: false, message: 'المدرس واسم المجموعة مطلوبان' });
@@ -947,6 +965,7 @@ apiRouter.post('/groups', async (req, res) => {
         hallId: hall_id || null,
         name: name.trim(),
         price: price || 0,
+        sessionsPerMonth: parseInt(sessionsPerMonth) || 4,
         dayOfWeek: dayOfWeek || "",
         startTime: startTime || "",
         endTime: endTime || "",
@@ -955,6 +974,63 @@ apiRouter.post('/groups', async (req, res) => {
     });
 
     res.status(201).json({ success: true, message: 'تم إنشاء المجموعة بنجاح', data: group });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/groups/:id/students', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const group = await prisma.group.findFirst({
+      where: { id, centerId: req.tenantId }
+    });
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'المجموعة غير موجودة بهذا السنتر' });
+    }
+    const sessionsPerMonth = group.sessionsPerMonth ?? 4;
+
+    const students = await prisma.student.findMany({
+      where: {
+        centerId: req.tenantId,
+        OR: [
+          { groupId: id },
+          { enrollments: { some: { groupId: id } } }
+        ]
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+    const attendances = await prisma.attendance.findMany({
+      where: {
+        centerId: req.tenantId,
+        group_id: id,
+        date: { gte: firstDay, lte: lastDay },
+        status: 'PRESENT'
+      }
+    });
+
+    const studentData = students.map(s => {
+      const attendedCount = attendances.filter(a => a.student_id === s.id).length;
+      const remainingSessions = Math.max(0, sessionsPerMonth - attendedCount);
+      return {
+        id: s.id,
+        code: s.code,
+        barcode: s.barcode || s.code,
+        name: s.name,
+        phone: s.student_phone || s.parent_phone || 'غير مسجل',
+        grade: s.grade || group.grade || 'عام',
+        attendedCount,
+        remainingSessions,
+        sessionsPerMonth
+      };
+    });
+
+    res.status(200).json({ success: true, count: studentData.length, groupName: group.name, sessionsPerMonth, data: studentData });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -994,6 +1070,88 @@ apiRouter.post('/teachers', async (req, res) => {
     });
 
     res.status(201).json({ success: true, message: 'تم حفظ بيانات المدرس بنجاح', data: teacher });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.get('/teachers/:id/profile', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const teacher = await prisma.teacher.findFirst({
+      where: { id, centerId: req.tenantId },
+      include: {
+        groups: {
+          include: {
+            hall: true,
+            _count: { select: { students: true, enrollments: true } }
+          }
+        },
+        services: true,
+        payouts: true
+      }
+    });
+
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: 'المدرس غير موجود بهذا السنتر' });
+    }
+
+    const groupIds = (teacher.groups || []).map(g => g.id);
+    const serviceIds = (teacher.services || []).map(s => s.id);
+
+    const [feePayments, serviceSales, activeStudentsCount] = await Promise.all([
+      prisma.studentFeePayment.findMany({ where: { centerId: req.tenantId, OR: [{ groupId: { in: groupIds } }, { serviceId: { in: serviceIds } }] } }),
+      prisma.serviceSale.findMany({ where: { centerId: req.tenantId, service_id: { in: serviceIds } } }),
+      prisma.student.count({
+        where: {
+          centerId: req.tenantId,
+          OR: [
+            { groupId: { in: groupIds } },
+            { enrollments: { some: { groupId: { in: groupIds } } } }
+          ]
+        }
+      })
+    ]);
+
+    const totalCollected = feePayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0) + serviceSales.reduce((s, x) => s + (parseFloat(x.amount_paid) || 0), 0);
+    const bookletsSales = serviceSales.reduce((s, x) => s + (parseFloat(x.amount_paid) || 0), 0);
+    
+    const centerPercentage = teacher.centerPercentage != null ? parseFloat(teacher.centerPercentage) : 30.0;
+    const teacherPercentage = 100.0 - centerPercentage;
+
+    const centerShare = totalCollected * (centerPercentage / 100.0);
+    const teacherShare = totalCollected * (teacherPercentage / 100.0);
+    const totalPaidOut = (teacher.payouts || []).reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+    const remainingBalance = teacherShare - totalPaidOut;
+
+    const formattedGroups = (teacher.groups || []).map(g => ({
+      ...g,
+      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      sessionsPerMonth: g.sessionsPerMonth ?? 4,
+      hallName: g.hall?.name || 'بدون قاعة محددة'
+    }));
+
+    const profileData = {
+      id: teacher.id,
+      name: teacher.name,
+      subject: teacher.subject || 'عام',
+      phone: teacher.phone || '',
+      stage: teacher.stage,
+      grades: teacher.grades,
+      centerPercentage,
+      teacherPercentage,
+      activeStudentsCount,
+      totalCollected: Number(totalCollected.toFixed(2)),
+      bookletsSales: Number(bookletsSales.toFixed(2)),
+      centerShare: Number(centerShare.toFixed(2)),
+      teacherShare: Number(teacherShare.toFixed(2)),
+      totalPaidOut: Number(totalPaidOut.toFixed(2)),
+      remainingBalance: Number(remainingBalance.toFixed(2)),
+      groups: formattedGroups,
+      payouts: teacher.payouts || []
+    };
+
+    res.status(200).json({ success: true, data: profileData });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
