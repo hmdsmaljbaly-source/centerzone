@@ -1227,7 +1227,39 @@ apiRouter.post('/exams', async (req, res) => {
   }
 });
 
-// Inventory POS Endpoints
+// Inventory POS & Audit Endpoints
+apiRouter.get('/inventory/audit', async (req, res) => {
+  try {
+    const transactions = await prisma.inventoryTransaction.findMany({
+      where: { centerId: req.tenantId },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+    const booklets = await prisma.booklet.findMany({
+      where: { centerId: req.tenantId }
+    });
+    const students = await prisma.student.findMany({
+      where: { centerId: req.tenantId }
+    });
+    const bookletMap = new Map(booklets.map(b => [b.id, b]));
+    const studentMap = new Map(students.map(s => [s.id, s]));
+
+    const enriched = transactions.map(t => {
+      const b = bookletMap.get(t.bookletId);
+      const s = t.studentId ? studentMap.get(t.studentId) : null;
+      return {
+        ...t,
+        quantity: Math.abs(t.quantityChanged),
+        booklet: b ? { id: b.id, title: b.title, price: b.price } : null,
+        student: s ? { id: s.id, name: s.name, code: s.code } : (t.studentName ? { name: t.studentName } : null)
+      };
+    });
+    res.status(200).json({ success: true, count: enriched.length, data: enriched });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 apiRouter.get('/inventory', async (req, res) => {
   try {
     const booklets = await prisma.booklet.findMany({
@@ -1259,6 +1291,16 @@ apiRouter.post('/inventory', async (req, res) => {
       }
     });
 
+    await prisma.inventoryTransaction.create({
+      data: {
+        centerId: req.tenantId,
+        type: "ADD",
+        bookletId: newBook.id,
+        quantityChanged: parseInt(stock_quantity),
+        totalPrice: parseFloat(price) * parseInt(stock_quantity)
+      }
+    }).catch(err => console.warn("Failed to log inventory transaction ADD:", err.message));
+
     res.status(201).json({ success: true, message: 'تمت إضافة الملزمة للمخزن بنجاح', data: newBook });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -1280,6 +1322,104 @@ apiRouter.delete('/inventory/:id', async (req, res) => {
     res.status(500).json({ success: false, message: 'حدث خطأ أثناء حذف الملزمة' });
   }
 });
+
+// Universal atomic POS booklet sale handler
+async function executeBookletSale(req, res) {
+  try {
+    const studentId = req.body.studentId ?? req.body.student_id;
+    const bookletId = req.body.bookletId ?? req.body.service_id ?? req.body.itemId;
+    const rawQty = req.body.quantity ?? req.body.qty ?? 1;
+    const parsedQuantity = parseInt(rawQty, 10);
+
+    if (!bookletId) {
+      return res.status(400).json({ success: false, message: "مُعرف الملزمة مطلوب لإتمام البيع" });
+    }
+    if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
+      return res.status(400).json({ success: false, message: "الكمية المطلوبة غير صحيحة" });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      // a. Verify booklet existence and sufficient stock scoped strictly to centerId: req.tenantId
+      const booklet = await tx.booklet.findFirst({
+        where: { id: bookletId, centerId: req.tenantId }
+      });
+
+      if (!booklet) {
+        throw new Error("BOOKLET_NOT_FOUND");
+      }
+      if (booklet.quantity < parsedQuantity) {
+        throw new Error("INSUFFICIENT_STOCK");
+      }
+
+      // b. Decrement booklet quantity
+      const updatedBooklet = await tx.booklet.update({
+        where: { id: bookletId },
+        data: { quantity: { decrement: parsedQuantity } }
+      });
+
+      // c. Resolve student info and create InventoryTransaction
+      let studentName = null;
+      let targetStudentId = null;
+      if (studentId && typeof studentId === "string" && studentId.trim().length > 0) {
+        const student = await tx.student.findFirst({
+          where: { id: studentId.trim(), centerId: req.tenantId }
+        });
+        if (student) {
+          studentName = student.name;
+          targetStudentId = student.id;
+        }
+      }
+
+      const totalPrice = Number((booklet.price * parsedQuantity).toFixed(2));
+
+      const inventoryTransaction = await tx.inventoryTransaction.create({
+        data: {
+          centerId: req.tenantId,
+          type: "SALE",
+          bookletId: bookletId,
+          studentId: targetStudentId,
+          studentName: studentName,
+          quantityChanged: -parsedQuantity,
+          totalPrice: totalPrice
+        }
+      });
+
+      // d. Optionally create financial income record for center treasury
+      const financialRecord = await tx.studentFeePayment.create({
+        data: {
+          centerId: req.tenantId,
+          studentId: targetStudentId,
+          bookletId: bookletId,
+          amount: totalPrice,
+          paymentType: "BOOKLET_ONLY",
+          monthYear: new Date().toISOString().slice(0, 7),
+          secretaryName: "POS System"
+        }
+      });
+
+      return { updatedBooklet, inventoryTransaction, financialRecord };
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "تمت عملية البيع وخصم المخزون بنجاح",
+      data: result
+    });
+  } catch (error) {
+    if (error.message === "INSUFFICIENT_STOCK") {
+      return res.status(400).json({ success: false, message: "عفواً، الكمية المتاحة في المخزن غير كافية" });
+    }
+    if (error.message === "BOOKLET_NOT_FOUND") {
+      return res.status(404).json({ success: false, message: "الملزمة غير موجودة بقاعدة بيانات هذا السنتر" });
+    }
+    console.error("POS Sale Error:", error);
+    return res.status(500).json({ success: false, message: "حدث خطأ داخلي في الخادم أثناء تنفيذ عملية البيع" });
+  }
+}
+
+apiRouter.post('/inventory/sell', executeBookletSale);
+apiRouter.post('/inventory/pos-sale', executeBookletSale);
+apiRouter.post('/pos/sell', executeBookletSale);
 
 apiRouter.post('/finance/collect', async (req, res) => {
   try {

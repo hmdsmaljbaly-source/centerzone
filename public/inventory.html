@@ -270,7 +270,7 @@
                 <button onclick="closePosModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
 
-            <form id="posForm" onsubmit="handleExecutePosSale(event)" class="space-y-3 text-xs">
+            <form id="posForm" onsubmit="handlePosSale(event)" class="space-y-3 text-xs">
                 <div>
                     <label class="block font-bold text-slate-300 mb-1">اختر الطالب المشترِي *</label>
                     <select id="posStudentSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 outline-none focus:border-emerald-500">
@@ -528,41 +528,54 @@
             document.getElementById('posModal').classList.add('hidden');
         }
 
-        async function handleExecutePosSale(e) {
+        async function handlePosSale(e) {
             e.preventDefault();
             const studentId = document.getElementById('posStudentSelect')?.value || '';
-            const serviceId = document.getElementById('posBookSelect')?.value || '';
-            const qty = parseInt(document.getElementById('posQuantityInput')?.value) || 1;
+            const bookletId = document.getElementById('posBookSelect')?.value || '';
+            const quantity = parseInt(document.getElementById('posQuantityInput')?.value) || 1;
+
+            if (!studentId || !bookletId || quantity < 1) {
+                showToast('يرجى اختيار الطالب والملزمة وتحديد كمية صحيحة', 'error');
+                return;
+            }
 
             try {
-                const response = await fetch('/api/inventory/pos-sale', {
+                const response = await fetch('/api/inventory/sell', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ student_id: studentId, service_id: serviceId, quantity: qty })
+                    body: JSON.stringify({ studentId, bookletId, quantity })
                 });
 
                 const resData = await response.json();
                 if (!response.ok || !resData.success) {
-                    showToast(resData?.message || 'خطأ أثناء عملية البيع');
+                    showToast(resData.message || 'حدث خطأ أثناء تنفيذ عملية البيع', 'error');
                     return;
                 }
+                showToast(resData.message || 'تم خصم المخزن وتسجيل البيع بنجاح', 'success');
                 closePosModal();
-                showToast('تم تنفيذ البيع وخصم المخزون بنجاح!');
                 fetchInventoryFromApi();
+                fetchAuditTrail();
             } catch (err) {
-                showToast('تعذر الاتصال بالسيرفر');
+                showToast('تعذر الاتصال بالسيرفر. يرجى التأكد من اتصال الشبكة.', 'error');
             }
         }
+        const handleExecutePosSale = handlePosSale;
+        const fetchInventoryData = fetchInventoryFromApi;
 
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toastNotification');
-            document.getElementById('toastMessage').textContent = message;
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
+            const msgEl = document.getElementById('toastMessage');
+            if (!toast || !msgEl) return;
+            msgEl.textContent = message;
+            if (type === 'error') {
+                toast.className = "fixed bottom-5 left-5 z-50 bg-rose-900 border border-rose-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-0 opacity-100";
+            } else {
+                toast.className = "fixed bottom-5 left-5 z-50 bg-slate-800 border border-emerald-500/50 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-0 opacity-100";
+            }
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            }, 3500);
         }
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
