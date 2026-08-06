@@ -214,7 +214,7 @@ apiRouter.post('/auth/login', async (req, res) => {
     if (user) {
       const isPasswordValid = await bcrypt.compare(password, user.password).catch(() => user.password === password);
       if (isPasswordValid || user.password === password) {
-        let targetCenterId = user.centerId || 'center-101';
+        let targetCenterId = user.centerId || '';
         if (user.centerId) {
           const c = await prisma.center.findUnique({ where: { id: user.centerId } }).catch(() => null);
           if (c && c.centerId) targetCenterId = c.centerId;
@@ -246,7 +246,7 @@ apiRouter.post('/auth/login', async (req, res) => {
           data: {
             token,
             userRole: 'CENTER_ADMIN',
-            centerId: center.centerId || 'center-101'
+            centerId: center.centerId || center.id || ''
           }
         });
       }
@@ -491,6 +491,7 @@ apiRouter.get('/students', async (req, res) => {
         alert_status: statusLabel,
         alert_note: s.alert_note || '',
         barcode: s.barcode || s.code,
+        remainingSessions: s.remainingSessions ?? 0,
         createdAt: s.createdAt,
         groups: allGroups,
         teachers: allTeachers,
@@ -601,7 +602,8 @@ apiRouter.post('/students', async (req, res) => {
         alert_note: finalNote,
         isBlocked: alert_status === 'BLOCKED',
         hasFinancialWarning: alert_status === 'WARNING',
-        groupId: group ? group.id : null
+        groupId: group ? group.id : null,
+        remainingSessions: group && group.sessionsPerMonth ? group.sessionsPerMonth : 4
       }
     });
 
@@ -778,6 +780,7 @@ apiRouter.get('/students/:id/profile', async (req, res) => {
           parentPhone: student.parent_phone,
           status: statusLabel,
           alertNote: student.alert_note || '',
+          remainingSessions: student.remainingSessions ?? 0,
           createdAt: student.createdAt
         },
         enrollments: enrollmentsList,
@@ -813,8 +816,8 @@ apiRouter.patch('/students/:id/alert', async (req, res) => {
   }
 });
 
-// Attendance Scanning Endpoint
-apiRouter.post('/attendance/scan-qr', async (req, res) => {
+// Attendance Scanning Endpoint with Atomic Session Quota Deduction
+async function executeAttendanceScan(req, res) {
   try {
     const { qr_payload, student_code, group_id } = req.body;
     let code = student_code || qr_payload;
@@ -828,8 +831,12 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
       }
     }
 
+    if (!code) {
+      return res.status(400).json({ success: false, is_allowed: false, message: 'كود الطالب أو الباركود مطلوب' });
+    }
+
     const student = await prisma.student.findFirst({
-      where: { centerId: req.tenantId, OR: [{ code: code }, { id: code }] }
+      where: { centerId: req.tenantId, OR: [{ code: code }, { id: code }, { barcode: code }] }
     });
 
     if (!student) {
@@ -841,52 +848,78 @@ apiRouter.post('/attendance/scan-qr', async (req, res) => {
         success: false,
         is_allowed: false,
         message: 'طالب محظور من دخول القاعة!',
-        student: { id: student.id, name: student.name, code: student.code }
+        student: { id: student.id, name: student.name, code: student.code, remainingSessions: student.remainingSessions }
       });
     }
 
-    if (group_id) {
-      await prisma.attendance.upsert({
-        where: {
-          student_id_group_id_date: {
+    // Atomic quota deduction & attendance recording
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedStudent = await tx.student.update({
+        where: { id: student.id },
+        data: { remainingSessions: { decrement: 1 } }
+      });
+
+      if (group_id) {
+        await tx.attendance.upsert({
+          where: {
+            student_id_group_id_date: {
+              student_id: student.id,
+              group_id: group_id,
+              date: new Date()
+            }
+          },
+          update: { status: 'PRESENT' },
+          create: {
+            centerId: req.tenantId,
             student_id: student.id,
             group_id: group_id,
-            date: new Date()
+            date: new Date(),
+            status: 'PRESENT'
           }
-        },
-        update: { status: 'PRESENT' },
-        create: {
-          centerId: req.tenantId,
-          student_id: student.id,
-          group_id: group_id,
-          date: new Date(),
-          status: 'PRESENT'
-        }
-      }).catch(() => {});
+        }).catch(() => {});
+      }
+      return updatedStudent;
+    });
+
+    const isQuotaExpired = result.remainingSessions <= 0;
+    let alertNotice = null;
+    if (isQuotaExpired) {
+      alertNotice = {
+        has_warning: true,
+        note: `تنبيه: رصيد الحصص قد نفذ! (المتبقي: ${result.remainingSessions} حصة)`
+      };
+    } else if (student.hasFinancialWarning || student.alert_status) {
+      alertNotice = {
+        has_warning: true,
+        note: student.alert_note || 'يوجد تنبيه مالي على الطالب'
+      };
     }
 
     res.status(200).json({
       success: true,
       is_allowed: true,
-      message: `تم تسجيل حضور الطالب/ة ${student.name}`,
+      message: `تم تسجيل حضور الطالب/ة ${result.name} وخصم حصة واحدة`,
       data: {
+        isQuotaExpired: isQuotaExpired,
+        remainingSessions: result.remainingSessions,
         student: {
-          id: student.id,
-          code: student.code,
-          name: student.name,
-          parent_phone: student.parent_phone,
-          student_phone: student.student_phone
+          id: result.id,
+          code: result.code,
+          name: result.name,
+          parent_phone: result.parent_phone,
+          student_phone: result.student_phone,
+          remainingSessions: result.remainingSessions
         },
-        alert_notice: student.hasFinancialWarning || student.alert_status ? {
-          has_warning: true,
-          note: student.alert_note || 'يوجد تنبيه مالي على الطالب'
-        } : null
+        alert_notice: alertNotice
       }
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
-});
+}
+apiRouter.post('/attendance/scan-qr', executeAttendanceScan);
+apiRouter.post('/attendance/scan', executeAttendanceScan);
+apiRouter.post('/attendances/scan', executeAttendanceScan);
 
 // Groups & Teachers Endpoints
 apiRouter.get('/groups', async (req, res) => {
@@ -931,6 +964,36 @@ apiRouter.get('/groups/today', async (req, res) => {
   }
 });
 
+function parseDays(dayStr) {
+  if (!dayStr || typeof dayStr !== 'string') return [];
+  const DAYS_LIST = ['السبت', 'الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'SAT', 'SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI'];
+  const matches = DAYS_LIST.filter(d => dayStr.includes(d));
+  if (matches.length > 0) return matches;
+  return dayStr.split(/[-,/ ]+/).map(x => x.trim()).filter(Boolean);
+}
+
+async function checkHallConflict(centerId, hallId, dayOfWeek, startTime, endTime, excludeGroupId = null) {
+  if (!hallId || !dayOfWeek || !startTime || !endTime) return false;
+  const existingGroups = await prisma.group.findMany({
+    where: { centerId, hallId }
+  });
+
+  const targetDays = parseDays(dayOfWeek);
+
+  return existingGroups.some(g => {
+    if (excludeGroupId && g.id === excludeGroupId) return false;
+    if (!g.dayOfWeek || !g.startTime || !g.endTime) return false;
+    const gDays = parseDays(g.dayOfWeek);
+    const hasDayOverlap = targetDays.length > 0 && gDays.length > 0
+      ? targetDays.some(d => gDays.includes(d))
+      : (g.dayOfWeek === dayOfWeek || g.dayOfWeek.includes(dayOfWeek) || dayOfWeek.includes(g.dayOfWeek));
+    
+    if (!hasDayOverlap) return false;
+
+    return (startTime < g.endTime && endTime > g.startTime);
+  });
+}
+
 apiRouter.post('/groups', async (req, res) => {
   try {
     const { teacher_id, hall_id, name, price, dayOfWeek, startTime, endTime, grade, sessionsPerMonth } = req.body;
@@ -939,23 +1002,8 @@ apiRouter.post('/groups', async (req, res) => {
       return res.status(400).json({ success: false, message: 'المدرس واسم المجموعة مطلوبان' });
     }
 
-    // Smart Schedule Conflict Engine
-    if (hall_id && dayOfWeek && startTime && endTime) {
-      const existingGroups = await prisma.group.findMany({
-        where: {
-          centerId: req.tenantId,
-          hallId: hall_id,
-          dayOfWeek: dayOfWeek
-        }
-      });
-      
-      const isConflict = existingGroups.some(g => {
-        return (startTime < g.endTime && endTime > g.startTime);
-      });
-
-      if (isConflict) {
-        return res.status(409).json({ success: false, message: 'يوجد تعارض في الجدول مع مجموعة أخرى في نفس القاعة والتوقيت' });
-      }
+    if (await checkHallConflict(req.tenantId, hall_id, dayOfWeek, startTime, endTime)) {
+      return res.status(409).json({ success: false, message: "عفواً، القاعة مشغولة في هذا الوقت بمجموعة أخرى" });
     }
 
     const group = await prisma.group.create({
@@ -964,7 +1012,7 @@ apiRouter.post('/groups', async (req, res) => {
         teacherId: teacher_id,
         hallId: hall_id || null,
         name: name.trim(),
-        price: price || 0,
+        price: parseFloat(price) || 0,
         sessionsPerMonth: parseInt(sessionsPerMonth) || 4,
         dayOfWeek: dayOfWeek || "",
         startTime: startTime || "",
@@ -974,6 +1022,39 @@ apiRouter.post('/groups', async (req, res) => {
     });
 
     res.status(201).json({ success: true, message: 'تم إنشاء المجموعة بنجاح', data: group });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+apiRouter.put('/groups/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { teacher_id, hall_id, name, price, dayOfWeek, startTime, endTime, grade, sessionsPerMonth } = req.body;
+    
+    const existingGroup = await prisma.group.findFirst({ where: { id, centerId: req.tenantId } });
+    if (!existingGroup) return res.status(404).json({ success: false, message: "المجموعة غير موجودة بهذا السنتر" });
+
+    if (await checkHallConflict(req.tenantId, hall_id !== undefined ? hall_id : existingGroup.hallId, dayOfWeek !== undefined ? dayOfWeek : existingGroup.dayOfWeek, startTime !== undefined ? startTime : existingGroup.startTime, endTime !== undefined ? endTime : existingGroup.endTime, id)) {
+      return res.status(409).json({ success: false, message: "عفواً، القاعة مشغولة في هذا الوقت بمجموعة أخرى" });
+    }
+
+    const updated = await prisma.group.update({
+      where: { id },
+      data: {
+        teacherId: teacher_id !== undefined ? teacher_id : existingGroup.teacherId,
+        hallId: hall_id !== undefined ? (hall_id || null) : existingGroup.hallId,
+        name: name !== undefined ? name.trim() : existingGroup.name,
+        price: price !== undefined ? parseFloat(price) : existingGroup.price,
+        sessionsPerMonth: sessionsPerMonth !== undefined ? parseInt(sessionsPerMonth) : existingGroup.sessionsPerMonth,
+        dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : existingGroup.dayOfWeek,
+        startTime: startTime !== undefined ? startTime : existingGroup.startTime,
+        endTime: endTime !== undefined ? endTime : existingGroup.endTime,
+        grade: grade !== undefined ? grade : existingGroup.grade
+      }
+    });
+
+    res.status(200).json({ success: true, message: "تم تعديل المجموعة بنجاح", data: updated });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -1384,12 +1465,50 @@ async function executeBookletSale(req, res) {
         }
       });
 
-      // d. Optionally create financial income record for center treasury
+      // d. Create financial income record for center treasury and associate with teacher if applicable
+      let targetServiceId = null;
+      let serviceSaleRecord = null;
+
+      if (booklet.teacherId) {
+        const teacher = await tx.teacher.findFirst({
+          where: { id: booklet.teacherId, centerId: req.tenantId }
+        });
+        if (teacher) {
+          let tService = await tx.teacherService.findFirst({
+            where: { centerId: req.tenantId, teacherId: teacher.id, bookletId: bookletId }
+          });
+          if (!tService) {
+            tService = await tx.teacherService.create({
+              data: {
+                centerId: req.tenantId,
+                teacherId: teacher.id,
+                type: "BOOKLET_ONLY",
+                title: `مبيعات مذكرات: ${booklet.title}`,
+                price: booklet.price,
+                bookletId: bookletId
+              }
+            });
+          }
+          targetServiceId = tService.id;
+          if (targetStudentId) {
+            serviceSaleRecord = await tx.serviceSale.create({
+              data: {
+                centerId: req.tenantId,
+                student_id: targetStudentId,
+                service_id: targetServiceId,
+                amount_paid: totalPrice
+              }
+            });
+          }
+        }
+      }
+
       const financialRecord = await tx.studentFeePayment.create({
         data: {
           centerId: req.tenantId,
           studentId: targetStudentId,
           bookletId: bookletId,
+          serviceId: targetServiceId,
           amount: totalPrice,
           paymentType: "BOOKLET_ONLY",
           monthYear: new Date().toISOString().slice(0, 7),
@@ -1397,7 +1516,7 @@ async function executeBookletSale(req, res) {
         }
       });
 
-      return { updatedBooklet, inventoryTransaction, financialRecord };
+      return { updatedBooklet, inventoryTransaction, financialRecord, serviceSaleRecord };
     });
 
     return res.status(200).json({
@@ -1421,55 +1540,91 @@ apiRouter.post('/inventory/sell', executeBookletSale);
 apiRouter.post('/inventory/pos-sale', executeBookletSale);
 apiRouter.post('/pos/sell', executeBookletSale);
 
-apiRouter.post('/finance/collect', async (req, res) => {
+async function executeStudentFeeOrRecharge(req, res) {
   try {
-    const { studentId, groupId, serviceId, bookletId, amount, paymentType, monthYear, secretaryName, quantity } = req.body;
-    
-    // Auto-Inventory POS integration
-    if (bookletId) {
-      const qty = parseInt(quantity) || 1;
-      const booklet = await prisma.booklet.findFirst({ where: { id: bookletId, centerId: req.tenantId } });
-      
-      if (!booklet || booklet.quantity < qty) {
-        return res.status(400).json({ success: false, message: 'الكمية المطلوبة غير متوفرة في المخزن أو لا تخص هذا السنتر' });
+    const targetStudentId = req.params.id || req.body.studentId || req.body.student_id;
+    const { groupId, serviceId, bookletId, amount, paymentType, monthYear, secretaryName, quantity, note, sessionsToAdd } = req.body;
+
+    const result = await prisma.$transaction(async (tx) => {
+      let updatedStudent = null;
+
+      if (targetStudentId && typeof targetStudentId === "string" && targetStudentId.trim().length > 0) {
+        const student = await tx.student.findFirst({
+          where: { id: targetStudentId.trim(), centerId: req.tenantId },
+          include: { group: true }
+        });
+        if (!student) {
+          throw new Error("STUDENT_NOT_FOUND");
+        }
+        const addSessions = sessionsToAdd !== undefined && !isNaN(parseInt(sessionsToAdd))
+          ? parseInt(sessionsToAdd)
+          : (student.group && student.group.sessionsPerMonth ? student.group.sessionsPerMonth : 4);
+        
+        updatedStudent = await tx.student.update({
+          where: { id: student.id },
+          data: { remainingSessions: { increment: addSessions } }
+        });
       }
-      
-      await prisma.booklet.update({
-        where: { id: bookletId },
-        data: { quantity: { decrement: qty } }
-      });
-      
-      await prisma.inventoryTransaction.create({
+
+      // Auto-Inventory POS integration if bookletId is present
+      if (bookletId) {
+        const qty = parseInt(quantity) || 1;
+        const booklet = await tx.booklet.findFirst({ where: { id: bookletId, centerId: req.tenantId } });
+        if (!booklet || booklet.quantity < qty) {
+          throw new Error("INSUFFICIENT_BOOKLET_STOCK");
+        }
+        await tx.booklet.update({
+          where: { id: bookletId },
+          data: { quantity: { decrement: qty } }
+        });
+        await tx.inventoryTransaction.create({
+          data: {
+            centerId: req.tenantId,
+            type: "SALE",
+            bookletId: bookletId,
+            studentId: targetStudentId || null,
+            quantityChanged: -qty,
+            totalPrice: parseFloat(amount) || booklet.price * qty
+          }
+        });
+      }
+
+      const payment = await tx.studentFeePayment.create({
         data: {
           centerId: req.tenantId,
-          type: "SALE",
-          bookletId: bookletId,
-          studentId: studentId || "",
-          quantityChanged: -qty,
-          totalPrice: parseFloat(amount)
+          studentId: targetStudentId ? targetStudentId.trim() : null,
+          groupId: groupId || null,
+          serviceId: serviceId || null,
+          bookletId: bookletId || null,
+          amount: parseFloat(amount) || 0,
+          paymentType: paymentType || (bookletId ? "BOOKLET_ONLY" : "MONTHLY"),
+          monthYear: monthYear || new Date().toISOString().slice(0, 7),
+          secretaryName: secretaryName || note || "System"
         }
       });
-    }
 
-    const payment = await prisma.studentFeePayment.create({
-      data: {
-        centerId: req.tenantId,
-        studentId: studentId || "",
-        groupId: groupId || "",
-        serviceId: serviceId || null,
-        bookletId: bookletId || null,
-        amount: parseFloat(amount),
-        paymentType: paymentType, // "MONTHLY", "ADVANCE_MONTH", "TERM_RESERVATION", "NIGHT_REVIEW", "BOOKLET_ONLY"
-        monthYear: monthYear || "",
-        secretaryName: secretaryName || "System"
-      }
+      return { payment, updatedStudent };
     });
 
-    res.status(200).json({ success: true, message: 'تم تحصيل الدفعة بنجاح', data: payment });
+    return res.status(200).json({
+      success: true,
+      message: "تم تحصيل الدفعة وتجديد الحصص بنجاح",
+      data: result
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    if (error.message === "STUDENT_NOT_FOUND") {
+      return res.status(404).json({ success: false, message: "الطالب غير موجود بهذا السنتر" });
+    }
+    if (error.message === "INSUFFICIENT_BOOKLET_STOCK") {
+      return res.status(400).json({ success: false, message: "الكمية المطلوبة غير متوفرة في المخزن أو لا تخص هذا السنتر" });
+    }
+    console.error("Fee/Recharge Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
   }
-});
+}
+
+apiRouter.post('/finance/collect', executeStudentFeeOrRecharge);
+apiRouter.post('/students/:id/pay', executeStudentFeeOrRecharge);
 
 apiRouter.post('/finance/closing', async (req, res) => {
   try {

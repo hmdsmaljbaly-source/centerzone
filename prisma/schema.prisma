@@ -27,6 +27,11 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum PrepaidCardStatus {
+  UNUSED
+  USED
+}
+
 model SuperAdmin {
   id        String   @id @default(uuid())
   username  String   @unique
@@ -83,17 +88,58 @@ model Center {
   halls           Hall[]
   booklets        Booklet[]
   inventoryTxns   InventoryTransaction[]
-  studentPayments    StudentFeePayment[]
-  monthlyClosings    MonthlyClosing[]
-  expenses           Expense[]
-  teacherPayouts     TeacherPayout[]
+  studentPayments StudentFeePayment[]
+  monthlyClosings MonthlyClosing[]
+  expenses        Expense[]
+  teacherPayouts  TeacherPayout[]
   studentEnrollments StudentEnrollment[]
-  attendances        Attendance[]
-  evaluations        Evaluation[]
-  grades             Grade[]
+  attendances     Attendance[]
+  evaluations     Evaluation[]
+  grades          Grade[]
+  
+  // New Models relationships
+  prepaidCards    CenterPrepaidCard[]
+  assessments     Assessment[]
+  studentGrades   StudentGrade[]
+  shiftClosings   ShiftClosing[]
+  whatsappSettings WhatsAppSetting[]
 
   @@index([email])
   @@map("centers")
+}
+
+model WhatsAppSetting {
+  id        String   @id @default(uuid())
+  centerId  String   @map("center_id")
+  apiKey    String?
+  clientId  String?
+  templates Json?    // To store { "attendance": "...", "exam": "...", "receipt": "..." }
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  @@index([centerId])
+  @@map("whatsapp_settings")
+}
+
+model CenterPrepaidCard {
+  id        String            @id @default(uuid())
+  centerId  String            @map("center_id")
+  code      String            @unique
+  prefix    String
+  status    PrepaidCardStatus @default(UNUSED)
+  studentId String?           @map("student_id") // Links to student if USED
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+
+  center  Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  @@index([centerId])
+  @@index([code])
+  @@map("center_prepaid_cards")
 }
 
 model Teacher {
@@ -128,8 +174,8 @@ model TeacherService {
   title     String
   price     Float
   dates     String?
-  hallId    String?
-  bookletId String?
+  hallId    String?  @map("hall_id")
+  bookletId String?  @map("booklet_id")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -145,7 +191,7 @@ model TeacherService {
 model Student {
   id                  String   @id @default(uuid())
   centerId            String   @map("center_id")
-  groupId             String?
+  groupId             String?  @map("group_id")
   code                String   @map("student_code")
   barcode             String   @default("")
   name                String
@@ -156,6 +202,7 @@ model Student {
   alert_note          String?  @map("alert_note") @db.Text
   isBlocked           Boolean  @default(false)
   hasFinancialWarning Boolean  @default(false)
+  remainingSessions   Int      @default(0) @map("remaining_sessions")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
@@ -166,6 +213,9 @@ model Student {
   enrollments StudentEnrollment[]
   group       Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
   feePayments StudentFeePayment[]
+  
+  prepaidCards  CenterPrepaidCard[]
+  studentGrades StudentGrade[]
 
   @@unique([centerId, code])
   @@index([centerId])
@@ -174,20 +224,20 @@ model Student {
 }
 
 model Group {
-  id            String   @id @default(uuid())
-  centerId      String   @map("center_id")
-  teacherId     String   @map("teacher_id")
-  hallId        String?
-  name          String
-  dayOfWeek     String   @default("")
-  startTime     String   @default("")
-  endTime       String   @default("")
-  grade         String   @default("")
+  id               String   @id @default(uuid())
+  centerId         String   @map("center_id")
+  teacherId        String   @map("teacher_id")
+  hallId           String?  @map("hall_id")
+  name             String
+  dayOfWeek        String   @default("")
+  startTime        String   @default("")
+  endTime          String   @default("")
+  grade            String   @default("")
   price            Float
   sessionsPerMonth Int      @default(4) @map("sessions_per_month")
   schedule_days    Json?    @map("schedule_days") // Kept for backward compatibility if needed, but not required
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
   center      Center              @relation(fields: [centerId], references: [id], onDelete: Cascade)
   teacher     Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
@@ -197,6 +247,8 @@ model Group {
   students    Student[]
   enrollments StudentEnrollment[]
   feePayments StudentFeePayment[]
+  
+  assessments Assessment[]
 
   @@index([centerId])
   @@index([teacherId])
@@ -224,6 +276,7 @@ model Attendance {
   @@map("attendance")
 }
 
+// Legacy Evaluation model
 model Evaluation {
   id        String   @id @default(uuid())
   centerId  String?  @map("center_id")
@@ -244,6 +297,7 @@ model Evaluation {
   @@map("evaluations")
 }
 
+// Legacy Grade model
 model Grade {
   id            String   @id @default(uuid())
   centerId      String?  @map("center_id")
@@ -264,6 +318,50 @@ model Grade {
   @@index([student_id])
   @@map("grades")
 }
+
+// New Assessment model
+model Assessment {
+  id        String   @id @default(uuid())
+  centerId  String   @map("center_id")
+  groupId   String   @map("group_id")
+  title     String
+  maxScore  Float    @map("max_score")
+  date      DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  group  Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  
+  studentGrades StudentGrade[]
+
+  @@index([centerId])
+  @@index([groupId])
+  @@map("assessments")
+}
+
+// New StudentGrade model
+model StudentGrade {
+  id           String   @id @default(uuid())
+  centerId     String   @map("center_id")
+  assessmentId String   @map("assessment_id")
+  studentId    String   @map("student_id")
+  score        Float
+  isAbsent     Boolean  @default(false) @map("is_absent")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  center     Center     @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  assessment Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  student    Student    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([assessmentId, studentId])
+  @@index([centerId])
+  @@index([assessmentId])
+  @@index([studentId])
+  @@map("student_grades")
+}
+
 
 model ServiceSale {
   id          String   @id @default(uuid())
@@ -315,7 +413,7 @@ model Hall {
 model Booklet {
   id        String   @id @default(uuid())
   centerId  String   @map("center_id")
-  teacherId String
+  teacherId String   @map("teacher_id")
   title     String
   price     Float
   quantity  Int      @default(0)
@@ -332,9 +430,9 @@ model InventoryTransaction {
   id              String   @id @default(uuid())
   centerId        String   @map("center_id")
   type            String // "SALE", "ADD", "RETURN", "ADJUSTMENT"
-  bookletId       String
-  studentId       String?
-  studentName     String?
+  bookletId       String   @map("booklet_id")
+  studentId       String?  @map("student_id")
+  studentName     String?  @map("student_name")
   quantityChanged Int
   totalPrice      Float
   createdAt       DateTime @default(now())
@@ -384,6 +482,25 @@ model MonthlyClosing {
   @@map("monthly_closings")
 }
 
+model ShiftClosing {
+  id                String   @id @default(uuid())
+  centerId          String   @map("center_id")
+  date              DateTime @default(now()) @db.Date
+  openingCash       Float    @map("opening_cash")
+  incomingPayments  Float    @map("incoming_payments")
+  operationalExpenses Float  @map("operational_expenses")
+  netExpectedCash   Float    @map("net_expected_cash")
+  actualDrawerCash  Float    @map("actual_drawer_cash")
+  discrepancy       Float    @default(0) // Over or Short
+  closedBy          String   @map("closed_by")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
+
+  @@index([centerId])
+  @@map("shift_closings")
+}
+
 model Expense {
   id        String   @id @default(uuid())
   centerId  String   @map("center_id")
@@ -401,7 +518,7 @@ model Expense {
 model TeacherPayout {
   id        String   @id @default(uuid())
   centerId  String   @map("center_id")
-  teacherId String
+  teacherId String   @map("teacher_id")
   amount    Float
   notes     String?
   createdAt DateTime @default(now())
