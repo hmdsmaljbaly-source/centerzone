@@ -71,7 +71,7 @@ function renderRoster(searchQuery) {
     }
 
     filtered.forEach(st => {
-        const rem = st.remainingSessions || 0;
+        const rem = (st.enrollments && st.enrollments.length > 0) ? st.enrollments[0].remainingSessions : (st.remainingSessions || 0);
         const badge = rem <= 0 ? `<span class="px-2 py-1 bg-rose-500/10 text-rose-400 font-bold rounded-lg border border-rose-500/20">${rem} حصص</span>` : `<span class="px-2 py-1 bg-emerald-500/10 text-emerald-400 font-bold rounded-lg border border-emerald-500/20">${rem} حصص</span>`;
 
         tbody.innerHTML += `

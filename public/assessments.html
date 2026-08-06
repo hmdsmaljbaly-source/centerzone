@@ -1,113 +1,133 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-blue-500 selection:text-white">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة التسميعات والامتحانات | CenterZone</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/custom.css">
     <script src="js/app-core.js"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Cairo', sans-serif; }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 p-6">
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern min-h-screen">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        <!-- Header Section -->
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-indigo-700 dark:text-indigo-400">
-                <i class="fas fa-file-signature ml-2"></i>التسميعات والامتحانات
-            </h1>
-            <div class="flex gap-3">
-                <a href="scanner.html" class="bg-indigo-800 hover:bg-indigo-900 text-white px-4 py-2 rounded shadow transition border border-indigo-600">
-                    <i class="fas fa-barcode ml-2"></i>شاشة الحضور
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
                 </a>
-                <a href="index.html" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded shadow transition">
-                    <i class="fas fa-home ml-2"></i>الرئيسية
+                <a href="scanner.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-qrcode"></i>
+                    ماسح الحضور
                 </a>
             </div>
-        </div>
 
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-lg text-white leading-tight">التسميعات والامتحانات</h1>
+                    <p class="text-[11px] text-slate-400 font-mono" id="headerCenterName">السنتر الحالي</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
         <!-- Controls Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-t-4 border-indigo-500">
+        <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl border-t-4 border-t-blue-500">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                 <div>
-                    <label class="block text-sm font-bold mb-2">اختر المجموعة الدراسية</label>
-                    <select id="groupSelect" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <label class="block text-sm font-bold text-slate-300 mb-2">اختر المجموعة الدراسية</label>
+                    <select id="groupSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none shadow-inner transition-all">
                         <option value="">جاري تحميل المجموعات...</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold mb-2">اختر التقييم (الامتحان/التسميع)</label>
-                    <select id="assessmentSelect" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" disabled>
+                    <label class="block text-sm font-bold text-slate-300 mb-2">اختر التقييم (الامتحان/التسميع)</label>
+                    <select id="assessmentSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none shadow-inner transition-all disabled:opacity-50" disabled>
                         <option value="">برجاء اختيار المجموعة أولاً</option>
                     </select>
                 </div>
                 <div>
-                    <button onclick="openAssessmentModal()" id="btnNewAssessment" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white p-3 rounded-lg font-bold transition shadow disabled:opacity-50" disabled>
-                        <i class="fas fa-plus ml-2"></i>إضافة تقويم جديد
+                    <button onclick="openAssessmentModal()" id="btnNewAssessment" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white p-2.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2" disabled>
+                        <i class="fas fa-plus"></i> إضافة تقويم جديد
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Grade Entry Sheet -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            <div class="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 border-b dark:border-gray-600">
-                <h3 class="font-bold text-lg"><i class="fas fa-list-ol ml-2 text-indigo-500"></i>رصد الدرجات</h3>
-                <button onclick="submitBulkGrades()" id="btnSaveGrades" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded shadow font-bold hidden transition">
-                    <i class="fas fa-save ml-2"></i>حفظ الرصد
+        <section class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+            <div class="flex justify-between items-center bg-slate-950/80 p-4 border-b border-slate-800">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="fas fa-list-ol text-blue-500"></i> رصد الدرجات
+                </h3>
+                <button onclick="submitBulkGrades()" id="btnSaveGrades" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white px-6 py-2 rounded-xl shadow-lg shadow-emerald-500/20 font-bold hidden transition-all flex items-center gap-2 text-sm">
+                    <i class="fas fa-save"></i> حفظ الرصد
                 </button>
             </div>
-            <table class="min-w-full divide-y divide-gray-200 text-right">
-                <thead class="bg-gray-100 dark:bg-gray-750">
-                    <tr>
-                        <th class="px-6 py-3 font-bold text-gray-500">اسم الطالب</th>
-                        <th class="px-6 py-3 font-bold text-gray-500">الكود</th>
-                        <th class="px-6 py-3 font-bold text-gray-500 text-center">حالة الحضور</th>
-                        <th class="px-6 py-3 font-bold text-gray-500 text-center">الدرجة</th>
-                        <th class="px-6 py-3 font-bold text-gray-500 text-center">النسبة المئوية</th>
-                    </tr>
-                </thead>
-                <tbody id="studentsList" class="divide-y divide-gray-100 bg-white dark:bg-gray-800">
-                    <tr>
-                        <td colspan="5" class="px-6 py-10 text-center text-gray-500 font-bold">برجاء اختيار مجموعة وتقييم للبدء بالرصد</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-slate-800/60 text-right">
+                    <thead class="bg-slate-950/80">
+                        <tr>
+                            <th class="px-6 py-4 font-bold text-slate-400 text-xs">اسم الطالب</th>
+                            <th class="px-6 py-4 font-bold text-slate-400 text-xs">الكود</th>
+                            <th class="px-6 py-4 font-bold text-slate-400 text-xs text-center">حالة الحضور</th>
+                            <th class="px-6 py-4 font-bold text-slate-400 text-xs text-center">الدرجة</th>
+                            <th class="px-6 py-4 font-bold text-slate-400 text-xs text-center">النسبة المئوية</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsList" class="divide-y divide-slate-800/60 bg-slate-900 text-slate-200">
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-slate-500 font-bold text-sm">برجاء اختيار مجموعة وتقييم للبدء بالرصد</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 
     <!-- Create Assessment Modal -->
-    <div id="assessmentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-[450px] max-w-full shadow-2xl">
-            <h3 class="text-xl font-bold mb-4 text-gray-900 dark:text-white border-b pb-2">إضافة تقويم جديد</h3>
+    <div id="assessmentModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-[450px] max-w-full shadow-2xl transform scale-100 transition-transform">
+            <h3 class="text-xl font-bold mb-4 text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+                <i class="fas fa-file-circle-plus text-blue-500"></i> إضافة تقويم جديد
+            </h3>
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">نوع التقويم</label>
-                    <select id="newType" class="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5">نوع التقويم</label>
+                    <select id="newType" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none shadow-inner transition-all">
                         <option value="تسميع">تسميع درس</option>
                         <option value="كويز">كويز سريع</option>
                         <option value="امتحان">امتحان شامل</option>
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">عنوان التقويم</label>
-                    <input type="text" id="newTitle" placeholder="مثال: تسميع الفصل الأول" class="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5">عنوان التقويم</label>
+                    <input type="text" id="newTitle" placeholder="مثال: تسميع الفصل الأول" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none shadow-inner transition-all">
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">الدرجة النهائية</label>
-                    <input type="number" id="newMaxScore" value="20" class="w-full border p-2 rounded focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 dark:bg-gray-700">
+                    <label class="block text-xs font-bold text-slate-400 mb-1.5">الدرجة النهائية</label>
+                    <input type="number" id="newMaxScore" value="20" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none shadow-inner transition-all">
                 </div>
             </div>
             <div class="mt-6 flex gap-3">
-                <button onclick="saveNewAssessment()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded transition shadow">إنشاء</button>
-                <button onclick="closeAssessmentModal()" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 rounded transition">إلغاء</button>
+                <button onclick="saveNewAssessment()" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-blue-500/20 text-sm">إنشاء</button>
+                <button onclick="closeAssessmentModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 font-bold py-2.5 rounded-xl transition-all text-sm">إلغاء</button>
             </div>
         </div>
     </div>

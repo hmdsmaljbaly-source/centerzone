@@ -19,6 +19,7 @@ async function fetchStudentData() {
             throw new Error(data.message || 'Error fetching profile');
         }
         
+        window.currentStudentData = data.data;
         renderProfile(data.data);
     } catch (err) {
         window.showToast("فشل في تحميل بيانات الطالب", "error");
@@ -37,14 +38,13 @@ function renderProfile(student) {
     document.getElementById('stParentPhone').innerText = student.parent_phone || "لا يوجد";
     
     const sessionsBadge = document.getElementById('stSessions');
-    sessionsBadge.innerText = `${student.remainingSessions} حصص`;
-    if (student.remainingSessions <= 0) {
-        sessionsBadge.classList.replace('text-emerald-600', 'text-rose-600');
-        sessionsBadge.classList.replace('bg-emerald-100', 'bg-rose-100');
-    } else {
-        sessionsBadge.classList.replace('text-rose-600', 'text-emerald-600');
-        sessionsBadge.classList.replace('bg-rose-100', 'bg-emerald-100');
-    }
+    sessionsBadge.className = 'flex flex-col gap-1';
+    sessionsBadge.innerHTML = (student.enrollments || []).map(en => {
+        const cls = en.remainingSessions <= 0 
+            ? 'font-bold text-sm text-rose-600 px-3 py-1 bg-rose-100 rounded-full w-max'
+            : 'font-bold text-sm text-emerald-600 px-3 py-1 bg-emerald-100 rounded-full w-max';
+        return `<span class="${cls}">${en.group?.name || 'مجموعة'}: ${en.remainingSessions} حصص</span>`;
+    }).join('') || '<span class="font-bold text-sm text-slate-500 px-3 py-1 bg-slate-100 rounded-full">غير مسجل</span>';
 
     // Render Attendance
     const attList = document.getElementById('attendanceList');
@@ -104,6 +104,15 @@ function switchTab(tabId) {
 
 function openRechargeModal() {
     document.getElementById('rechargeModal').classList.remove('hidden');
+    
+    // Attempt to load groups into recharge target if present
+    const groupSelect = document.getElementById('chargeGroup');
+    if (groupSelect && window.currentStudentData) {
+        groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+        (window.currentStudentData.enrollments || []).forEach(en => {
+            groupSelect.insertAdjacentHTML('beforeend', `<option value="${en.groupId}">${en.group?.name || 'مجموعة'}</option>`);
+        });
+    }
 }
 
 function closeRechargeModal() {
@@ -114,16 +123,23 @@ async function submitRecharge() {
     const amount = document.getElementById('chargeAmount').value;
     const sessions = document.getElementById('chargeSessions').value;
     const discountNote = document.getElementById('chargeDiscount').value;
+    const groupSelect = document.getElementById('chargeGroup');
+    const groupId = groupSelect ? groupSelect.value : '';
     
     if (!amount || !sessions) {
         window.showToast("برجاء إدخال المبلغ وعدد الحصص", "warning");
+        return;
+    }
+    
+    if (groupSelect && !groupId) {
+        window.showToast("برجاء اختيار المجموعة المستهدفة", "warning");
         return;
     }
 
     try {
         const response = await fetch(`${window.API_BASE_URL}/students/${studentId}/pay`, {
             method: 'POST',
-            body: JSON.stringify({ amount, sessions: parseInt(sessions), discountNote })
+            body: JSON.stringify({ amount, sessions: parseInt(sessions), discountNote, groupId })
         });
         
         const data = await response.json();

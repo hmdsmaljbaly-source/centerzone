@@ -13,6 +13,11 @@ exports.scanBarcode = async (req, res) => {
             { barcode: studentBarcode },
             { code: studentBarcode }
           ]
+        },
+        include: {
+          enrollments: {
+            where: { groupId: groupId }
+          }
         }
       });
 
@@ -20,8 +25,14 @@ exports.scanBarcode = async (req, res) => {
         throw new Error('Student not found');
       }
 
+      if (!student.enrollments || student.enrollments.length === 0) {
+        throw new Error('الطالب غير مسجل في هذه المجموعة');
+      }
+
+      const enrollment = student.enrollments[0];
+
       // Check remaining sessions
-      if (student.remainingSessions <= 0) {
+      if (enrollment.remainingSessions <= 0) {
         // Record attendance but return warning
         await tx.attendance.create({
           data: {
@@ -32,12 +43,14 @@ exports.scanBarcode = async (req, res) => {
             status: 'PRESENT'
           }
         });
+        // We inject the remainingSessions onto the student object to keep frontend happy
+        student.remainingSessions = enrollment.remainingSessions;
         return { student, warning: "Needs Recharge Alert", needsRecharge: true };
       }
 
-      // Decrement sessions
-      const updatedStudent = await tx.student.update({
-        where: { id: student.id },
+      // Decrement sessions on Enrollment
+      const updatedEnrollment = await tx.studentEnrollment.update({
+        where: { id: enrollment.id },
         data: { remainingSessions: { decrement: 1 } }
       });
 
@@ -52,14 +65,16 @@ exports.scanBarcode = async (req, res) => {
         }
       });
 
+      student.remainingSessions = updatedEnrollment.remainingSessions;
+
       let warning = null;
       let needsRecharge = false;
-      if (updatedStudent.remainingSessions === 0) {
+      if (updatedEnrollment.remainingSessions === 0) {
         warning = "Zero-Balance Alert: Session depleted!";
         needsRecharge = true;
       }
 
-      return { student: updatedStudent, attendance, warning, needsRecharge };
+      return { student: student, attendance, warning, needsRecharge };
     });
 
     res.status(200).json({ success: true, data: result });
@@ -75,13 +90,19 @@ exports.getGroupAttendanceStats = async (req, res) => {
     
     // Get students in group
     const students = await prisma.student.findMany({
-      where: { centerId: req.tenantId, groupId: groupId },
+      where: { 
+        centerId: req.tenantId, 
+        enrollments: { some: { groupId: groupId } } 
+      },
       include: {
         attendances: {
-          where: { date: new Date() } // today's attendance
+          where: { date: new Date(), group_id: groupId } // today's attendance for this group
         },
         studentGrades: {
           include: { assessment: true }
+        },
+        enrollments: {
+          where: { groupId: groupId }
         }
       }
     });

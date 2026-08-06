@@ -70,10 +70,11 @@ function renderStudents() {
             ? `<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">[حضر]</span>` 
             : `<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">[غائب]</span>`;
             
+        const remaining = (st.enrollments && st.enrollments.length > 0) ? st.enrollments[0].remainingSessions : (st.remainingSessions || 0);
         let balClass = 'text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30 text-xs';
-        if (st.remainingSessions <= 0) {
+        if (remaining <= 0) {
             balClass = 'text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/30 text-xs font-bold animate-pulse';
-        } else if (st.remainingSessions <= 2) {
+        } else if (remaining <= 2) {
             balClass = 'text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/30 text-xs font-bold';
         }
 
@@ -86,7 +87,7 @@ function renderStudents() {
                 </td>
                 <td class="px-6 py-4">
                     <span id="bal-${st.id}" class="font-mono ${balClass}">
-                        ${st.remainingSessions}
+                        ${remaining}
                     </span>
                 </td>
             </tr>
@@ -98,7 +99,10 @@ function updateKPIs() {
     const total = groupStudents.length;
     const present = groupStudents.filter(s => s.attendances && s.attendances.length > 0).length;
     const absent = total - present;
-    const expired = groupStudents.filter(s => s.remainingSessions <= 0).length;
+    const expired = groupStudents.filter(s => {
+        const rem = (s.enrollments && s.enrollments.length > 0) ? s.enrollments[0].remainingSessions : (s.remainingSessions || 0);
+        return rem <= 0;
+    }).length;
     
     document.getElementById('kpiTotal').innerText = total;
     document.getElementById('kpiPresent').innerText = present;

@@ -94,8 +94,6 @@ model Center {
   teacherPayouts  TeacherPayout[]
   studentEnrollments StudentEnrollment[]
   attendances     Attendance[]
-  evaluations     Evaluation[]
-  grades          Grade[]
   
   // New Models relationships
   prepaidCards    CenterPrepaidCard[]
@@ -191,7 +189,6 @@ model TeacherService {
 model Student {
   id                  String   @id @default(uuid())
   centerId            String   @map("center_id")
-  groupId             String?  @map("group_id")
   code                String   @map("student_code")
   barcode             String   @default("")
   name                String
@@ -202,17 +199,15 @@ model Student {
   alert_note          String?  @map("alert_note") @db.Text
   isBlocked           Boolean  @default(false)
   hasFinancialWarning Boolean  @default(false)
-  remainingSessions   Int      @default(0) @map("remaining_sessions")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
 
   center      Center              @relation(fields: [centerId], references: [id], onDelete: Cascade)
   attendances Attendance[]
-  grades      Grade[]
   sales       ServiceSale[]
   enrollments StudentEnrollment[]
-  group       Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
   feePayments StudentFeePayment[]
+  inventoryTxns InventoryTransaction[]
   
   prepaidCards  CenterPrepaidCard[]
   studentGrades StudentGrade[]
@@ -243,8 +238,6 @@ model Group {
   teacher     Teacher             @relation(fields: [teacherId], references: [id], onDelete: Cascade)
   hall        Hall?               @relation(fields: [hallId], references: [id], onDelete: SetNull)
   attendances Attendance[]
-  evaluations Evaluation[]
-  students    Student[]
   enrollments StudentEnrollment[]
   feePayments StudentFeePayment[]
   
@@ -276,48 +269,7 @@ model Attendance {
   @@map("attendance")
 }
 
-// Legacy Evaluation model
-model Evaluation {
-  id        String   @id @default(uuid())
-  centerId  String?  @map("center_id")
-  group_id  String   @map("group_id")
-  type      String
-  title     String
-  max_score Float    @map("max_score")
-  date      DateTime @db.Date
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
-  center Center? @relation(fields: [centerId], references: [id], onDelete: Cascade)
-  group  Group   @relation(fields: [group_id], references: [id], onDelete: Cascade)
-  grades Grade[]
-
-  @@index([centerId])
-  @@index([group_id])
-  @@map("evaluations")
-}
-
-// Legacy Grade model
-model Grade {
-  id            String   @id @default(uuid())
-  centerId      String?  @map("center_id")
-  evaluation_id String   @map("evaluation_id")
-  student_id    String   @map("student_id")
-  score         Float
-  is_submitted  Boolean  @default(true) @map("is_submitted")
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
-
-  center     Center?    @relation(fields: [centerId], references: [id], onDelete: Cascade)
-  evaluation Evaluation @relation(fields: [evaluation_id], references: [id], onDelete: Cascade)
-  student    Student    @relation(fields: [student_id], references: [id], onDelete: Cascade)
-
-  @@unique([evaluation_id, student_id])
-  @@index([centerId])
-  @@index([evaluation_id])
-  @@index([student_id])
-  @@map("grades")
-}
 
 // New Assessment model
 model Assessment {
@@ -437,10 +389,12 @@ model InventoryTransaction {
   totalPrice      Float
   createdAt       DateTime @default(now())
 
-  center Center @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  center  Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([centerId])
   @@index([bookletId])
+  @@index([studentId])
   @@map("inventory_transactions")
 }
 
@@ -537,6 +491,7 @@ model StudentEnrollment {
   studentId String   @map("student_id")
   groupId   String   @map("group_id")
   teacherId String?  @map("teacher_id")
+  remainingSessions Int @default(0) @map("remaining_sessions")
   createdAt DateTime @default(now()) @map("created_at")
 
   center  Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)

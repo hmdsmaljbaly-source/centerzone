@@ -186,9 +186,13 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                         <td class="p-3.5 font-mono font-bold cursor-pointer text-indigo-400 hover:underline" onclick="openStudentProfileModal('${student.id}')">${student.code}</td>
                         <td class="p-3.5 font-bold cursor-pointer text-indigo-400 hover:underline" onclick="openStudentProfileModal('${student.id}')">${student.name}</td>
                         <td class="p-3.5">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-mono font-bold ${student.remainingSessions <= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'}">
-                                ${student.remainingSessions ?? 0} حصص
-                            </span>
+                            <div class="space-y-1">
+                                ${(student.enrollments || []).map(en => `
+                                    <span class="px-2.5 py-1 rounded-full text-[10px] font-mono font-bold ${en.remainingSessions <= 0 ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' : 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/20'} block w-max">
+                                        ${en.group?.name || 'مجموعة'}: ${en.remainingSessions} حصص
+                                    </span>
+                                `).join('') || '<span class="text-[10px] text-slate-500">غير مسجل</span>'}
+                            </div>
                         </td>
                         <td class="p-3.5 font-mono text-slate-300">${student.student_phone || '--'}</td>
                         <td class="p-3.5 font-mono text-slate-300">${student.parent_phone}</td>
@@ -332,6 +336,15 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             currentFinanceStudentId = student.id;
             document.getElementById('financeStudentName').textContent = student.name;
             document.getElementById('financeStudentCode').textContent = `كود: ${student.code}`;
+            
+            const targetSelect = document.getElementById('financeTargetId');
+            if (targetSelect) {
+                targetSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+                (student.enrollments || []).forEach(en => {
+                    targetSelect.insertAdjacentHTML('beforeend', `<option value="${en.groupId}">${en.group?.name || 'مجموعة'}</option>`);
+                });
+            }
+
             document.getElementById('financeModal').classList.remove('hidden');
         }
 
@@ -343,9 +356,9 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
 
         async function handleFinanceCollection(e) {
             e.preventDefault();
-            const type = document.getElementById('financeTypeSelect')?.value || '';
             const amount = parseFloat(document.getElementById('financeAmount')?.value) || 0;
-            const targetId = document.getElementById('financeTargetId')?.value || '';
+            const sessions = parseInt(document.getElementById('financeSessions')?.value) || 0;
+            const groupId = document.getElementById('financeTargetId')?.value || '';
             const note = document.getElementById('financeNote')?.value?.trim() || '';
 
             try {
@@ -354,12 +367,10 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         studentId: currentFinanceStudentId,
-                        paymentType: type,
-                        type,
                         amount,
-                        groupId: targetId || null,
-                        targetId: targetId || null,
-                        note
+                        sessions,
+                        groupId,
+                        discountNote: note
                     })
                 });
 

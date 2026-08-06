@@ -35,9 +35,7 @@ exports.registerStudent = async (req, res) => {
           name,
           grade: grade || "",
           student_phone: phone,
-          parent_phone: parentPhone,
-          remainingSessions: 0,
-          groupId: groupId || null
+          parent_phone: parentPhone
         }
       });
 
@@ -75,7 +73,7 @@ exports.getStudents = async (req, res) => {
   try {
     const students = await prisma.student.findMany({
       where: { centerId: req.tenantId },
-      include: { group: true }
+      include: { enrollments: { include: { group: true } } }
     });
     res.status(200).json({ success: true, data: students });
   } catch (err) {
@@ -92,7 +90,7 @@ exports.getStudentProfile = async (req, res) => {
         attendances: { include: { group: true }, orderBy: { date: 'desc' } },
         feePayments: { orderBy: { createdAt: 'desc' } },
         studentGrades: { include: { assessment: true }, orderBy: { createdAt: 'desc' } },
-        group: true
+        enrollments: { include: { group: true } }
       }
     });
 
@@ -109,12 +107,21 @@ exports.getStudentProfile = async (req, res) => {
 exports.payFees = async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount, sessions, month, discountNote } = req.body;
+    const { amount, sessions, month, discountNote, groupId } = req.body;
+
+    if (!groupId) {
+      throw new Error("يجب تحديد المجموعة لتجديد الاشتراك");
+    }
 
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Increment remainingSessions
-      const student = await tx.student.update({
-        where: { id: id },
+      // 1. Increment remainingSessions in Enrollment
+      const enrollment = await tx.studentEnrollment.update({
+        where: { 
+          studentId_groupId: {
+            studentId: id,
+            groupId: groupId
+          }
+        },
         data: { remainingSessions: { increment: sessions } }
       });
 
@@ -123,6 +130,7 @@ exports.payFees = async (req, res) => {
         data: {
           centerId: req.tenantId,
           studentId: id,
+          groupId: groupId,
           amount: parseFloat(amount),
           paymentType: 'MONTHLY',
           monthYear: month || new Date().toISOString().slice(0, 7),
@@ -130,7 +138,7 @@ exports.payFees = async (req, res) => {
         }
       });
 
-      return { student, payment };
+      return { enrollment, payment };
     });
 
     res.status(200).json({ success: true, data: result, message: 'Payment recorded and sessions recharged' });
