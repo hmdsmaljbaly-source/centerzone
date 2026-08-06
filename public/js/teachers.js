@@ -573,7 +573,6 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                             <div>
                                 <span class="text-slate-200 font-bold block">${g.name ?? '--'}</span>
                                 <span class="text-[10px] text-slate-400">${g.hallName ?? 'بدون قاعة'} (${g.enrolledCount ?? 0} طالب)</span>
-                            </div>
                             <span class="text-emerald-400 font-mono font-bold text-xs">${g.price ?? 0} ج.م</span>
                         </div>`;
                     });
@@ -601,84 +600,8 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             if (centerEl) centerEl.textContent = cShare.toFixed(2) + ' ج.م';
         }
 
-        async function openGroupProfileModal(groupId) {
-            const modal = document.getElementById('groupProfileModal');
-            if (!modal) return;
-
-            document.getElementById('gpName').textContent = 'جاري التحميل...';
-            document.getElementById('gpHallTime').textContent = '--';
-            document.getElementById('gpSessions').textContent = '--';
-            document.getElementById('gpPrice').textContent = '--';
-            document.getElementById('gpStudentSearch').value = '';
-            const tbody = document.getElementById('gpStudentsTableBody');
-            if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">جاري إحضار بيانات الطلاب...</td></tr>';
-            modal.classList.remove('hidden');
-
-            try {
-                const groupObj = (masterGroups || []).find(g => g.id === groupId);
-                if (groupObj) {
-                    document.getElementById('gpName').textContent = groupObj.name ?? 'بدون اسم';
-                    document.getElementById('gpHallTime').textContent = `${groupObj.hall?.name ?? 'بدون قاعة'} ${groupObj.dayOfWeek ? `(${groupObj.dayOfWeek})` : ''}`;
-                    document.getElementById('gpSessions').textContent = groupObj.sessionsPerMonth ?? 4;
-                    document.getElementById('gpPrice').textContent = (groupObj.price ?? 0) + ' ج.م';
-                }
-
-                const response = await fetch(`/api/groups/${groupId}/students`);
-                const resData = await response.json();
-
-                if (!response.ok || !resData?.success) {
-                    showToast(resData?.message || 'تعذر تحميل قائمة طلاب المجموعة');
-                    closeGroupProfileModal();
-                    return;
-                }
-
-                if (resData.groupName && !groupObj) {
-                    document.getElementById('gpName').textContent = resData.groupName;
-                    document.getElementById('gpSessions').textContent = resData.sessionsPerMonth ?? 4;
-                }
-
-                currentGroupStudents = resData.data || [];
-                renderGroupStudentsTable(currentGroupStudents);
-            } catch (err) {
-                console.error("Group profile error:", err);
-                showToast('حدث خطأ في تحميل بيانات المجموعة');
-                closeGroupProfileModal();
-            }
-        }
-
-        function renderGroupStudentsTable(studentsList) {
-            const tbody = document.getElementById('gpStudentsTableBody');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-
-            if (!studentsList || studentsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500">لا يوجد طلاب مسجلون في هذه المجموعة حالياً.</td></tr>';
-                return;
-            }
-
-            studentsList.forEach(st => {
-                let quotaBadgeClass = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
-                if (st.remainingSessions <= 1) {
-                    quotaBadgeClass = "bg-rose-500/10 text-rose-400 border-rose-500/30 animate-pulse";
-                } else if (st.remainingSessions <= 2) {
-                    quotaBadgeClass = "bg-amber-500/10 text-amber-400 border-amber-500/30";
-                }
-
-                const rowHtml = `
-                    <tr class="hover:bg-slate-800/30 transition-colors">
-                        <td class="p-3 font-mono font-bold text-sky-400">${st.barcode ?? st.code ?? '--'}</td>
-                        <td class="p-3 font-bold text-white">${st.name ?? 'طالب'}</td>
-                        <td class="p-3 font-mono text-slate-300">${st.phone ?? 'غير مسجل'}</td>
-                        <td class="p-3 text-center font-mono font-bold text-slate-200">${st.attendedCount ?? 0} من ${st.sessionsPerMonth ?? 4}</td>
-                        <td class="p-3 text-center">
-                            <span class="px-3 py-1 rounded-full border text-xs font-mono font-bold ${quotaBadgeClass}">
-                                ${st.remainingSessions ?? 0} حصص متبقية
-                            </span>
-                        </td>
-                    </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', rowHtml);
-            });
+        function openGroupProfileModal(groupId) {
+            window.location.href = `group-profile.html?id=${groupId}`;
         }
 
         function filterGroupStudents() {

@@ -1,122 +1,138 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-sky-500 selection:text-white">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>تسجيل الحضور السريع | CenterZone</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/custom.css">
     <script src="js/app-core.js"></script>
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f3f4f6; }
+        body { font-family: 'Cairo', sans-serif; }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
         .kpi-card { transition: transform 0.2s; }
         .kpi-card:hover { transform: translateY(-5px); }
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
     <!-- Header Navigation -->
-    <nav class="bg-indigo-700 text-white shadow-lg p-4 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold"><i class="fas fa-barcode ml-2"></i>تسجيل الحضور السريع</h1>
-            <div class="flex gap-3">
-                <a href="assessments.html" class="bg-indigo-800 hover:bg-indigo-900 px-4 py-2 rounded font-bold shadow transition border border-indigo-600">
-                    <i class="fas fa-file-signature ml-2"></i>صفحة التسميعات
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-2.5">
+                <a href="index.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    العودة للرئيسية
                 </a>
-                <a href="index.html" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded font-bold shadow transition">
-                    <i class="fas fa-home ml-2"></i>العودة للرئيسية
+                <a href="assessments.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-blue-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-signature"></i>
+                    صفحة التسميعات
                 </a>
             </div>
-        </div>
-    </nav>
 
-    <div class="max-w-7xl mx-auto p-6 space-y-6">
+            <div class="flex items-center text-left">
+                <div class="text-left" style="direction: ltr;">
+                    <h1 class="font-bold text-lg text-white leading-tight">تسجيل الحضور السريع</h1>
+                    <p class="text-xs text-slate-400" id="headerCenterName">السنتر الحالي</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
+        <!-- Real-time KPI Cards -->
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg kpi-card">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium mb-1">إجمالي الطلاب</span>
+                    <span id="kpiTotal" class="text-2xl font-black text-white font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 flex items-center justify-center text-lg">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg kpi-card">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium mb-1">حاضر اليوم</span>
+                    <span id="kpiPresent" class="text-2xl font-black text-emerald-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                    <i class="fas fa-user-check"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg kpi-card">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium mb-1">غائب</span>
+                    <span id="kpiAbsent" class="text-2xl font-black text-rose-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 flex items-center justify-center text-lg">
+                    <i class="fas fa-user-times"></i>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center justify-between shadow-lg kpi-card">
+                <div>
+                    <span class="text-xs text-slate-400 block font-medium mb-1">رصيد منتهي</span>
+                    <span id="kpiExpired" class="text-2xl font-black text-amber-400 font-mono">0</span>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-lg">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </section>
+
         <!-- Controls & Scanning Section -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border-t-4 border-indigo-500 flex flex-col md:flex-row gap-6">
+        <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-xl shadow-lg flex flex-col md:flex-row gap-6">
             <!-- Group Selection -->
             <div class="flex-1">
-                <label class="block text-sm font-bold mb-2">اختر المجموعة الدراسية</label>
-                <select id="groupSelect" class="w-full border p-3 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-lg">
+                <label class="block text-sm font-bold text-slate-300 mb-2">اختر المجموعة الدراسية</label>
+                <select id="groupSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 p-3 rounded-lg focus:ring-2 focus:ring-sky-500 outline-none text-lg">
                     <option value="">جاري تحميل المجموعات...</option>
                 </select>
             </div>
             
             <!-- Barcode Scanner -->
             <div class="flex-2 w-full md:w-1/2">
-                <label class="block text-sm font-bold mb-2">امسح كود الطالب (Barcode)</label>
+                <label class="block text-sm font-bold text-slate-300 mb-2">امسح كود الطالب (Barcode)</label>
                 <div class="relative shadow-sm rounded-lg">
-                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
+                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-500">
                         <i class="fas fa-qrcode text-xl"></i>
                     </div>
-                    <input type="text" id="barcodeInput" disabled autofocus placeholder="انتظر اختيار المجموعة..." class="block w-full pr-10 border-gray-300 p-4 text-xl rounded-lg focus:ring-indigo-500 focus:border-indigo-500 font-mono text-center tracking-widest" autocomplete="off">
-                </div>
-            </div>
-        </div>
-
-        <!-- Real-time KPI Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="kpi-card bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-b-4 border-indigo-500 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-bold mb-1">إجمالي الطلاب</p>
-                    <p id="kpiTotal" class="text-2xl font-bold text-gray-800 dark:text-white font-mono">0</p>
-                </div>
-                <div class="w-10 h-10 bg-indigo-100 text-indigo-500 rounded-full flex justify-center items-center text-xl">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-            <div class="kpi-card bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-b-4 border-emerald-500 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-bold mb-1">حاضر اليوم</p>
-                    <p id="kpiPresent" class="text-2xl font-bold text-gray-800 dark:text-white font-mono">0</p>
-                </div>
-                <div class="w-10 h-10 bg-emerald-100 text-emerald-500 rounded-full flex justify-center items-center text-xl">
-                    <i class="fas fa-user-check"></i>
-                </div>
-            </div>
-            <div class="kpi-card bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-b-4 border-rose-500 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-bold mb-1">غائب</p>
-                    <p id="kpiAbsent" class="text-2xl font-bold text-gray-800 dark:text-white font-mono">0</p>
-                </div>
-                <div class="w-10 h-10 bg-rose-100 text-rose-500 rounded-full flex justify-center items-center text-xl">
-                    <i class="fas fa-user-times"></i>
-                </div>
-            </div>
-            <div class="kpi-card bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-b-4 border-amber-500 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-500 font-bold mb-1">رصيد منتهي</p>
-                    <p id="kpiExpired" class="text-2xl font-bold text-gray-800 dark:text-white font-mono">0</p>
-                </div>
-                <div class="w-10 h-10 bg-amber-100 text-amber-500 rounded-full flex justify-center items-center text-xl">
-                    <i class="fas fa-exclamation-triangle"></i>
+                    <input type="text" id="barcodeInput" disabled autofocus placeholder="انتظر اختيار المجموعة..." class="block w-full pr-10 bg-slate-950 border border-slate-700 text-slate-100 p-4 text-xl rounded-lg focus:ring-sky-500 focus:border-sky-500 font-mono text-center tracking-widest outline-none shadow-inner" autocomplete="off">
                 </div>
             </div>
         </div>
 
         <!-- Students Live List -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200 text-right">
-                <thead class="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                        <th class="px-6 py-3 font-bold text-gray-500">اسم الطالب</th>
-                        <th class="px-6 py-3 font-bold text-gray-500">كود الطالب</th>
-                        <th class="px-6 py-3 font-bold text-gray-500">الحالة</th>
-                        <th class="px-6 py-3 font-bold text-gray-500">الرصيد المتبقي</th>
-                    </tr>
-                </thead>
-                <tbody id="studentList" class="divide-y divide-gray-100 bg-white dark:bg-gray-800">
-                    <tr>
-                        <td colspan="4" class="px-6 py-10 text-center text-gray-500 font-bold">برجاء اختيار مجموعة لعرض الطلاب</td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-right border-collapse text-sm">
+                    <thead class="bg-slate-900/80 text-slate-400 font-semibold border-b border-slate-800">
+                        <tr>
+                            <th class="px-6 py-4">اسم الطالب</th>
+                            <th class="px-6 py-4">كود الطالب</th>
+                            <th class="px-6 py-4">الحالة</th>
+                            <th class="px-6 py-4">الرصيد المتبقي</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentList" class="divide-y divide-slate-800/60 text-slate-300">
+                        <tr>
+                            <td colspan="4" class="px-6 py-10 text-center text-slate-500 font-bold">برجاء اختيار مجموعة لعرض الطلاب</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
-    </div>
+    </main>
     
     <script src="js/scanner.js"></script>
 </body>

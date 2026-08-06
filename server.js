@@ -12,6 +12,8 @@ const studentRoutes = require('./routes/student.routes');
 const attendanceRoutes = require('./routes/attendance.routes');
 const posRoutes = require('./routes/pos.routes');
 const financialsRoutes = require('./routes/financials.routes');
+const groupRoutes = require('./routes/group.routes');
+const teacherRoutes = require('./routes/teacher.routes');
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.use(express.static('public'));
 app.use('/api/super-admin', superadminRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/teachers', teacherRoutes);
 app.use('/api/inventory', posRoutes);
 app.use('/api/pos', posRoutes); // Alias
 app.use('/api/finance', financialsRoutes);

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-sky-500 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشامل للمجموعة | CenterZone</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="js/app-core.js"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <a href="teachers.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700">
+                    <i class="fas fa-arrow-right ml-1"></i> رجوع للمجموعات
+                </a>
+            </div>
+            <div class="text-left" style="direction: ltr;">
+                <h1 class="font-bold text-lg text-white">الملف الشامل للمجموعة</h1>
+                <p class="text-xs text-slate-400" id="headerCenterName">السنتر الحالي</p>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+        <div id="loading" class="text-center py-10 text-xl font-bold text-slate-300">جاري تحميل بيانات المجموعة...</div>
+
+        <div id="groupContent" class="hidden space-y-6">
+            <!-- Group Metadata Card -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-16 h-16 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-3xl border border-indigo-500/30">
+                        <i class="fa-solid fa-users-rectangle"></i>
+                    </div>
+                    <div>
+                        <h2 id="groupName" class="text-2xl font-black text-white">---</h2>
+                        <div class="flex items-center gap-3 text-sm text-slate-400 mt-1">
+                            <span id="groupTeacher" class="text-sky-400 font-bold"><i class="fa-solid fa-chalkboard-user ml-1"></i>---</span>
+                            <span>•</span>
+                            <span id="groupGrade">---</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-sm bg-slate-950 border border-slate-800 rounded-xl p-4">
+                    <div>
+                        <span class="block text-slate-500 text-xs">الميعاد والقاعة</span>
+                        <span id="groupSchedule" class="font-bold text-slate-200">---</span>
+                    </div>
+                    <div>
+                        <span class="block text-slate-500 text-xs">الاشتراك الشهري</span>
+                        <span id="groupPrice" class="font-bold text-emerald-400">--- ج.م</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students Roster Section -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list-check text-indigo-400"></i> قائمة الطلاب المسجلين
+                    </h3>
+                    <div class="relative w-64">
+                        <input type="text" id="searchInput" placeholder="بحث عن طالب..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs outline-none focus:border-sky-500">
+                        <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-right text-slate-300">
+                        <thead class="bg-slate-950/80 text-slate-400 border-b border-slate-800">
+                            <tr>
+                                <th class="p-3">كود الطالب</th>
+                                <th class="p-3">اسم الطالب</th>
+                                <th class="p-3">هاتف الطالب</th>
+                                <th class="p-3">هاتف ولي الأمر</th>
+                                <th class="p-3 text-center">الرصيد المتبقي</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rosterBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/group-profile.js"></script>
+</body>
+</html>

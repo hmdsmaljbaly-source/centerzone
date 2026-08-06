@@ -67,18 +67,25 @@ function renderStudents() {
         // check attendance today
         const isPresent = st.attendances && st.attendances.length > 0;
         const statusHtml = isPresent 
-            ? `<span class="px-3 py-1 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200">[حضر]</span>` 
-            : `<span class="px-3 py-1 rounded-full text-sm font-bold bg-gray-200 text-gray-700 border border-gray-300">[غائب]</span>`;
+            ? `<span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">[حضر]</span>` 
+            : `<span class="px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">[غائب]</span>`;
             
+        let balClass = 'text-emerald-400 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/30 text-xs';
+        if (st.remainingSessions <= 0) {
+            balClass = 'text-amber-400 bg-amber-500/10 px-2 py-1 rounded border border-amber-500/30 text-xs font-bold animate-pulse';
+        } else if (st.remainingSessions <= 2) {
+            balClass = 'text-orange-400 bg-orange-500/10 px-2 py-1 rounded border border-orange-500/30 text-xs font-bold';
+        }
+
         tbody.innerHTML += `
-            <tr id="row-${st.id}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-800">
-                <td class="px-6 py-4 font-bold text-lg">${st.name}</td>
-                <td class="px-6 py-4 text-gray-500 font-mono tracking-wider">${st.code}</td>
+            <tr id="row-${st.id}" class="hover:bg-slate-800/50 transition-colors border-b border-slate-800/60">
+                <td class="px-6 py-4 font-bold text-white"><a href="student-profile.html?id=${st.id}" class="text-sky-400 hover:text-sky-300 hover:underline">${st.name}</a></td>
+                <td class="px-6 py-4 text-slate-300 font-mono tracking-wider"><a href="student-profile.html?id=${st.id}" class="hover:underline">${st.code}</a></td>
                 <td class="px-6 py-4" id="status-${st.id}">
                     ${statusHtml}
                 </td>
                 <td class="px-6 py-4">
-                    <span id="bal-${st.id}" class="font-bold text-lg ${st.remainingSessions <= 0 ? 'text-rose-600 bg-rose-100 px-2 py-1 rounded' : 'text-emerald-600 bg-emerald-100 px-2 py-1 rounded'}">
+                    <span id="bal-${st.id}" class="font-mono ${balClass}">
                         ${st.remainingSessions}
                     </span>
                 </td>
