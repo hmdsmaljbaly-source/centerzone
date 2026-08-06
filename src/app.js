@@ -446,8 +446,8 @@ apiRouter.get('/students', async (req, res) => {
     const students = await prisma.student.findMany({
       where: { centerId: req.tenantId },
       include: {
-        group: { include: { teacher: true } },
-        enrollments: { include: { group: true, teacher: true } }
+        
+        enrollments: { include: {  teacher: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
@@ -602,8 +602,8 @@ apiRouter.post('/students', async (req, res) => {
         alert_note: finalNote,
         isBlocked: alert_status === 'BLOCKED',
         hasFinancialWarning: alert_status === 'WARNING',
-        groupId: group ? group.id : null,
-        remainingSessions: group && group.sessionsPerMonth ? group.sessionsPerMonth : 4
+        
+        
       }
     });
 
@@ -638,7 +638,7 @@ apiRouter.post('/students', async (req, res) => {
         student_phone: student.student_phone,
         alert_status: student.alert_status ? 'WARNING' : 'NORMAL',
         alert_note: student.alert_note,
-        groupId: student.groupId,
+        
         teacherId: finalTeacherId || (group ? group.teacherId : null)
       }
     });
@@ -656,7 +656,7 @@ apiRouter.get('/students/:id/profile', async (req, res) => {
     const student = await prisma.student.findFirst({
       where: { id: studentId, centerId: centerId },
       include: {
-        group: { include: { teacher: true, hall: true } },
+        
         enrollments: { include: { group: { include: { hall: true } }, teacher: true } },
         attendances: { include: { group: true }, orderBy: { date: 'desc' }, take: 50 },
         grades: { include: { evaluation: { include: { group: true } } }, orderBy: { createdAt: 'desc' }, take: 50 }
@@ -676,7 +676,7 @@ apiRouter.get('/students/:id/profile', async (req, res) => {
     const enrolledMap = new Map();
     if (student.group && student.group.teacher) {
       enrolledMap.set(`${student.group.id}-${student.group.teacher.id}`, {
-        groupId: student.group.id,
+        
         groupName: student.group.name,
         schedule: `${student.group.dayOfWeek} (${student.group.startTime} - ${student.group.endTime})`,
         hallName: student.group.hall ? student.group.hall.name : 'قاعة رئيسية',
@@ -692,7 +692,7 @@ apiRouter.get('/students/:id/profile', async (req, res) => {
           const key = `${en.group.id}-${en.teacher.id}`;
           if (!enrolledMap.has(key)) {
             enrolledMap.set(key, {
-              groupId: en.group.id,
+              
               groupName: en.group.name,
               schedule: `${en.group.dayOfWeek} (${en.group.startTime} - ${en.group.endTime})`,
               hallName: en.group.hall ? en.group.hall.name : 'قاعة رئيسية',
@@ -918,6 +918,37 @@ async function executeAttendanceScan(req, res) {
   }
 }
 apiRouter.post('/attendance/scan-qr', executeAttendanceScan);
+
+apiRouter.get('/attendance/groups/:groupId', async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    
+    const todayStart = new Date();
+    todayStart.setHours(0,0,0,0);
+    const todayEnd = new Date();
+    todayEnd.setHours(23,59,59,999);
+
+    const students = await prisma.student.findMany({
+      where: { 
+        centerId: req.tenantId, 
+        enrollments: { some: { groupId: groupId } } 
+      },
+      include: {
+        attendances: {
+          where: { date: { gte: todayStart, lte: todayEnd }, group_id: groupId }
+        },
+        enrollments: {
+          where: { groupId: groupId }
+        }
+      }
+    });
+
+    res.status(200).json({ success: true, data: students });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch group stats' });
+  }
+});
+
 apiRouter.post('/attendance/scan', executeAttendanceScan);
 apiRouter.post('/attendances/scan', executeAttendanceScan);
 
@@ -929,12 +960,12 @@ apiRouter.get('/groups', async (req, res) => {
       include: { 
         teacher: true, 
         hall: true,
-        _count: { select: { students: true, enrollments: true } }
+        _count: { select: { enrollments: true } }
       }
     });
     const formattedGroups = groups.map(g => ({
       ...g,
-      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      enrolledCount: g._count?.enrollments || 0,
       sessionsPerMonth: g.sessionsPerMonth ?? 4
     }));
     res.status(200).json({ success: true, count: formattedGroups.length, data: formattedGroups });
@@ -950,12 +981,12 @@ apiRouter.get('/groups/today', async (req, res) => {
       include: { 
         teacher: true, 
         hall: true,
-        _count: { select: { students: true, enrollments: true } }
+        _count: { select: { enrollments: true } }
       }
     });
     const formattedGroups = groups.map(g => ({
       ...g,
-      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      enrolledCount: g._count?.enrollments || 0,
       sessionsPerMonth: g.sessionsPerMonth ?? 4
     }));
     res.status(200).json({ success: true, count: formattedGroups.length, data: formattedGroups });
@@ -1075,7 +1106,6 @@ apiRouter.get('/groups/:id/students', async (req, res) => {
       where: {
         centerId: req.tenantId,
         OR: [
-          { groupId: id },
           { enrollments: { some: { groupId: id } } }
         ]
       },
@@ -1165,7 +1195,7 @@ apiRouter.get('/teachers/:id/profile', async (req, res) => {
         groups: {
           include: {
             hall: true,
-            _count: { select: { students: true, enrollments: true } }
+            _count: { select: { enrollments: true } }
           }
         },
         services: true,
@@ -1187,7 +1217,6 @@ apiRouter.get('/teachers/:id/profile', async (req, res) => {
         where: {
           centerId: req.tenantId,
           OR: [
-            { groupId: { in: groupIds } },
             { enrollments: { some: { groupId: { in: groupIds } } } }
           ]
         }
@@ -1207,7 +1236,7 @@ apiRouter.get('/teachers/:id/profile', async (req, res) => {
 
     const formattedGroups = (teacher.groups || []).map(g => ({
       ...g,
-      enrolledCount: Math.max(g._count?.students || 0, g._count?.enrollments || 0),
+      enrolledCount: g._count?.enrollments || 0,
       sessionsPerMonth: g.sessionsPerMonth ?? 4,
       hallName: g.hall?.name || 'بدون قاعة محددة'
     }));
