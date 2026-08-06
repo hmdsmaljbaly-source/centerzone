@@ -1,5 +1,4 @@
 let currentGroupId = null;
-let currentAssessmentId = null;
 let groupStudents = [];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,9 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('groupSelect').addEventListener('change', (e) => {
         currentGroupId = e.target.value;
         if (currentGroupId) {
-            document.getElementById('barcodeInput').disabled = false;
-            document.getElementById('barcodeInput').placeholder = 'امسح الكود الآن...';
-            document.getElementById('barcodeInput').focus();
+            const input = document.getElementById('barcodeInput');
+            input.disabled = false;
+            input.placeholder = 'امسح الكود الآن...';
+            input.focus(); // Auto focus immediately
             fetchGroupData();
         } else {
             document.getElementById('barcodeInput').disabled = true;
@@ -66,30 +66,22 @@ function renderStudents() {
     groupStudents.forEach(st => {
         // check attendance today
         const isPresent = st.attendances && st.attendances.length > 0;
-        
-        let gradeHtml = '';
-        if (currentAssessmentId) {
-            gradeHtml = `
-            <td class="px-6 py-3 text-center">
-                <input type="number" onblur="submitGrade('${st.id}', this.value)" class="w-20 border rounded p-1 text-center" placeholder="الدرجة">
-            </td>`;
-        }
-        
+        const statusHtml = isPresent 
+            ? `<span class="px-3 py-1 rounded-full text-sm font-bold bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200">[حضر]</span>` 
+            : `<span class="px-3 py-1 rounded-full text-sm font-bold bg-gray-200 text-gray-700 border border-gray-300">[غائب]</span>`;
+            
         tbody.innerHTML += `
-            <tr id="row-${st.id}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                <td class="px-6 py-3 font-bold">${st.name}</td>
-                <td class="px-6 py-3 text-gray-500 font-mono">${st.code}</td>
-                <td class="px-6 py-3" id="status-${st.id}">
-                    <span class="px-3 py-1 rounded-full text-sm font-bold ${isPresent ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-200 text-gray-700'}">
-                        ${isPresent ? 'حاضر' : 'غائب'}
-                    </span>
+            <tr id="row-${st.id}" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b border-gray-100 dark:border-gray-800">
+                <td class="px-6 py-4 font-bold text-lg">${st.name}</td>
+                <td class="px-6 py-4 text-gray-500 font-mono tracking-wider">${st.code}</td>
+                <td class="px-6 py-4" id="status-${st.id}">
+                    ${statusHtml}
                 </td>
-                <td class="px-6 py-3">
-                    <span id="bal-${st.id}" class="font-bold ${st.remainingSessions <= 0 ? 'text-rose-600' : 'text-emerald-600'}">
+                <td class="px-6 py-4">
+                    <span id="bal-${st.id}" class="font-bold text-lg ${st.remainingSessions <= 0 ? 'text-rose-600 bg-rose-100 px-2 py-1 rounded' : 'text-emerald-600 bg-emerald-100 px-2 py-1 rounded'}">
                         ${st.remainingSessions}
                     </span>
                 </td>
-                ${currentAssessmentId ? gradeHtml : '<td class="hidden"></td>'}
             </tr>
         `;
     });
@@ -99,10 +91,12 @@ function updateKPIs() {
     const total = groupStudents.length;
     const present = groupStudents.filter(s => s.attendances && s.attendances.length > 0).length;
     const absent = total - present;
+    const expired = groupStudents.filter(s => s.remainingSessions <= 0).length;
     
     document.getElementById('kpiTotal').innerText = total;
     document.getElementById('kpiPresent').innerText = present;
     document.getElementById('kpiAbsent').innerText = absent;
+    document.getElementById('kpiExpired').innerText = expired;
 }
 
 async function scanStudent(barcode) {
@@ -115,15 +109,13 @@ async function scanStudent(barcode) {
         
         if (res.ok && data.success) {
             const result = data.data;
-            // Play success sound here if needed
             window.showToast(`تم تسجيل حضور: ${result.student.name}`, "success");
             
             if (result.needsRecharge) {
                 window.showToast(result.warning, "warning");
-                // Play warning sound
             }
             
-            // Update local state directly to avoid full refetch
+            // Update local state directly
             const idx = groupStudents.findIndex(s => s.id === result.student.id);
             if (idx !== -1) {
                 groupStudents[idx].remainingSessions = result.student.remainingSessions;
@@ -132,7 +124,6 @@ async function scanStudent(barcode) {
                 renderStudents();
                 updateKPIs();
             } else {
-                // if student wasn't originally in the list? Refetch.
                 fetchGroupData();
             }
         } else {
@@ -140,49 +131,5 @@ async function scanStudent(barcode) {
         }
     } catch (err) {
         window.showToast("خطأ أثناء المسح", "error");
-    }
-}
-
-async function createAssessment() {
-    const title = document.getElementById('assessTitle').value;
-    const maxScore = document.getElementById('assessMax').value;
-    
-    if (!currentGroupId || !title || !maxScore) {
-        window.showToast("برجاء اختيار المجموعة وكتابة اسم التقييم والدرجة", "warning");
-        return;
-    }
-    
-    try {
-        const res = await fetch(`${window.API_BASE_URL}/attendance/assessments`, {
-            method: 'POST',
-            body: JSON.stringify({ groupId: currentGroupId, title, maxScore })
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-            currentAssessmentId = data.data.id;
-            window.showToast("تم إنشاء التقييم، يمكنك رصد الدرجات الآن", "success");
-            document.getElementById('gradeColHeader').classList.remove('hidden');
-            renderStudents();
-        }
-    } catch (err) {
-        window.showToast("فشل إنشاء التقييم", "error");
-    }
-}
-
-async function submitGrade(studentId, score) {
-    if (!score || score === "") return;
-    
-    try {
-        const res = await fetch(`${window.API_BASE_URL}/attendance/assessments/${currentAssessmentId}/grades`, {
-            method: 'POST',
-            body: JSON.stringify({ studentId, score })
-        });
-        
-        if (res.ok) {
-            window.showToast("تم حفظ الدرجة", "success");
-        }
-    } catch (err) {
-        window.showToast("لم يتم حفظ الدرجة", "error");
     }
 }

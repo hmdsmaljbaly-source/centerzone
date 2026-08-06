@@ -9,7 +9,9 @@ router.use(authMiddleware);
 
 router.post('/scan', attendanceController.scanBarcode);
 router.get('/groups/:groupId', attendanceController.getGroupAttendanceStats);
+router.get('/assessments/group/:groupId', attendanceController.getAssessmentsByGroup);
 router.post('/assessments', attendanceController.createAssessment);
 router.post('/assessments/:id/grades', attendanceController.submitGrades);
+router.post('/assessments/:id/grades/bulk', attendanceController.submitGradesBulk);
 
 module.exports = router;

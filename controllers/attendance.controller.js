@@ -141,3 +141,59 @@ exports.submitGrades = async (req, res) => {
     res.status(400).json({ success: false, message: 'Failed to submit grade' });
   }
 };
+
+exports.getAssessmentsByGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const assessments = await prisma.assessment.findMany({
+      where: { centerId: req.tenantId, groupId: groupId },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, data: assessments });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch assessments' });
+  }
+};
+
+exports.submitGradesBulk = async (req, res) => {
+  try {
+    const { id } = req.params; // Assessment ID
+    const { grades } = req.body; // Array of { studentId, score, isAbsent }
+
+    if (!grades || !Array.isArray(grades)) {
+      return res.status(400).json({ success: false, message: 'Invalid payload' });
+    }
+
+    const result = await prisma.$transaction(async (tx) => {
+      let savedCount = 0;
+      for (const g of grades) {
+        await tx.studentGrade.upsert({
+          where: {
+            assessmentId_studentId: {
+              assessmentId: id,
+              studentId: g.studentId
+            }
+          },
+          update: {
+            score: parseFloat(g.score) || 0,
+            isAbsent: g.isAbsent || false
+          },
+          create: {
+            centerId: req.tenantId,
+            assessmentId: id,
+            studentId: g.studentId,
+            score: parseFloat(g.score) || 0,
+            isAbsent: g.isAbsent || false
+          }
+        });
+        savedCount++;
+      }
+      return savedCount;
+    });
+
+    res.status(200).json({ success: true, message: `Successfully saved ${result} grades.` });
+  } catch (err) {
+    console.error("Bulk Grade Error:", err);
+    res.status(400).json({ success: false, message: 'Failed to save grades in bulk' });
+  }
+};
