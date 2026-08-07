@@ -18,7 +18,7 @@ const teacherRoutes = require('./routes/teacher.routes');
 const app = express();
 
 // Global Middlewares
-app.use(helmet());
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
