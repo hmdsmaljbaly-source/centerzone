@@ -172,7 +172,11 @@ tailwind.config = {
             const status = document.getElementById('statusFilterSelect').value;
 
             const filtered = centersList.filter(c => {
-                const matchQ = !query || c.name.toLowerCase().includes(query) || c.username.toLowerCase().includes(query) || c.phone.includes(query);
+                const nameStr = c.name ? String(c.name).toLowerCase() : '';
+                const userStr = c.username ? String(c.username).toLowerCase() : '';
+                const phoneStr = c.phone ? String(c.phone) : '';
+
+                const matchQ = !query || nameStr.includes(query) || userStr.includes(query) || phoneStr.includes(query);
                 const matchStatus = status === 'ALL' || c.status === status;
                 return matchQ && matchStatus;
             });
@@ -418,24 +422,24 @@ tailwind.config = {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${cards.map((c, index) => \`
+                                ${cards.map((c, index) => `
                                     <tr>
-                                        <td>\${index + 1}</td>
-                                        <td style="font-family: monospace; font-size: 14px; font-weight: bold;">\${c.code}</td>
-                                        <td style="font-weight: bold; color: \${c.status === 'USED' ? 'red' : 'green'}">\${c.status === 'USED' ? 'مستعمل' : 'غير مستعمل'}</td>
+                                        <td>${index + 1}</td>
+                                        <td style="font-family: monospace; font-size: 14px; font-weight: bold;">${c.code}</td>
+                                        <td style="font-weight: bold; color: ${c.status === 'USED' ? 'red' : 'green'}">${c.status === 'USED' ? 'مستعمل' : 'غير مستعمل'}</td>
                                         <td>
-                                            <svg id="barcode-\${c.id}"></svg>
+                                            <svg id="barcode-${c.id}"></svg>
                                         </td>
                                     </tr>
-                                \`).join('')}
+                                `).join('')}
                             </tbody>
                         </table>
 
                         <script>
                             window.onload = function() {
-                                \${cards.map(c => \`
+                                ${cards.map(c => `
                                     try {
-                                        JsBarcode("#barcode-\${c.id}", "\${c.code}", {
+                                        JsBarcode("#barcode-${c.id}", "${c.code}", {
                                             format: "CODE128",
                                             height: 35,
                                             width: 1.5,
@@ -445,9 +449,9 @@ tailwind.config = {
                                     } catch(e) {
                                         console.error(e);
                                     }
-                                \`).join('')}
+                                `).join('')}
                             };
-                        <\/script>
+                        </script>
                     </body>
                     </html>
                 `);
