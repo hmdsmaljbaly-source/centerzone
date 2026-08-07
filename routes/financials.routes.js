@@ -10,5 +10,8 @@ router.use(authMiddleware);
 
 router.post('/closing', rbacMiddleware(['CENTER_ADMIN']), financialsController.executeShiftClosing);
 router.get('/summary', financialsController.getFinancialSummary);
+router.post('/expenses', financialsController.createExpense);
+router.get('/expenses', financialsController.getExpenses);
+router.post('/payouts', financialsController.createPayout);
 
 module.exports = router;

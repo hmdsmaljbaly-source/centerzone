@@ -34,8 +34,8 @@ exports.registerStudent = async (req, res) => {
           barcode: code,
           name,
           grade: grade || "",
-          student_phone: phone,
-          parent_phone: parentPhone
+          studentPhone: phone,
+          parentPhone: parentPhone
         }
       });
 

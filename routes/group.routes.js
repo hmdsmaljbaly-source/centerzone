@@ -8,7 +8,10 @@ router.use(tenantMiddleware);
 router.use(authMiddleware);
 
 router.get('/', groupController.getGroups);
+router.post('/', groupController.createGroup);
 router.get('/today', groupController.getTodayGroups);
 router.get('/:id', groupController.getGroupById);
+router.put('/:id', groupController.updateGroup);
+router.get('/:id/students', groupController.getGroupStudents);
 
 module.exports = router;

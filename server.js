@@ -24,6 +24,87 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(express.static('public'));
 
+const path = require('path');
+const bcrypt = require('bcryptjs');
+
+// Seeding Super Admin & Default Center for testing
+async function seedSuperAdmin() {
+  try {
+    const defaultCenter = await prisma.center.findFirst({
+      where: { OR: [{ id: 'center-101' }, { centerId: 'center-101' }, { code: 'center-101' }] }
+    });
+    if (!defaultCenter) {
+      await prisma.center.create({
+        data: {
+          id: 'center-101',
+          centerId: 'center-101',
+          code: 'center-101',
+          name: 'سنتر النخبة التعليمي',
+          allowedStudentCodes: 1000
+        }
+      });
+      console.log('✅ Default test center center-101 created');
+    }
+
+    const hashedPassword = await bcrypt.hash('gebo777', 10);
+    const existingAdmin = await prisma.superAdmin.findFirst({
+      where: {
+        OR: [
+          { username: 'admin' },
+          { username: 'super_admain' },
+          { email: 'admin@centerzone.com' },
+          { email: 'superadmin@centerzone.com' }
+        ]
+      }
+    });
+
+    if (existingAdmin) {
+      await prisma.superAdmin.update({
+        where: { id: existingAdmin.id },
+        data: {
+          username: 'super_admain',
+          email: 'superadmin@centerzone.com',
+          password: hashedPassword,
+          name: 'Super Admin'
+        }
+      });
+      console.log('✅ Super Admin account updated to: super_admain / gebo777');
+    } else {
+      await prisma.superAdmin.create({
+        data: {
+          username: 'super_admain',
+          email: 'superadmin@centerzone.com',
+          password: hashedPassword,
+          name: 'Super Admin'
+        }
+      });
+      console.log('✅ Default Super Admin account seeded: super_admain / gebo777');
+    }
+  } catch (error) {
+    console.error('Error seeding Super Admin:', error.message);
+  }
+}
+seedSuperAdmin();
+
+// HTML Routes Direct Mapping
+app.get('/', (req, res) => res.sendFile(path.resolve(__dirname, 'public/login.html')));
+app.get('/login', (req, res) => res.sendFile(path.resolve(__dirname, 'public/login.html')));
+app.get('/login.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/login.html')));
+
+app.get('/dashboard', (req, res) => res.sendFile(path.resolve(__dirname, 'public/index.html')));
+app.get('/index.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/index.html')));
+
+app.get('/super-admin', (req, res) => res.sendFile(path.resolve(__dirname, 'public/super-admin.html')));
+app.get('/super-admin.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/super-admin.html')));
+
+app.get('/students.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/students.html')));
+app.get('/teachers.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/teachers.html')));
+app.get('/inventory.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/inventory.html')));
+app.get('/scanner.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/scanner.html')));
+app.get('/settings.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/settings.html')));
+app.get('/financials', (req, res) => res.sendFile(path.resolve(__dirname, 'public/financials.html')));
+app.get('/financials.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/financials.html')));
+
 // API Routes mounting
 app.use('/api/super-admin', superadminRoutes);
 app.use('/api/students', studentRoutes);
@@ -34,6 +115,7 @@ app.use('/api/inventory', posRoutes);
 app.use('/api/pos', posRoutes); // Alias
 app.use('/api/finance', financialsRoutes);
 app.use('/api/financials', financialsRoutes); // Alias
+app.use('/api/halls', require('./routes/hall.routes'));
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {

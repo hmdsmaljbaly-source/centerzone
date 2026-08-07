@@ -153,9 +153,9 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
 
         function updateSummaryStats(filteredData) {
             document.getElementById('statTotalStudents').textContent = filteredData.length;
-            document.getElementById('statActiveStudents').textContent = filteredData.filter(s => s.alert_status === 'NORMAL').length;
-            document.getElementById('statWarningStudents').textContent = filteredData.filter(s => s.alert_status === 'WARNING').length;
-            document.getElementById('statBlockedStudents').textContent = filteredData.filter(s => s.alert_status === 'BLOCKED').length;
+            document.getElementById('statActiveStudents').textContent = filteredData.filter(s => s.alertStatus === 'NORMAL').length;
+            document.getElementById('statWarningStudents').textContent = filteredData.filter(s => s.alertStatus === 'WARNING').length;
+            document.getElementById('statBlockedStudents').textContent = filteredData.filter(s => s.alertStatus === 'BLOCKED').length;
         }
 
         function renderTable(dataList) {
@@ -173,10 +173,9 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             dataList.forEach(student => {
                 let badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
                 let statusLabel = '🟢 نشط (عادي)';
-                if (student.alert_status === 'WARNING') {
-                    badgeClass = 'bg-amber-500/10 text-amber-300 border-amber-500/20';
-                    statusLabel = '🟡 تنبيه مالي';
-                } else if (student.alert_status === 'BLOCKED') {
+                if (student.alertStatus === 'WARNING') {
+                    statusLabel = '<span class="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-xs border border-amber-500/30">إنذار</span>';
+                } else if (student.alertStatus === 'BLOCKED') {
                     badgeClass = 'bg-rose-500/10 text-rose-400 border-rose-500/20';
                     statusLabel = '🔴 محظور';
                 }
@@ -194,8 +193,8 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                                 `).join('') || '<span class="text-[10px] text-slate-500">غير مسجل</span>'}
                             </div>
                         </td>
-                        <td class="p-3.5 font-mono text-slate-300">${student.student_phone || '--'}</td>
-                        <td class="p-3.5 font-mono text-slate-300">${student.parent_phone}</td>
+                        <td class="p-3.5 font-mono text-slate-300">${student.studentPhone || '--'}</td>
+                        <td class="p-3.5 font-mono text-slate-300">${student.parentPhone}</td>
                         <td class="p-3.5">
                             <div class="bg-white p-1 rounded-lg w-max shadow-sm border border-slate-300">
                                 <svg id="table-barcode-${student.id}" class="h-8"></svg>
@@ -287,15 +286,14 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                 const payload = { 
                     name, 
                     phone: studentPhone,
-                    student_phone: studentPhone, 
-                    parentPhone,
-                    parent_phone: parentPhone, 
+                    studentPhone: studentPhone, 
+                    parentPhone: parentPhone, 
                     grade,
                     teacherId: teacherId || null,
                     groupId: groupId || null,
                     notes: alertNote,
-                    alert_note: alertNote,
-                    alert_status: alertNote ? 'WARNING' : 'NORMAL' 
+                    alertNote: alertNote,
+                    alertStatus: alertNote ? 'WARNING' : 'NORMAL' 
                 };
 
                 const response = await fetch('/api/students', {

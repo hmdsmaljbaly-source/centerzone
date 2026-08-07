@@ -34,8 +34,8 @@ function renderProfile(student) {
     document.getElementById('stName').innerText = student.name;
     document.getElementById('stCode').innerText = student.code;
     document.getElementById('stGrade').innerText = student.grade || "غير محدد";
-    document.getElementById('stPhone').innerText = student.student_phone || "لا يوجد";
-    document.getElementById('stParentPhone').innerText = student.parent_phone || "لا يوجد";
+    document.getElementById('stPhone').innerText = student.studentPhone || "لا يوجد";
+    document.getElementById('stParentPhone').innerText = student.parentPhone || "لا يوجد";
     
     const sessionsBadge = document.getElementById('stSessions');
     sessionsBadge.className = 'flex flex-col gap-1';

@@ -82,3 +82,62 @@ exports.getFinancialSummary = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch financial summary' });
   }
 };
+
+exports.createExpense = async (req, res) => {
+  try {
+    const { title, category, amount } = req.body;
+    if (!title || !amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ success: false, message: '???? ????? ????? ??????? ?????? ???? ????' });
+    }
+    const expense = await prisma.expense.create({
+      data: {
+        centerId: req.tenantId,
+        title: title.trim(),
+        category: category || '????',
+        amount: parseFloat(amount)
+      }
+    });
+    res.status(201).json({ success: true, message: '?? ????? ??????? ???????? ?????', data: expense });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.getExpenses = async (req, res) => {
+  try {
+    const expenses = await prisma.expense.findMany({
+      where: { centerId: req.tenantId },
+      orderBy: { createdAt: 'desc' }
+    });
+    res.status(200).json({ success: true, data: expenses });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+exports.createPayout = async (req, res) => {
+  try {
+    const { teacherId, amount, notes } = req.body;
+    if (!teacherId || !amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ success: false, message: '?????? ??????? ??? ?????? ?? ?????? ??? ????' });
+    }
+    const teacher = await prisma.teacher.findFirst({
+      where: { id: teacherId, centerId: req.tenantId }
+    });
+    if (!teacher) {
+      return res.status(404).json({ success: false, message: '?????? ??? ????? ?? ?? ???? ???? ??????' });
+    }
+    const payout = await prisma.teacherPayout.create({
+      data: {
+        centerId: req.tenantId,
+        teacherId,
+        amount: parseFloat(amount),
+        notes: notes || '????? ??????? ?????'
+      }
+    });
+    res.status(201).json({ success: true, message: '?? ????? ?????? ?????? ?????', data: payout });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+

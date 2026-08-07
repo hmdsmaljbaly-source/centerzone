@@ -2,12 +2,12 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/auth.middleware');
 const tenantMiddleware = require('../middleware/tenant.middleware');
-const teacherController = require('../controllers/teacher.controller');
+const hallController = require('../controllers/hall.controller');
 
 router.use(tenantMiddleware);
 router.use(authMiddleware);
 
-router.get('/', teacherController.getTeachers);
-router.post('/', teacherController.createTeacher);
-router.get('/:id/profile', teacherController.getTeacherProfile);
+router.get('/', hallController.getHalls);
+router.post('/', hallController.createHall);
+
 module.exports = router;

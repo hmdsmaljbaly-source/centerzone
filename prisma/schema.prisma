@@ -66,10 +66,9 @@ model Center {
   expiresAt           DateTime?
   email               String?            @unique
   phone               String?
-  password_hash       String?
-  subscription_status SubscriptionStatus @default(TRIAL)
-  expires_at          DateTime?
-  whatsapp_template   String?            @db.Text
+  passwordHash       String?            @map("password_hash")
+  subscriptionStatus SubscriptionStatus @default(TRIAL) @map("subscription_status")
+  whatsappTemplate   String?            @db.Text @map("whatsapp_template")
 
   allowedStudentCodes Int    @default(0)
   usedStudentCodes    Int    @default(0)
@@ -148,8 +147,8 @@ model Teacher {
   phone            String
   stage            String?        @map("stage")
   grades           Json?          @map("grades")
-  commission_type  CommissionType @default(PERCENTAGE) @map("commission_type")
-  commission_value Decimal        @default(0.00) @map("commission_value") @db.Decimal(10, 2)
+  commissionType   CommissionType @default(PERCENTAGE) @map("commission_type")
+  commissionValue  Decimal        @default(0.00) @map("commission_value") @db.Decimal(10, 2)
   centerPercentage Float          @default(30.0) @map("center_percentage")
   createdAt        DateTime       @default(now()) @map("created_at")
   updatedAt        DateTime       @updatedAt @map("updated_at")
@@ -193,10 +192,10 @@ model Student {
   barcode             String   @default("")
   name                String
   grade               String   @default("")
-  student_phone       String?  @map("student_phone")
-  parent_phone        String   @map("parent_phone")
-  alert_status        Boolean  @default(false) @map("alert_status")
-  alert_note          String?  @map("alert_note") @db.Text
+  studentPhone        String?  @map("student_phone")
+  parentPhone         String   @map("parent_phone")
+  alertStatus         Boolean  @default(false) @map("alert_status")
+  alertNote           String?  @map("alert_note") @db.Text
   isBlocked           Boolean  @default(false)
   hasFinancialWarning Boolean  @default(false)
   createdAt           DateTime @default(now()) @map("created_at")
@@ -215,6 +214,7 @@ model Student {
   @@unique([centerId, code])
   @@index([centerId])
   @@index([code])
+  @@index([barcode])
   @@map("students")
 }
 
@@ -230,7 +230,7 @@ model Group {
   grade            String   @default("")
   price            Float
   sessionsPerMonth Int      @default(4) @map("sessions_per_month")
-  schedule_days    Json?    @map("schedule_days") // Kept for backward compatibility if needed, but not required
+  scheduleDays     Json?    @map("schedule_days") // Kept for backward compatibility if needed, but not required
   createdAt        DateTime @default(now()) @map("created_at")
   updatedAt        DateTime @updatedAt @map("updated_at")
 
@@ -251,21 +251,21 @@ model Group {
 model Attendance {
   id         String           @id @default(uuid())
   centerId   String?          @map("center_id")
-  student_id String           @map("student_id")
-  group_id   String           @map("group_id")
+  studentId  String           @map("student_id")
+  groupId    String           @map("group_id")
   date       DateTime         @db.Date
   status     AttendanceStatus @default(PRESENT)
   createdAt  DateTime         @default(now()) @map("created_at")
   updatedAt  DateTime         @updatedAt @map("updated_at")
 
   center  Center?  @relation(fields: [centerId], references: [id], onDelete: Cascade)
-  student Student  @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  group   Group    @relation(fields: [group_id], references: [id], onDelete: Cascade)
+  student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-  @@unique([student_id, group_id, date])
+  @@unique([studentId, groupId, date])
   @@index([centerId])
-  @@index([student_id])
-  @@index([group_id])
+  @@index([studentId])
+  @@index([groupId])
   @@map("attendance")
 }
 
@@ -318,27 +318,27 @@ model StudentGrade {
 model ServiceSale {
   id          String   @id @default(uuid())
   centerId    String   @map("center_id")
-  student_id  String   @map("student_id")
-  service_id  String   @map("service_id")
-  amount_paid Decimal  @map("amount_paid") @db.Decimal(10, 2)
+  studentId   String   @map("student_id")
+  serviceId   String   @map("service_id")
+  amountPaid  Decimal  @map("amount_paid") @db.Decimal(10, 2)
   date        DateTime @default(now())
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   center  Center         @relation(fields: [centerId], references: [id], onDelete: Cascade)
-  student Student        @relation(fields: [student_id], references: [id], onDelete: Cascade)
-  service TeacherService @relation(fields: [service_id], references: [id], onDelete: Cascade)
+  student Student        @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  service TeacherService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@index([centerId])
-  @@index([student_id])
-  @@index([service_id])
+  @@index([studentId])
+  @@index([serviceId])
   @@map("service_sales")
 }
 
 model SystemLogMessage {
   id            String   @id @default(uuid())
   centerId      String   @map("center_id")
-  message_count Int      @default(1) @map("message_count")
+  messageCount  Int      @default(1) @map("message_count")
   date          DateTime @default(now())
   createdAt     DateTime @default(now()) @map("created_at")
 

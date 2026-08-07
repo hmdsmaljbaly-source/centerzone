@@ -73,9 +73,9 @@ exports.executeCheckout = async (req, res) => {
           serviceSale = await tx.serviceSale.create({
             data: {
               centerId: req.tenantId,
-              student_id: studentId,
-              service_id: service.id,
-              amount_paid: totalPrice
+              studentId: studentId,
+              serviceId: service.id,
+              amountPaid: totalPrice
             }
           });
         }

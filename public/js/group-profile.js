@@ -62,7 +62,7 @@ function renderRoster(searchQuery) {
 
     const filtered = groupData.students.filter(s => {
         if (!searchQuery) return true;
-        return (s.name && s.name.includes(searchQuery)) || (s.code && s.code.includes(searchQuery)) || (s.student_phone && s.student_phone.includes(searchQuery));
+        return (s.name && s.name.includes(searchQuery)) || (s.code && s.code.includes(searchQuery)) || (s.studentPhone && s.studentPhone.includes(searchQuery));
     });
 
     if (filtered.length === 0) {
@@ -78,8 +78,8 @@ function renderRoster(searchQuery) {
             <tr class="hover:bg-slate-800/40 transition">
                 <td class="p-3 font-mono text-sky-400"><a href="student-profile.html?id=${st.id}" class="hover:underline">${st.code}</a></td>
                 <td class="p-3 font-bold text-white"><a href="student-profile.html?id=${st.id}" class="hover:underline">${st.name}</a></td>
-                <td class="p-3 text-slate-400 font-mono">${st.student_phone || '--'}</td>
-                <td class="p-3 text-amber-300 font-mono">${st.parent_phone || '--'}</td>
+                <td class="p-3 text-slate-400 font-mono">${st.studentPhone || '--'}</td>
+                <td class="p-3 text-amber-300 font-mono">${st.parentPhone || '--'}</td>
                 <td class="p-3 text-center">${badge}</td>
             </tr>
         `;

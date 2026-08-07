@@ -114,7 +114,7 @@ async function scanStudent(barcode) {
     try {
         const res = await fetch(`${window.API_BASE_URL}/attendance/scan`, {
             method: 'POST',
-            body: JSON.stringify({ studentBarcode: barcode, groupId: currentGroupId })
+            body: JSON.stringify({ student_code: barcode, groupId: currentGroupId })
         });
         const data = await res.json();
         
@@ -129,7 +129,7 @@ async function scanStudent(barcode) {
             // Update local state directly
             const idx = groupStudents.findIndex(s => s.id === result.student.id);
             if (idx !== -1) {
-                groupStudents[idx].remainingSessions = result.student.remainingSessions;
+                groupStudents[idx].remainingSessions = result.data?.remainingSessions ?? result.student?.remainingSessions ?? 0;
                 if (!groupStudents[idx].attendances) groupStudents[idx].attendances = [];
                 groupStudents[idx].attendances.push(result.attendance);
                 renderStudents();

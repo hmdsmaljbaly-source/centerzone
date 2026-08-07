@@ -37,8 +37,8 @@ exports.scanBarcode = async (req, res) => {
         await tx.attendance.create({
           data: {
             centerId: req.tenantId,
-            student_id: student.id,
-            group_id: groupId,
+            studentId: student.id,
+            groupId: groupId,
             date: new Date(),
             status: 'PRESENT'
           }
@@ -58,8 +58,8 @@ exports.scanBarcode = async (req, res) => {
       const attendance = await tx.attendance.create({
         data: {
           centerId: req.tenantId,
-          student_id: student.id,
-          group_id: groupId,
+          studentId: student.id,
+          groupId: groupId,
           date: new Date(),
           status: 'PRESENT'
         }
@@ -96,7 +96,7 @@ exports.getGroupAttendanceStats = async (req, res) => {
       },
       include: {
         attendances: {
-          where: { date: new Date(), group_id: groupId } // today's attendance for this group
+          where: { date: new Date(), groupId: groupId } // today's attendance for this group
         },
         studentGrades: {
           include: { assessment: true }
