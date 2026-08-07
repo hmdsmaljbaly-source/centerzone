@@ -14,6 +14,7 @@ const posRoutes = require('./routes/pos.routes');
 const financialsRoutes = require('./routes/financials.routes');
 const groupRoutes = require('./routes/group.routes');
 const teacherRoutes = require('./routes/teacher.routes');
+const authRoutes = require('./routes/auth.routes');
 
 const app = express();
 
@@ -107,6 +108,7 @@ app.get('/financials.html', (req, res) => res.sendFile(path.resolve(__dirname, '
 
 // API Routes mounting
 app.use('/api/super-admin', superadminRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/groups', groupRoutes);
