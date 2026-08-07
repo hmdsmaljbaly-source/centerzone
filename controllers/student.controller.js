@@ -98,7 +98,15 @@ exports.getStudentProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Student not found' });
     }
 
-    res.status(200).json({ success: true, data: student });
+    const formattedStudent = {
+      ...student,
+      studentGrades: (student.studentGrades || []).map(g => ({
+        ...g,
+        score: g.grade
+      }))
+    };
+
+    res.status(200).json({ success: true, data: formattedStudent });
   } catch (err) {
     res.status(500).json({ success: false, message: 'Failed to fetch student profile' });
   }

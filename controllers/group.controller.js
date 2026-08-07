@@ -66,7 +66,23 @@ exports.getGroupById = async (req, res) => {
             }
         });
         if (!group) return res.status(404).json({ success: false, message: 'Group not found' });
-        res.status(200).json({ success: true, data: group });
+        
+        const students = (group.enrollments || []).map(e => ({
+            id: e.student.id,
+            code: e.student.code,
+            name: e.student.name,
+            studentPhone: e.student.studentPhone,
+            parentPhone: e.student.parentPhone,
+            remainingSessions: e.remainingSessions
+        }));
+
+        const groupData = {
+            ...group,
+            students
+        };
+        delete groupData.enrollments;
+
+        res.status(200).json({ success: true, data: groupData });
     } catch (err) {
         res.status(500).json({ success: false, message: 'Failed to fetch group' });
     }
@@ -185,21 +201,21 @@ exports.getGroupStudents = async (req, res) => {
     const attendances = await prisma.attendance.findMany({
       where: {
         centerId: req.tenantId,
-        group_id: id,
+        groupId: id,
         date: { gte: firstDay, lte: lastDay },
         status: 'PRESENT'
       }
     });
 
     const studentData = students.map(s => {
-      const attendedCount = attendances.filter(a => a.student_id === s.id).length;
+      const attendedCount = attendances.filter(a => a.studentId === s.id).length;
       const remainingSessions = Math.max(0, sessionsPerMonth - attendedCount);
       return {
         id: s.id,
         code: s.code,
         barcode: s.barcode || s.code,
         name: s.name,
-        phone: s.student_phone || s.parent_phone || 'غير مسجل',
+        phone: s.studentPhone || s.parentPhone || 'غير مسجل',
         grade: s.grade || group.grade || 'عام',
         attendedCount,
         remainingSessions,
