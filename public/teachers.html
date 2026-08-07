@@ -394,23 +394,20 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت البدأ (مثال 16:00)</label>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت البدء (مثال 16:00)</label>
                         <input type="text" id="groupStartTimeInput" placeholder="16:00" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
                     </div>
                     <div>
-                        </thead>
-                        <tbody id="gpStudentsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
-                            <tr>
-                                <td colspan="5" class="text-center py-6 text-slate-500">جاري إحضار بيانات الطلاب...</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت الإنتهاء (مثال 18:00)</label>
+                        <input type="text" id="groupEndTimeInput" placeholder="18:00" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
+                    </div>
                 </div>
-            </div>
 
-            <div class="flex justify-end pt-2 border-t border-slate-800">
-                <button onclick="closeGroupProfileModal()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-xl transition-all">إغلاق نافذة المجموعة</button>
-            </div>
+                <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                    <button type="button" onclick="closeAddGroupModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl font-bold">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs rounded-xl font-bold shadow-lg shadow-purple-600/20">حفظ المجموعة</button>
+                </div>
+            </form>
         </div>
     </div>
 
