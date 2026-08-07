@@ -10,6 +10,7 @@ router.use(authMiddleware);
 router.post('/', studentController.registerStudent);
 router.get('/', studentController.getStudents);
 router.get('/:id/profile', studentController.getStudentProfile);
+router.get('/:id', studentController.getStudentProfile);
 router.post('/:id/pay', studentController.payFees);
 
 module.exports = router;

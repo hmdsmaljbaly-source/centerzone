@@ -228,3 +228,85 @@ exports.getGroupStudents = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getSessionHub = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const group = await prisma.group.findFirst({
+      where: { id, centerId: req.tenantId },
+      include: {
+        teacher: true,
+        hall: true,
+        enrollments: {
+          include: {
+            student: true
+          }
+        }
+      }
+    });
+
+    if (!group) {
+      return res.status(404).json({ success: false, message: 'Group not found' });
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tom = new Date(today);
+    tom.setDate(tom.getDate() + 1);
+
+    const attendances = await prisma.attendance.findMany({
+      where: {
+        centerId: req.tenantId,
+        groupId: id,
+        date: {
+          gte: today,
+          lt: tom
+        }
+      }
+    });
+
+    const enrolledStudents = (group.enrollments || []).map(e => {
+      const att = attendances.find(a => a.studentId === e.studentId);
+      return {
+        id: e.student.id,
+        code: e.student.code,
+        barcode: e.student.barcode || e.student.code,
+        name: e.student.name,
+        studentPhone: e.student.studentPhone,
+        parentPhone: e.student.parentPhone,
+        remainingSessions: e.remainingSessions,
+        isPresent: !!att && att.status === 'PRESENT'
+      };
+    });
+
+    const totalStudents = enrolledStudents.length;
+    const presentCount = enrolledStudents.filter(s => s.isPresent).length;
+    const absentCount = totalStudents - presentCount;
+    const attendanceRate = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        group: {
+          id: group.id,
+          name: group.name,
+          teacherName: group.teacher?.name,
+          hallName: group.hall?.name,
+          dayOfWeek: group.dayOfWeek,
+          startTime: group.startTime,
+          endTime: group.endTime,
+          price: group.price
+        },
+        students: enrolledStudents,
+        stats: {
+          totalStudents,
+          presentCount,
+          absentCount,
+          attendanceRate
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};

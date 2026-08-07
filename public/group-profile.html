@@ -36,13 +36,53 @@
     </header>
 
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
-        <div id="loading" class="text-center py-10 text-xl font-bold text-slate-300">جاري تحميل بيانات المجموعة...</div>
+        <!-- Switch Group Header Controls -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 shadow-md">
+            <div class="flex items-center gap-3">
+                <label class="text-xs font-bold text-slate-400">اختر المجموعة للبدء:</label>
+                <select id="groupSelector" onchange="switchActiveGroup(this.value)" class="bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-bold focus:ring-2 focus:ring-sky-500 outline-none">
+                    <option value="">جاري تحميل المجموعات...</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <div class="relative w-64">
+                    <input type="text" id="barcodeScanner" placeholder="مرر كود الطالب بالمسدس..." class="w-full bg-slate-950 border border-slate-700 text-emerald-400 font-mono font-bold rounded-xl pr-9 pl-3 py-2 text-xs outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-950 transition-all">
+                    <i class="fa-solid fa-barcode absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                </div>
+            </div>
+        </div>
+
+        <div id="loading" class="text-center py-12 text-lg font-bold text-slate-400 flex flex-col items-center gap-3">
+            <i class="fa-solid fa-circle-notch fa-spin text-sky-500 text-3xl"></i>
+            جاري تحميل لوحة التحكم للمجموعة...
+        </div>
 
         <div id="groupContent" class="hidden space-y-6">
+            <!-- Stats Counters -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow flex flex-col">
+                    <span class="text-slate-500 text-[10px] font-bold">إجمالي طلاب المجموعة</span>
+                    <span id="statTotal" class="text-2xl font-black text-white mt-1">0</span>
+                </div>
+                <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow flex flex-col bg-emerald-950/10 border-l-4 border-l-emerald-500">
+                    <span class="text-emerald-500 text-[10px] font-bold">الحضور اليوم</span>
+                    <span id="statPresent" class="text-2xl font-black text-emerald-400 mt-1">0</span>
+                </div>
+                <div class="bg-slate-900 border border-slate-800/80 rounded-2xl p-4 shadow flex flex-col bg-rose-950/10 border-l-4 border-l-rose-500">
+                    <span class="text-rose-500 text-[10px] font-bold">الغياب اليوم</span>
+                    <span id="statAbsent" class="text-2xl font-black text-rose-400 mt-1">0</span>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow flex flex-col">
+                    <span class="text-slate-500 text-[10px] font-bold">نسبة الحضور اليوم</span>
+                    <span id="statRate" class="text-2xl font-black text-indigo-400 mt-1">0%</span>
+                </div>
+            </div>
+
             <!-- Group Metadata Card -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-3xl border border-indigo-500/30">
+                    <div class="w-16 h-16 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-3xl border border-sky-500/30">
                         <i class="fa-solid fa-users-rectangle"></i>
                     </div>
                     <div>
@@ -66,14 +106,37 @@
                 </div>
             </div>
 
+            <!-- Session Evaluation Form -->
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+                <h3 class="text-sm font-bold text-white flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-signature text-purple-400"></i> رصد درجات وتقييم لحصة اليوم
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">اسم التقييم/الامتحان</label>
+                        <input type="text" id="evalTitle" placeholder="مثال: كويز الحصة الثالثة" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">الدرجة النهائية</label>
+                        <input type="number" id="evalMaxScore" value="10" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3 py-2 text-xs font-mono outline-none">
+                    </div>
+                    <button onclick="createSessionAssessment()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-xl text-xs transition-all shadow-md shadow-purple-600/10">
+                        تفعيل رصد الدرجات للحصة
+                    </button>
+                </div>
+                <div id="evalStatusInfo" class="hidden text-xs bg-purple-950/20 border border-purple-500/20 p-2.5 rounded-xl text-purple-300">
+                    <i class="fa-solid fa-info-circle ml-1"></i> تم إنشاء التقييم وجاهز لرصد الدرجات. اضغط على حفظ أسفل الجدول عند الانتهاء.
+                </div>
+            </div>
+
             <!-- Students Roster Section -->
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
                 <div class="flex justify-between items-center border-b border-slate-800 pb-4">
                     <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-list-check text-indigo-400"></i> قائمة الطلاب المسجلين
+                        <i class="fa-solid fa-list-check text-sky-400"></i> كشف حضور وتقييمات الحصة
                     </h3>
                     <div class="relative w-64">
-                        <input type="text" id="searchInput" placeholder="بحث عن طالب..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs outline-none focus:border-sky-500">
+                        <input type="text" id="searchInput" placeholder="بحث سريع في الكشف..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl pr-9 pl-3 py-2 text-xs outline-none focus:border-sky-500">
                         <i class="fa-solid fa-magnifying-glass absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                     </div>
                 </div>
@@ -84,9 +147,9 @@
                             <tr>
                                 <th class="p-3">كود الطالب</th>
                                 <th class="p-3">اسم الطالب</th>
-                                <th class="p-3">هاتف الطالب</th>
-                                <th class="p-3">هاتف ولي الأمر</th>
                                 <th class="p-3 text-center">الرصيد المتبقي</th>
+                                <th class="p-3 text-center">حضور الحصة</th>
+                                <th class="p-3 text-center">درجة التقييم اليوم</th>
                             </tr>
                         </thead>
                         <tbody id="rosterBody" class="divide-y divide-slate-800/60">
@@ -94,10 +157,269 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="gradeSaveSection" class="hidden flex justify-end pt-3 border-t border-slate-800">
+                    <button onclick="saveAllGrades()" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-save"></i> حفظ درجات جميع الطلاب
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
-    <script src="js/group-profile.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        let activeGroupId = urlParams.get('id');
+        let sessionHubData = null;
+        let activeAssessmentId = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
+            
+            loadGroupsDropdown();
+            setupBarcodeScanner();
+
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase().trim();
+                renderSessionRoster(query);
+            });
+        });
+
+        async function loadGroupsDropdown() {
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/groups`);
+                const resData = await response.json();
+                
+                if (response.ok && resData.success) {
+                    const selector = document.getElementById('groupSelector');
+                    selector.innerHTML = '<option value="">-- اختر مجموعة --</option>';
+                    
+                    (resData.data || []).forEach(g => {
+                        const isSelected = g.id === activeGroupId ? 'selected' : '';
+                        selector.insertAdjacentHTML('beforeend', `<option value="${g.id}" ${isSelected}>${g.name}</option>`);
+                    });
+
+                    // Auto-select first group if no active ID
+                    if (!activeGroupId && resData.data.length > 0) {
+                        switchActiveGroup(resData.data[0].id);
+                    } else if (activeGroupId) {
+                        fetchSessionHubData();
+                    }
+                }
+            } catch (err) {
+                window.showToast?.("فشل في تحميل المجموعات المتاحة", "error");
+            }
+        }
+
+        function switchActiveGroup(groupId) {
+            if (groupId) {
+                window.location.href = `group-profile.html?id=${groupId}`;
+            }
+        }
+
+        async function fetchSessionHubData() {
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/groups/${activeGroupId}/session-hub`);
+                const resData = await response.json();
+                
+                if (!response.ok || !resData.success) {
+                    throw new Error(resData.message || 'Failed to fetch session hub');
+                }
+                
+                sessionHubData = resData.data;
+                renderSessionHub();
+            } catch (err) {
+                window.showToast?.("تعذر تحميل لوحة تحكم الحصة الحالية", "error");
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) loadingEl.innerText = "حدث خطأ أثناء تحميل بيانات المجموعة";
+            }
+        }
+
+        function renderSessionHub() {
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('groupContent');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (contentEl) contentEl.classList.remove('hidden');
+
+            const g = sessionHubData.group;
+            const stats = sessionHubData.stats;
+
+            // Render Metadata
+            document.getElementById('groupName').innerText = g.name;
+            document.getElementById('groupTeacher').innerHTML = `<i class="fa-solid fa-chalkboard-user ml-1"></i>${g.teacherName || 'غير محدد'}`;
+            document.getElementById('groupGrade').innerText = g.grade || "عام";
+            document.getElementById('groupSchedule').innerText = `${g.dayOfWeek || ''} ${g.startTime || ''} (${g.hallName || 'بدون قاعة'})`;
+            document.getElementById('groupPrice').innerText = `${g.price || 0} ج.م`;
+
+            // Render Stats
+            document.getElementById('statTotal').innerText = stats.totalStudents;
+            document.getElementById('statPresent').innerText = stats.presentCount;
+            document.getElementById('statAbsent').innerText = stats.absentCount;
+            document.getElementById('statRate').innerText = `${stats.attendanceRate}%`;
+
+            renderSessionRoster('');
+        }
+
+        function renderSessionRoster(searchQuery) {
+            const tbody = document.getElementById('rosterBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const list = sessionHubData.students || [];
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 font-bold">لا يوجد طلاب مسجلين في المجموعة حالياً</td></tr>`;
+                return;
+            }
+
+            const filtered = list.filter(s => {
+                if (!searchQuery) return true;
+                return (s.name && s.name.includes(searchQuery)) || (s.code && s.code.includes(searchQuery));
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-500 font-bold">لا يوجد نتائج تطابق البحث</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(st => {
+                const quotaBadge = st.remainingSessions <= 0 
+                    ? `<span class="px-2.5 py-1 rounded-full border border-rose-500/20 bg-rose-500/10 text-rose-400 text-xs font-mono font-bold">0 حصص متبقية (يرجى الشحن)</span>`
+                    : `<span class="px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-400 text-xs font-mono font-bold">${st.remainingSessions} حصص</span>`;
+
+                const presenceBadge = st.isPresent
+                    ? `<span class="px-2.5 py-1 rounded-full border border-emerald-500/30 bg-emerald-500/20 text-emerald-300 text-xs font-bold"><i class="fa-solid fa-circle-check ml-1"></i>حاضر اليوم</span>`
+                    : `<span class="px-2.5 py-1 rounded-full border border-rose-500/30 bg-rose-500/20 text-rose-300 text-xs font-bold"><i class="fa-solid fa-circle-xmark ml-1"></i>غائب اليوم</span>`;
+
+                const gradeInput = activeAssessmentId
+                    ? `<input type="number" step="0.5" min="0" placeholder="رصد..." data-student-id="${st.id}" class="grade-input w-20 bg-slate-950 border border-slate-700 text-center text-xs text-white py-1 rounded-lg outline-none focus:border-purple-500">`
+                    : `<span class="text-xs text-slate-500">تطلب تفعيل التقييم</span>`;
+
+                const rowHtml = `
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="p-3 font-mono text-sky-400">${st.code}</td>
+                        <td class="p-3 font-bold text-white"><a href="student-profile.html?id=${st.id}" class="hover:underline">${st.name}</a></td>
+                        <td class="p-3 text-center">${quotaBadge}</td>
+                        <td class="p-3 text-center">${presenceBadge}</td>
+                        <td class="p-3 text-center">${gradeInput}</td>
+                    </tr>
+                `;
+                tbody.insertAdjacentHTML('beforeend', rowHtml);
+            });
+        }
+
+        function setupBarcodeScanner() {
+            const scanner = document.getElementById('barcodeScanner');
+            if (!scanner) return;
+
+            scanner.addEventListener('keypress', async (e) => {
+                if (e.key === 'Enter') {
+                    const barcode = scanner.value.trim();
+                    if (!barcode) return;
+                    
+                    scanner.value = '';
+                    scanner.disabled = true;
+
+                    try {
+                        const response = await window.fetchWithCenter(`${window.API_BASE_URL}/attendance/scan`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ studentBarcode: barcode, groupId: activeGroupId })
+                        });
+                        
+                        const resData = await response.json();
+                        
+                        if (response.ok && resData.success) {
+                            window.showToast?.("تم تسجيل حضور الطالب بنجاح", "success");
+                            fetchSessionHubData(); // Reload statistics and roster
+                        } else {
+                            throw new Error(resData.message || 'فشل تسجيل حضور الطالب');
+                        }
+                    } catch (err) {
+                        window.showToast?.(err.message, "error");
+                    } finally {
+                        scanner.disabled = false;
+                        scanner.focus();
+                    }
+                }
+            });
+        }
+
+        async function createSessionAssessment() {
+            const title = document.getElementById('evalTitle').value.trim();
+            const maxScore = document.getElementById('evalMaxScore').value;
+
+            if (!title || !maxScore) {
+                window.showToast?.("برجاء إدخال اسم التقييم والدرجة النهائية أولاً", "warning");
+                return;
+            }
+
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/attendance/assessments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ groupId: activeGroupId, title, maxScore })
+                });
+
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    activeAssessmentId = resData.data.id;
+                    window.showToast?.("تم تفعيل التقييم اليوم للحصة بنجاح", "success");
+                    document.getElementById('evalStatusInfo').classList.remove('hidden');
+                    document.getElementById('gradeSaveSection').classList.remove('hidden');
+                    renderSessionRoster(''); // Reload table to show inputs
+                } else {
+                    throw new Error(resData.message || 'فشل تفعيل التقييم');
+                }
+            } catch (err) {
+                window.showToast?.(err.message, "error");
+            }
+        }
+
+        async function saveAllGrades() {
+            if (!activeAssessmentId) return;
+
+            const inputs = document.querySelectorAll('.grade-input');
+            const gradesPayload = [];
+
+            inputs.forEach(input => {
+                const scoreStr = input.value.trim();
+                const studentId = input.getAttribute('data-student-id');
+                
+                if (scoreStr !== '') {
+                    gradesPayload.push({
+                        studentId,
+                        score: parseFloat(scoreStr) || 0,
+                        isAbsent: false
+                    });
+                }
+            });
+
+            if (gradesPayload.length === 0) {
+                window.showToast?.("لا توجد درجات مرصودة لحفظها", "warning");
+                return;
+            }
+
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/attendance/assessments/${activeAssessmentId}/grades/bulk`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ grades: gradesPayload })
+                });
+
+                const resData = await response.json();
+
+                if (response.ok && resData.success) {
+                    window.showToast?.("تم حفظ درجات تقييم جميع الطلاب بنجاح", "success");
+                } else {
+                    throw new Error(resData.message || 'فشل حفظ الدرجات');
+                }
+            } catch (err) {
+                window.showToast?.(err.message, "error");
+            }
+        }
+    </script>
 </body>
 </html>

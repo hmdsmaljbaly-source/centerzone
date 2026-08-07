@@ -13,5 +13,6 @@ router.get('/today', groupController.getTodayGroups);
 router.get('/:id', groupController.getGroupById);
 router.put('/:id', groupController.updateGroup);
 router.get('/:id/students', groupController.getGroupStudents);
+router.get('/:id/session-hub', groupController.getSessionHub);
 
 module.exports = router;

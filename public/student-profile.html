@@ -188,17 +188,134 @@
         </div>
     </div>
 
-    <script src="js/student-profile.js"></script>
     <script>
-        // Update tab styling logic to match new UI
-        window.originalSwitchTab = window.switchTab;
-        window.switchTab = function(tabId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const studentId = urlParams.get('id');
+        let currentStudentData = null;
+
+        if (!studentId) {
+            window.showToast?.("رقم الطالب غير متوفر", "error");
+            setTimeout(() => { window.location.href = 'students.html'; }, 1500);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const el = document.getElementById('headerCenterName');
+            if (el && window.getActiveCenterHeader) el.textContent = window.getActiveCenterHeader();
+            fetchStudentData();
+        });
+
+        async function fetchStudentData() {
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/students/${studentId}`);
+                const data = await response.json();
+                
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Error fetching profile');
+                }
+                
+                currentStudentData = data.data;
+                renderProfile(data.data);
+            } catch (err) {
+                window.showToast?.("فشل في تحميل بيانات الطالب", "error");
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) loadingEl.innerText = "حدث خطأ أثناء تحميل الملف الشخصي للطالب";
+            }
+        }
+
+        function renderProfile(student) {
+            const loadingEl = document.getElementById('loading');
+            const profileEl = document.getElementById('profileContent');
+            if (loadingEl) loadingEl.classList.add('hidden');
+            if (profileEl) profileEl.classList.remove('hidden');
+            
+            const sName = student.name || student.studentName || '---';
+            const sCode = student.code || student.studentCode || '---';
+            const sPhone = student.studentPhone || '---';
+            const sParentPhone = student.parentPhone || '---';
+
+            document.getElementById('stName').innerText = sName;
+            document.getElementById('stCode').innerText = sCode;
+            document.getElementById('stGrade').innerText = student.grade || "غير محدد";
+            document.getElementById('stPhone').innerText = sPhone;
+            document.getElementById('stParentPhone').innerText = sParentPhone;
+            
+            const sessionsBadge = document.getElementById('stSessions');
+            if (sessionsBadge) {
+                sessionsBadge.className = 'flex flex-col gap-1';
+                sessionsBadge.innerHTML = (student.enrollments || []).map(en => {
+                    const gName = en.group?.name || en.group?.groupName || 'مجموعة';
+                    const rem = en.remainingSessions ?? 0;
+                    const cls = rem <= 0 
+                        ? 'font-bold text-sm text-rose-600 px-3 py-1 bg-rose-100 rounded-full w-max'
+                        : 'font-bold text-sm text-emerald-600 px-3 py-1 bg-emerald-100 rounded-full w-max';
+                    return `<span class="${cls}">${gName}: ${rem} حصص</span>`;
+                }).join('') || '<span class="font-bold text-sm text-slate-500 px-3 py-1 bg-slate-100 rounded-full">غير مسجل</span>';
+            }
+
+            const attList = document.getElementById('attendanceList');
+            if (attList) {
+                attList.innerHTML = (student.attendances || []).map(a => {
+                    const gName = a.group?.name || a.group?.groupName || '---';
+                    return `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3">${new Date(a.date).toLocaleDateString('ar-EG')}</td>
+                            <td class="px-4 py-3">${gName}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 text-xs rounded-full ${a.status === 'PRESENT' ? 'bg-emerald-500/20 text-emerald-300' : 'bg-rose-500/20 text-rose-300'}">
+                                    ${a.status === 'PRESENT' ? 'حاضر' : 'غائب'}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('') || '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500 font-bold">لا يوجد سجل حضور للمجموعات حالياً</td></tr>';
+            }
+
+            const finList = document.getElementById('financialsList');
+            if (finList) {
+                finList.innerHTML = (student.feePayments || []).map(f => {
+                    const typeLabel = f.paymentType === 'MONTHLY' ? 'شحن رصيد شهري' : (f.paymentType === 'BOOKLET_ONLY' ? 'شراء مذكرة' : f.paymentType || 'مدفوعات أخرى');
+                    return `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3">${new Date(f.createdAt).toLocaleDateString('ar-EG')}</td>
+                            <td class="px-4 py-3 font-bold text-emerald-400">${f.amount} ج.م</td>
+                            <td class="px-4 py-3">${typeLabel}</td>
+                        </tr>
+                    `;
+                }).join('') || '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500 font-bold">لا توجد عمليات دفع مسجلة لهذا الطالب</td></tr>';
+            }
+
+            const grdList = document.getElementById('gradesList');
+            if (grdList) {
+                grdList.innerHTML = (student.studentGrades || []).map(g => {
+                    const gradeVal = parseFloat(g.score ?? g.grade ?? 0);
+                    const maxVal = parseFloat(g.assessment?.maxScore ?? 100);
+                    const perc = maxVal > 0 ? ((gradeVal / maxVal) * 100).toFixed(1) : '0';
+                    return `
+                        <tr class="hover:bg-slate-800/40 transition">
+                            <td class="px-4 py-3">${g.assessment?.title || 'تقييم'}</td>
+                            <td class="px-4 py-3 font-bold text-indigo-400">${gradeVal} / ${maxVal}</td>
+                            <td class="px-4 py-3">
+                                <div class="w-full bg-slate-950 rounded-full h-2.5 border border-slate-800">
+                                  <div class="bg-indigo-500 h-2 rounded-full" style="width: ${perc}%"></div>
+                                </div>
+                                <span class="text-xs text-slate-400">${perc}%</span>
+                            </td>
+                        </tr>
+                    `;
+                }).join('') || '<tr><td colspan="3" class="px-4 py-3 text-center text-slate-500 font-bold">لا يوجد درجات مسجلة في الامتحانات</td></tr>';
+            }
+        }
+
+        function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => {
                 el.classList.remove('block');
                 el.classList.add('hidden');
             });
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('block');
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) {
+                activeTab.classList.remove('hidden');
+                activeTab.classList.add('block');
+            }
             
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.classList.remove('text-indigo-400', 'border-indigo-500');
@@ -206,11 +323,68 @@
             });
             
             const activeBtn = document.querySelector(`.tab-btn[data-target="${tabId}"]`);
-            if(activeBtn) {
+            if (activeBtn) {
                 activeBtn.classList.remove('text-slate-500', 'border-transparent');
                 activeBtn.classList.add('text-indigo-400', 'border-indigo-500');
             }
-        };
+        }
+
+        function openRechargeModal() {
+            const modal = document.getElementById('rechargeModal');
+            if (modal) modal.classList.remove('hidden');
+            
+            const groupSelect = document.getElementById('chargeGroup');
+            if (groupSelect && currentStudentData) {
+                groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+                (currentStudentData.enrollments || []).forEach(en => {
+                    const gName = en.group?.name || en.group?.groupName || 'مجموعة';
+                    groupSelect.insertAdjacentHTML('beforeend', `<option value="${en.groupId}">${gName}</option>`);
+                });
+            }
+        }
+
+        function closeRechargeModal() {
+            const modal = document.getElementById('rechargeModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function submitRecharge() {
+            const amount = document.getElementById('chargeAmount').value;
+            const sessions = document.getElementById('chargeSessions').value;
+            const discountNote = document.getElementById('chargeDiscount').value;
+            const groupSelect = document.getElementById('chargeGroup');
+            const groupId = groupSelect ? groupSelect.value : '';
+            
+            if (!amount || !sessions) {
+                window.showToast?.("برجاء إدخال المبلغ وعدد الحصص", "warning");
+                return;
+            }
+            
+            if (groupSelect && !groupId) {
+                window.showToast?.("برجاء اختيار المجموعة المستهدفة", "warning");
+                return;
+            }
+
+            try {
+                const response = await window.fetchWithCenter(`${window.API_BASE_URL}/students/${studentId}/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, sessions: parseInt(sessions), discountNote, groupId })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    window.showToast?.("تم شحن الرصيد بنجاح", "success");
+                    closeRechargeModal();
+                    fetchStudentData();
+                } else {
+                    throw new Error(data.message || 'فشل في عملية الشحن');
+                }
+            } catch (err) {
+                window.showToast?.(err.message, "error");
+            }
+        }
     </script>
 </body>
 </html>

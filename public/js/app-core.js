@@ -1,6 +1,10 @@
 // Core Application Logic - Shared interceptors, headers, and UI alerts
 window.API_BASE_URL = window.location.origin + '/api';
 
+window.fetchWithCenter = async (resource, config = {}) => {
+  return window.fetch(resource, config);
+};
+
 window.getActiveCenterHeader = () => {
   return localStorage.getItem('active_center_id') || '';
 };
