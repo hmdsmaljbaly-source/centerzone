@@ -142,7 +142,7 @@ tailwind.config = {
                 const rowHtml = `
                     <tr class="hover:bg-slate-800/40 transition-colors">
                         <td class="p-3.5 font-mono font-bold text-purple-400">${center.id}</td>
-                        <td class="p-3.5 font-bold text-white">${center.name}</td>
+                        <td class="p-3.5 font-bold text-white"><a href="center-profile.html?id=${center.dbId}" class="text-blue-400 font-bold hover:underline hover:text-blue-300 transition-colors">${center.name}</a></td>
                         <td class="p-3.5 font-mono text-sky-400">${center.username}</td>
                         <td class="p-3.5 font-mono text-slate-300">${center.phone}</td>
                         <td class="p-3.5 font-mono text-center text-indigo-300"><i class="fa-solid fa-user-graduate text-xs ml-1"></i>${center.studentCount} / <i class="fa-solid fa-chalkboard-user text-xs ml-1"></i>${center.teacherCount}</td>

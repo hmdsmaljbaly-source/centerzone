@@ -98,6 +98,9 @@ app.get('/index.html', (req, res) => res.sendFile(path.resolve(__dirname, 'publi
 app.get('/super-admin', (req, res) => res.sendFile(path.resolve(__dirname, 'public/super-admin.html')));
 app.get('/super-admin.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/super-admin.html')));
 
+app.get('/center-profile', (req, res) => res.sendFile(path.resolve(__dirname, 'public/center-profile.html')));
+app.get('/center-profile.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/center-profile.html')));
+
 app.get('/students.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/students.html')));
 app.get('/teachers.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/teachers.html')));
 app.get('/inventory.html', (req, res) => res.sendFile(path.resolve(__dirname, 'public/inventory.html')));

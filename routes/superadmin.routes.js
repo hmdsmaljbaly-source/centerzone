@@ -12,6 +12,8 @@ router.use(rbacMiddleware(['SUPER_ADMIN']));
 
 router.get('/centers', superadminController.getCenters);
 router.post('/centers', superadminController.createCenter);
+router.get('/centers/:id', superadminController.getCenterById);
+router.put('/centers/:id/subscription', superadminController.updateCenterSubscription);
 router.patch('/centers/:idOrCode/status', superadminController.toggleCenterStatus);
 router.put('/centers/:idOrCode/password', superadminController.changeCenterPassword);
 router.delete('/centers/:idOrCode', superadminController.deleteCenter);

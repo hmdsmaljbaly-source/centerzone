@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="h-full bg-slate-950 selection:bg-purple-500 selection:text-white">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ملف السنتر وإدارة الاشتراك - لوحة تحكم السوبر أدمن</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Cairo & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+        }
+        .bg-grid-pattern {
+            background-size: 30px 30px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        }
+    </style>
+</head>
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+
+    <!-- Header Navigation -->
+    <header class="bg-slate-900/90 border-b border-slate-800 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <div class="w-9 h-9 rounded-xl bg-purple-600/20 text-purple-400 flex items-center justify-center text-lg">
+                    <i class="fa-solid fa-building-columns"></i>
+                </div>
+                <div>
+                    <h1 id="headerCenterName" class="font-bold text-base text-white">جاري تحميل بيانات السنتر...</h1>
+                    <p class="text-[10px] text-slate-400">ملف السنتر التعريفي وإدارة الاشتراك</p>
+                </div>
+            </div>
+            <div>
+                <a href="/super-admin.html" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-purple-300 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span>العودة للوحة السوبر أدمن الرئيسية</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        <!-- Top Profile & Stats Grid -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Card 1: Center Core Details -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="text-xs font-black text-purple-400 border-b border-slate-800 pb-2.5 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-info"></i> بيانات السنتر الأساسية
+                </h3>
+                <div class="space-y-3 text-xs">
+                    <div class="flex justify-between"><span class="text-slate-400">اسم السنتر:</span> <span id="centerName" class="font-bold text-white">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">كود السنتر (Tenant ID):</span> <span id="centerCode" class="font-mono font-bold text-sky-400">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">حساب المدير (Username):</span> <span id="adminUsername" class="font-mono text-purple-300">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">رقم التواصل:</span> <span id="centerPhone" class="font-mono text-slate-300">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">حالة الاشتراك:</span> <span id="subscriptionStatus" class="px-2 py-0.5 rounded text-[10px] font-bold">--</span></div>
+                    <div class="flex justify-between"><span class="text-slate-400">تاريخ انتهاء الخدمة:</span> <span id="subscriptionExpiry" class="font-mono text-amber-400">--</span></div>
+                </div>
+            </div>
+
+            <!-- Card 2: Prepaid Code Quota Statistics -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="text-xs font-black text-purple-400 border-b border-slate-800 pb-2.5 flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved"></i> إحصائيات كروت الأكواد مسبقة الدفع
+                </h3>
+                <div class="space-y-3.5">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">الأكواد المستعملة (الطلاب المسجلين):</span> <span id="usedCodesLabel" class="font-bold text-white">0 / 0</span></div>
+                        <div class="w-full bg-slate-950 rounded-full h-2">
+                            <div id="quotaProgress" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center pt-2">
+                        <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">الحصة الكلية</span>
+                            <span id="statAllowedCodes" class="text-sm font-black text-white font-mono">0</span>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">المستخدمة</span>
+                            <span id="statUsedCodes" class="text-sm font-black text-purple-400 font-mono">0</span>
+                        </div>
+                        <div class="bg-slate-950 p-2.5 rounded-2xl border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block mb-0.5">المتبقية</span>
+                            <span id="statRemainingCodes" class="text-sm font-black text-emerald-400 font-mono">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Entities Counters -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <h3 class="text-xs font-black text-purple-400 border-b border-slate-800 pb-2.5 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-simple"></i> إحصائيات النشاط الكلي
+                </h3>
+                <div class="grid grid-cols-3 gap-3 h-[calc(100%-35px)] items-center">
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-1">
+                        <i class="fa-solid fa-user-graduate text-sky-400 text-lg"></i>
+                        <span class="text-[10px] text-slate-400 block">الطلاب المسجلين</span>
+                        <span id="statStudentsCount" class="text-base font-black text-white font-mono block">0</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-1">
+                        <i class="fa-solid fa-chalkboard-user text-amber-400 text-lg"></i>
+                        <span class="text-[10px] text-slate-400 block">المدرسين</span>
+                        <span id="statTeachersCount" class="text-base font-black text-white font-mono block">0</span>
+                    </div>
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 text-center space-y-1">
+                        <i class="fa-solid fa-users-rectangle text-purple-400 text-lg"></i>
+                        <span class="text-[10px] text-slate-400 block">المجموعات</span>
+                        <span id="statGroupsCount" class="text-base font-black text-white font-mono block">0</span>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Management Actions Forms section -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Form A: Prepaid Code Batch Generator -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-qrcode"></i>
+                    </div>
+                    <h3 class="text-xs font-bold text-white">توليد دفعة أكواد كروت تسجيل مسبقة الدفع</h3>
+                </div>
+                
+                <form id="profileGenerateCodesForm" onsubmit="handleProfileGenerateCodes(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">الكمية المراد توليدها *</label>
+                            <input type="number" id="profileGenQuantity" required value="100" min="1" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-mono outline-none focus:ring-1 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">الرقم التسلسلي للبداية *</label>
+                            <input type="number" id="profileGenStartIndex" required value="1001" min="1" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-mono outline-none focus:ring-1 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all">
+                            توليد أكواد الدفعة
+                        </button>
+                        <button type="button" onclick="downloadProfileCodesCSV()" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center gap-1" title="تحميل شيت الكروت">
+                            <i class="fa-solid fa-file-excel"></i> <span>تصدير Excel (CSV)</span>
+                        </button>
+                        <button type="button" onclick="printProfileCodesBarcodes()" class="bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center gap-1" title="طباعة باركود">
+                            <i class="fa-solid fa-print"></i> <span>طباعة كروت</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Form B: Subscription Modification & Renewal -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+                <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <div class="w-8 h-8 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-calendar-days"></i>
+                    </div>
+                    <h3 class="text-xs font-bold text-white">تعديل وتجديد اشتراك السنتر (Quick Renewal)</h3>
+                </div>
+
+                <form id="profileRenewalForm" onsubmit="handleProfileRenewal(event)" class="space-y-4">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">الحد الأقصى للأكواد (Quota) *</label>
+                            <input type="number" id="renewalMaxCodes" required min="1" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-mono outline-none focus:ring-1 focus:ring-purple-500">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">تاريخ انتهاء الخدمة الجديد *</label>
+                            <input type="date" id="renewalExpiryDate" required class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-3 py-2 text-xs font-mono outline-none focus:ring-1 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">نوع الباقة *</label>
+                            <select id="renewalPlan" required class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer">
+                                <option value="ACTIVE">نشط (ACTIVE)</option>
+                                <option value="TRIAL">تجريبي (TRIAL)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-400 mb-1">حالة السنتر الفورية *</label>
+                            <select id="renewalIsActive" required class="w-full bg-slate-950 border border-slate-700 text-slate-200 rounded-xl px-3 py-2 text-xs outline-none focus:ring-1 focus:ring-purple-500 cursor-pointer">
+                                <option value="true">نشط ومفعل (🟢 Active)</option>
+                                <option value="false">موقوف ومجمد (🔴 Suspended)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="pt-1">
+                        <button type="submit" class="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs shadow-md transition-all">
+                            حفظ وتطبيق إعدادات الاشتراك الجديدة
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Toast Notification Popup -->
+    <div id="toastNotification" class="fixed bottom-5 left-5 z-50 bg-slate-800 border border-slate-700 text-white text-xs font-bold px-4 py-3 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-purple-400"></i>
+        <span id="toastMessage">إشعار النظام</span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/center-profile.js"></script>
+</body>
+</html>

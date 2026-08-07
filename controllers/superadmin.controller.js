@@ -42,25 +42,56 @@ exports.getCenters = async (req, res) => {
 
 exports.createCenter = async (req, res) => {
   try {
-    const { name, code, plan, maxStudentCodes } = req.body;
-    const centerId = code || `center-${Math.floor(100 + Math.random() * 900)}`;
+    const { name, code, phone, maxStudentCodes, adminUsername, adminPassword, plan, expiresAt } = req.body;
+    
+    const plainPassword = adminPassword || '123456';
+    const hashedPassword = await bcrypt.hash(plainPassword, 10);
+    const managerPasswordHash = await bcrypt.hash('123456', 10); // default manager password
+    
+    const finalCode = code || `CODE-${Math.floor(1000 + Math.random() * 9000)}`;
+    const finalCenterId = code || `center-${Math.floor(100 + Math.random() * 900)}`;
+    const finalUsername = adminUsername || finalCenterId;
     const quota = parseInt(maxStudentCodes) || 500;
+    const finalExpiry = expiresAt || '2026-12-31';
 
     const result = await prisma.$transaction(async (tx) => {
       const center = await tx.center.create({
         data: {
-          name,
-          centerId,
-          code,
+          name: name || 'السنتر التعليمي',
+          centerId: finalCenterId,
+          code: finalCode,
           plan: plan || 'ACTIVE',
+          isActive: true,
+          phone: phone || null,
+          email: `${finalUsername}_${Date.now()}@saas-center.com`,
+          passwordHash: hashedPassword,
+          subscriptionStatus: plan === 'TRIAL' ? 'TRIAL' : 'ACTIVE',
+          expiresAt: new Date(finalExpiry),
           allowedStudentCodes: quota,
+          managerPasswordHash
         }
       });
-      return center;
+
+      const user = await tx.user.create({
+        data: {
+          username: finalUsername,
+          password: hashedPassword,
+          role: 'CENTER_ADMIN',
+          centerId: center.id
+        }
+      });
+
+      return { center, user };
     });
 
-    res.status(201).json({ success: true, data: result });
+    res.status(201).json({ 
+      success: true, 
+      message: 'تم إنشاء السنتر وتكاويد حساب المدير بنجاح', 
+      data: result.center, 
+      user: { username: result.user.username } 
+    });
   } catch (err) {
+    console.error('Error creating center:', err);
     res.status(400).json({ success: false, message: err.message || 'Failed to create center' });
   }
 };
@@ -285,5 +316,103 @@ exports.updateProfile = async (req, res) => {
     res.status(200).json({ success: true, message: 'تم تحديث إعدادات حساب السوبر أدمن بنجاح', data: { username: updatedAdmin.username, email: updatedAdmin.email } });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.getCenterById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const center = await prisma.center.findFirst({
+      where: {
+        OR: [
+          { id: id },
+          { centerId: id },
+          { code: id }
+        ]
+      },
+      include: {
+        users: {
+          select: { username: true }
+        },
+        _count: {
+          select: {
+            students: true,
+            teachers: true,
+            groups: true,
+            prepaidCards: true
+          }
+        }
+      }
+    });
+
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر المحدد غير موجود' });
+    }
+
+    const remainingCodes = Math.max(0, (center.allowedStudentCodes || 0) - (center.usedStudentCodes || 0));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: center.id,
+        centerId: center.centerId,
+        name: center.name,
+        code: center.code,
+        plan: center.plan,
+        isActive: center.isActive,
+        expiresAt: center.expiresAt,
+        phone: center.phone || 'غير مسجل',
+        adminUsername: center.users[0]?.username || 'admin',
+        allowedStudentCodes: center.allowedStudentCodes,
+        usedStudentCodes: center.usedStudentCodes,
+        remainingCodes: remainingCodes,
+        studentsCount: center._count.students,
+        teachersCount: center._count.teachers,
+        groupsCount: center._count.groups
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching center profile stats:', err);
+    res.status(500).json({ success: false, message: 'Failed to fetch center profile stats' });
+  }
+};
+
+exports.updateCenterSubscription = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { expiresAt, allowedStudentCodes, plan, isActive } = req.body;
+
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ id }, { centerId: id }, { code: id }] }
+    });
+
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+
+    const updateData = {};
+    if (expiresAt) {
+      updateData.expiresAt = new Date(expiresAt);
+    }
+    if (allowedStudentCodes !== undefined) {
+      updateData.allowedStudentCodes = parseInt(allowedStudentCodes) || 0;
+    }
+    if (plan) {
+      updateData.plan = plan;
+      updateData.subscriptionStatus = plan === 'TRIAL' ? 'TRIAL' : 'ACTIVE';
+    }
+    if (isActive !== undefined) {
+      updateData.isActive = !!isActive;
+    }
+
+    const updated = await prisma.center.update({
+      where: { id: center.id },
+      data: updateData
+    });
+
+    res.status(200).json({ success: true, message: 'تم تحديث اشتراك السنتر بنجاح', data: updated });
+  } catch (err) {
+    console.error('Error updating center subscription:', err);
+    res.status(500).json({ success: false, message: 'Failed to update center subscription' });
   }
 };
