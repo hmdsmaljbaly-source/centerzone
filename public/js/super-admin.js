@@ -460,3 +460,57 @@ tailwind.config = {
                 showToast('حدث خطأ أثناء تصدير شيت الكروت');
             }
         }
+
+        async function downloadPrepaidCardsCSV() {
+            const centerId = document.getElementById('genCenterSelect').value;
+            if (!centerId) {
+                showToast('يرجى اختيار السنتر أولاً لتصدير الشيت');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/super-admin/centers/${centerId}/prepaid-cards`);
+                const resData = await response.json();
+
+                if (!response.ok || !resData.success) {
+                    showToast(resData.message || 'تعذر جلب الأكواد من السيرفر');
+                    return;
+                }
+
+                const cards = resData.data || [];
+                if (cards.length === 0) {
+                    showToast('لا توجد أكواد مولدة لهذا السنتر حالياً');
+                    return;
+                }
+
+                const centerName = resData.centerName || 'السنتر';
+                const maxCodes = resData.maxStudentCodes || 500;
+                const dateStr = new Date().toLocaleDateString('ar-EG').replace(/\//g, '-');
+
+                let csvContent = '\ufeff'; // UTF-8 BOM
+                csvContent += `السنتر التعليمي:,${centerName}\n`;
+                csvContent += `تاريخ التصدير:,${dateStr}\n`;
+                csvContent += `إجمالي الكروت:,${cards.length}\n`;
+                csvContent += `الحد الأقصى المسموح (Quota):,${maxCodes}\n\n`;
+                
+                csvContent += 'كود الكارت (Serial Code),الحالة (Status),قيمة الباركود (Barcode Value)\n';
+                
+                cards.forEach(c => {
+                    const statusLabel = c.status === 'USED' ? 'مستعمل' : 'غير مستعمل';
+                    csvContent += `"${c.code}","${statusLabel}","${c.code}"\n`;
+                });
+
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `كروت_تسجيل_${centerName}_${dateStr}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showToast('تم تحميل شيت الكروت بنجاح!');
+            } catch (err) {
+                showToast('حدث خطأ أثناء تصدير شيت الكروت');
+            }
+        }

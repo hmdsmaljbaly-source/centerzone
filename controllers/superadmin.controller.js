@@ -173,3 +173,117 @@ exports.getPrepaidCards = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to fetch prepaid cards' });
   }
 };
+
+exports.toggleCenterStatus = async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    const newIsActive = !center.isActive;
+    const updated = await prisma.center.update({
+      where: { id: center.id },
+      data: {
+        isActive: newIsActive,
+        subscription_status: newIsActive ? 'ACTIVE' : 'SUSPENDED'
+      }
+    });
+    res.status(200).json({ success: true, message: `تم تعديل حالة السنتر إلى ${updated.isActive ? 'نشط' : 'موقوف'}`, data: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.changeCenterPassword = async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const { newPassword, adminPassword, password } = req.body;
+    const targetPassword = newPassword || adminPassword || password;
+    if (!targetPassword) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال كلمة المرور الجديدة' });
+    }
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] },
+      include: { users: true }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    const hashedPassword = await bcrypt.hash(targetPassword, 10);
+    await prisma.center.update({
+      where: { id: center.id },
+      data: { password_hash: hashedPassword }
+    });
+    if (center.users && center.users.length > 0) {
+      await prisma.user.updateMany({
+        where: { centerId: center.id },
+        data: { password: hashedPassword }
+      });
+    }
+    res.status(200).json({ success: true, message: 'تم تغيير كلمة مرور مدير السنتر بنجاح' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.deleteCenter = async (req, res) => {
+  try {
+    const { idOrCode } = req.params;
+    const center = await prisma.center.findFirst({
+      where: { OR: [{ centerId: idOrCode }, { id: idOrCode }, { code: idOrCode }] }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر غير موجود' });
+    }
+    await prisma.$transaction(async (tx) => {
+      await tx.user.deleteMany({ where: { OR: [{ centerId: center.id }, { centerId: center.centerId }] } });
+      await tx.center.delete({ where: { id: center.id } });
+    });
+    res.status(200).json({ success: true, message: 'تم حذف السنتر وجميع بياناته المربوطة بنجاح' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, newUsername, newEmail } = req.body;
+    if (!currentPassword) {
+      return res.status(400).json({ success: false, message: 'يرجى إدخال كلمة المرور الحالية للتأكيد' });
+    }
+    let admin = null;
+    if (req.user && req.user.id) {
+      admin = await prisma.superAdmin.findFirst({ where: { OR: [{ id: req.user.id }, { username: req.user.username }] } });
+    }
+    if (!admin) {
+      admin = await prisma.superAdmin.findFirst();
+    }
+    if (!admin) {
+      return res.status(404).json({ success: false, message: 'حساب السوبر أدمن غير موجود' });
+    }
+    const isMatch = await bcrypt.compare(currentPassword, admin.password).catch(() => admin.password === currentPassword);
+    if (!isMatch && admin.password !== currentPassword) {
+      return res.status(401).json({ success: false, message: 'كلمة المرور الحالية غير صحيحة' });
+    }
+    const updateData = {};
+    if (newPassword) {
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
+    if (newUsername) {
+      updateData.username = newUsername;
+    }
+    if (newEmail) {
+      updateData.email = newEmail;
+    }
+    const updatedAdmin = await prisma.superAdmin.update({
+      where: { id: admin.id },
+      data: updateData
+    });
+    res.status(200).json({ success: true, message: 'تم تحديث إعدادات حساب السوبر أدمن بنجاح', data: { username: updatedAdmin.username, email: updatedAdmin.email } });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -168,8 +168,11 @@
                     <button type="submit" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-2 px-4 rounded-xl text-xs shadow-md transition-all">
                         توليد الأكواد
                     </button>
-                    <button type="button" onclick="exportPrintablePrepaidCards()" class="bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1" title="تصدير شيت الكروت">
-                        <i class="fa-solid fa-file-excel"></i> <span>تصدير الشيت</span>
+                    <button type="button" onclick="downloadPrepaidCardsCSV()" class="bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1" title="تحميل ملف Excel CSV">
+                        <i class="fa-solid fa-file-excel"></i> <span>تحميل Excel (CSV)</span>
+                    </button>
+                    <button type="button" onclick="exportPrintablePrepaidCards()" class="bg-slate-800 hover:bg-slate-700 text-purple-400 border border-slate-700 font-bold py-2 px-3 rounded-xl text-xs transition-all flex items-center justify-center gap-1" title="طباعة كروت الباركود">
+                        <i class="fa-solid fa-print"></i> <span>طباعة الباركود</span>
                     </button>
                 </div>
             </form>
