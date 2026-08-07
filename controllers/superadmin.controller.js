@@ -92,3 +92,84 @@ exports.generatePrepaidCards = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to generate prepaid cards' });
   }
 };
+
+exports.generatePrepaidCodes = async (req, res) => {
+  try {
+    const { centerId, quantity, startIndex } = req.body;
+    const numCards = parseInt(quantity);
+    const startIdx = parseInt(startIndex);
+
+    if (!centerId || isNaN(numCards) || isNaN(startIdx)) {
+      return res.status(400).json({ success: false, message: 'بيانات غير مكتملة لتوليد الأكواد' });
+    }
+
+    const center = await prisma.center.findUnique({
+      where: { id: centerId }
+    });
+
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر المحدد غير موجود' });
+    }
+
+    const generatedCount = await prisma.centerPrepaidCard.count({
+      where: { centerId }
+    });
+
+    const limit = center.maxStudentCodes ?? 500;
+    if (generatedCount + numCards > limit) {
+      return res.status(400).json({ 
+        success: false, 
+        message: `لا يمكن التوليد: تجاوز الحصّة المحددة للسنتر (${limit}). تم توليد ${generatedCount} سابقاً، والمتاح حالياً هو ${limit - generatedCount} كود فقط.` 
+      });
+    }
+
+    const cardsToCreate = [];
+    const prefix = 'CENZ-';
+    for (let i = 0; i < numCards; i++) {
+      const code = `${prefix}${startIdx + i}`;
+      cardsToCreate.push({
+        centerId,
+        prefix,
+        code,
+        status: 'UNUSED'
+      });
+    }
+
+    const created = await prisma.centerPrepaidCard.createMany({
+      data: cardsToCreate,
+      skipDuplicates: true
+    });
+
+    res.status(201).json({ 
+      success: true, 
+      message: `تم توليد عدد ${created.count} كود بنجاح بالبادئة CENZ-`,
+      data: { count: created.count }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message || 'Failed to generate prepaid codes' });
+  }
+};
+
+exports.getPrepaidCards = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const center = await prisma.center.findUnique({
+      where: { id }
+    });
+    if (!center) {
+      return res.status(404).json({ success: false, message: 'السنتر المحدد غير موجود' });
+    }
+    const cards = await prisma.centerPrepaidCard.findMany({
+      where: { centerId: id },
+      orderBy: { code: 'asc' }
+    });
+    res.status(200).json({ 
+      success: true, 
+      centerName: center.name, 
+      maxStudentCodes: center.maxStudentCodes, 
+      data: cards 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to fetch prepaid cards' });
+  }
+};

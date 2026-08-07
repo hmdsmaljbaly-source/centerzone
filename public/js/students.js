@@ -256,31 +256,87 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             document.getElementById('addStudentForm').reset();
         }
 
-        function handleTeacherSelectChange() {
-            const selectedTeacherId = document.getElementById('studentTeacherSelect').value;
+        function handleGradeChange() {
+            const selectedStage = document.getElementById('inputStudentGrade')?.value;
             const groupSelect = document.getElementById('studentGroupSelect');
             if (!groupSelect) return;
+
+            if (!selectedStage) {
+                groupSelect.innerHTML = '<option value="">اختر السنة الدراسية أولاً...</option>';
+                groupSelect.disabled = true;
+                return;
+            }
+
+            groupSelect.disabled = false;
             groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
 
-            const filteredGroups = selectedTeacherId ? allGroupsList.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId)) : allGroupsList;
-            
+            const selectedTeacherId = document.getElementById('studentTeacherSelect')?.value;
+            let filteredGroups = allGroupsList.filter(g => g.grade === selectedStage);
+            if (selectedTeacherId) {
+                filteredGroups = filteredGroups.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId));
+            }
+
             filteredGroups.forEach(g => {
-                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} ${g.startTime || ''}</option>`);
+                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.name : ''} (${g.dayOfWeek || ''})</option>`);
+            });
+        }
+
+        function handleTeacherSelectChange() {
+            const selectedTeacherId = document.getElementById('studentTeacherSelect').value;
+            const selectedStage = document.getElementById('inputStudentGrade')?.value;
+            const groupSelect = document.getElementById('studentGroupSelect');
+            if (!groupSelect) return;
+
+            if (!selectedStage) {
+                groupSelect.innerHTML = '<option value="">اختر السنة الدراسية أولاً...</option>';
+                groupSelect.disabled = true;
+                return;
+            }
+
+            groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
+            let filteredGroups = allGroupsList.filter(g => g.grade === selectedStage);
+            if (selectedTeacherId) {
+                filteredGroups = filteredGroups.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId));
+            }
+
+            filteredGroups.forEach(g => {
+                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} (${g.teacher ? g.teacher.name : ''})</option>`);
             });
         }
 
         async function handleCreateStudent(e) {
             e.preventDefault();
-            // Safely check usedStudentCodes using defensive null-coalescing operator
-            const usedStudentCodes = window.settings?.usedStudentCodes ?? [];
-            
+            const errAlert = document.getElementById('modalErrorAlert');
+            if (errAlert) {
+                errAlert.classList.add('hidden');
+                errAlert.textContent = '';
+            }
+
             const name = document.getElementById('inputStudentName')?.value?.trim() || '';
             const parentPhone = document.getElementById('inputParentPhone')?.value?.trim() || '';
             const studentPhone = document.getElementById('inputStudentPhone')?.value?.trim() || '';
             const alertNote = document.getElementById('inputAlertNote')?.value?.trim() || '';
-            const grade = document.getElementById('inputStudentGrade')?.value || 'الصف الأول الثانوي';
+            const grade = document.getElementById('inputStudentGrade')?.value || '';
             const teacherId = document.getElementById('studentTeacherSelect')?.value || '';
             const groupId = document.getElementById('studentGroupSelect')?.value || '';
+            
+            let rawCode = document.getElementById('inputPrepaidCode')?.value?.trim() || '';
+
+            // Client-side validation
+            if (!rawCode) {
+                if (errAlert) {
+                    errAlert.textContent = 'يرجى إدخال كود كارت التسجيل';
+                    errAlert.classList.remove('hidden');
+                }
+                return;
+            }
+
+            // Prefix formatting logic
+            let finalCode = rawCode;
+            if (/^\d+$/.test(rawCode)) {
+                // If only digits are entered, automatically prepend CENZ-
+                finalCode = `CENZ-${rawCode}`;
+            }
 
             try {
                 const payload = { 
@@ -291,6 +347,7 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                     grade,
                     teacherId: teacherId || null,
                     groupId: groupId || null,
+                    code: finalCode,
                     notes: alertNote,
                     alertNote: alertNote,
                     alertStatus: alertNote ? 'WARNING' : 'NORMAL' 
@@ -304,14 +361,20 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
 
                 const resData = await response.json();
                 if (!response.ok || !resData.success) {
-                    showToast(resData?.message || resData?.error || 'حدث خطأ أثناء حفظ الطالب');
+                    if (errAlert) {
+                        errAlert.textContent = resData?.message || resData?.error || 'عفواً، كود التسجيل المدخل غير صحيح أو تم استخدامه مسبقاً';
+                        errAlert.classList.remove('hidden');
+                    }
                     return;
                 }
                 closeAddStudentModal();
-                showToast(`تم حفظ الطالب ${name} وتوليد الكود بنجاح`);
+                showToast(`تم حفظ الطالب ${name} بنجاح`);
                 fetchFilteredStudents();
             } catch (err) {
-                showToast('خطأ في الاتصال بالسيرفر');
+                if (errAlert) {
+                    errAlert.textContent = 'خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى';
+                    errAlert.classList.remove('hidden');
+                }
             }
         }
 

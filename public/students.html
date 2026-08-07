@@ -193,6 +193,11 @@
                     <input type="text" id="inputStudentName" required placeholder="أحمد محمود علي" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
                 </div>
 
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">كود كارت التسجيل (مسبق الدفع) *</label>
+                    <input type="text" id="inputPrepaidCode" required placeholder="مثال: 1001 أو CENZ-1001" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">هاتف ولي الأمر *</label>
@@ -202,6 +207,19 @@
                         <label class="block text-xs font-bold text-slate-300 mb-1">هاتف الطالب</label>
                         <input type="text" id="inputStudentPhone" placeholder="010XXXXXXXX" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs font-mono outline-none">
                     </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية (المرحلة) *</label>
+                    <select id="inputStudentGrade" onchange="handleGradeChange()" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
+                        <option value="">اختر السنة الدراسية...</option>
+                        <option value="الصف الأول الإعدادي">الصف الأول الإعدادي</option>
+                        <option value="الصف الثاني الإعدادي">الصف الثاني الإعدادي</option>
+                        <option value="الصف الثالث الإعدادي">الصف الثالث الإعدادي</option>
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -214,27 +232,19 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-300 mb-1">المجموعة الدراسية</label>
-                        <select id="studentGroupSelect" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
-                            <option value="">اختر المجموعة أولاً...</option>
+                        <select id="studentGroupSelect" disabled class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
+                            <option value="">اختر السنة الدراسية أولاً...</option>
                             <!-- Populated dynamically -->
                         </select>
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية (المرحلة)</label>
-                    <select id="inputStudentGrade" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none focus:border-sky-500 cursor-pointer">
-                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
-                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
-                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
-                        <option value="المرحلة الإعدادية">المرحلة الإعدادية</option>
-                    </select>
-                </div>
-
-                <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">سبب التنبيه أو الملاحظات المالية</label>
                     <input type="text" id="inputAlertNote" placeholder="سبب التنبيه إن وجد..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
                 </div>
+
+                <div id="modalErrorAlert" class="hidden text-rose-400 bg-rose-500/10 p-3 rounded-lg text-sm mb-3"></div>
 
                 <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-800">
                     <button type="button" onclick="closeAddStudentModal()" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-bold">إلغاء</button>

@@ -99,6 +99,17 @@ tailwind.config = {
                 centersList = [];
             }
             filterCentersTable();
+            populatePrepaidCenterSelect();
+        }
+
+        function populatePrepaidCenterSelect() {
+            const genSelect = document.getElementById('genCenterSelect');
+            if (genSelect) {
+                genSelect.innerHTML = '<option value="">اختر السنتر...</option>';
+                centersList.forEach(c => {
+                    genSelect.insertAdjacentHTML('beforeend', `<option value="${c.dbId}">${c.name} (${c.id})</option>`);
+                });
+            }
         }
 
         function updateMetrics() {
@@ -304,4 +315,144 @@ tailwind.config = {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0');
             }, 3000);
+        }
+
+        async function handleGeneratePrepaidCodes(e) {
+            e.preventDefault();
+            const centerId = document.getElementById('genCenterSelect').value;
+            const quantity = parseInt(document.getElementById('genQuantity').value) || 0;
+            const startIndex = parseInt(document.getElementById('genStartIndex').value) || 0;
+
+            if (!centerId || quantity <= 0 || startIndex <= 0) {
+                showToast('يرجى ملء جميع الحقول بشكل صحيح');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/super-admin/generate-codes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ centerId, quantity, startIndex })
+                });
+
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    showToast(data.message || 'تم توليد الأكواد بنجاح');
+                    fetchCentersFromApi();
+                } else {
+                    showToast(data.message || 'فشل توليد الأكواد');
+                }
+            } catch (err) {
+                showToast('خطأ في الاتصال بالسيرفر');
+            }
+        }
+
+        async function exportPrintablePrepaidCards() {
+            const centerId = document.getElementById('genCenterSelect').value;
+            if (!centerId) {
+                showToast('يرجى اختيار السنتر أولاً لتصدير الشيت');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/super-admin/centers/${centerId}/prepaid-cards`);
+                const resData = await response.json();
+
+                if (!response.ok || !resData.success) {
+                    showToast(resData.message || 'تعذر جلب الأكواد من السيرفر');
+                    return;
+                }
+
+                const cards = resData.data || [];
+                if (cards.length === 0) {
+                    showToast('لا توجد أكواد مولدة لهذا السنتر حالياً');
+                    return;
+                }
+
+                const centerName = resData.centerName || 'السنتر';
+                const maxCodes = resData.maxStudentCodes || 500;
+                const dateStr = new Date().toLocaleDateString('ar-EG');
+
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="ar" dir="rtl">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>شيت كروت التسجيل - ${centerName}</title>
+                        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"><\/script>
+                        <style>
+                            body { font-family: 'Cairo', sans-serif; padding: 20px; direction: rtl; }
+                            .meta-box { border: 2px solid #333; padding: 15px; margin-bottom: 20px; border-radius: 10px; background-color: #f9f9f9; }
+                            .meta-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
+                            .meta-details { display: grid; grid-template-cols: 1fr 1fr; gap: 10px; font-size: 13px; }
+                            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                            th, td { border: 1px solid #ddd; padding: 10px; text-align: center; font-size: 12px; }
+                            th { background-color: #f1f1f1; }
+                            .btn-print { background-color: #7c3aed; color: white; padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-bottom: 15px; }
+                            @media print {
+                                .btn-print { display: none; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <button class="btn-print" onclick="window.print()">طباعة الشيت 🖨️</button>
+                        
+                        <div class="meta-box">
+                            <div class="meta-title">كشف أكواد كروت التسجيل مسبقة الدفع</div>
+                            <div class="meta-details">
+                                <div><strong>السنتر التعليمي:</strong> ${centerName}</div>
+                                <div><strong>تاريخ التصدير:</strong> ${dateStr}</div>
+                                <div><strong>إجمالي الأكواد:</strong> ${cards.length} كود</div>
+                                <div><strong>الحد الأقصى للسنتر (Quota):</strong> ${maxCodes} كود</div>
+                            </div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>م</th>
+                                    <th>كود الكارت (Serial Code)</th>
+                                    <th>الحالة (Status)</th>
+                                    <th>الباركوود الخطي (Barcode)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${cards.map((c, index) => \`
+                                    <tr>
+                                        <td>\${index + 1}</td>
+                                        <td style="font-family: monospace; font-size: 14px; font-weight: bold;">\${c.code}</td>
+                                        <td style="font-weight: bold; color: \${c.status === 'USED' ? 'red' : 'green'}">\${c.status === 'USED' ? 'مستعمل' : 'غير مستعمل'}</td>
+                                        <td>
+                                            <svg id="barcode-\${c.id}"></svg>
+                                        </td>
+                                    </tr>
+                                \`).join('')}
+                            </tbody>
+                        </table>
+
+                        <script>
+                            window.onload = function() {
+                                \${cards.map(c => \`
+                                    try {
+                                        JsBarcode("#barcode-\${c.id}", "\${c.code}", {
+                                            format: "CODE128",
+                                            height: 35,
+                                            width: 1.5,
+                                            displayValue: false,
+                                            margin: 5
+                                        });
+                                    } catch(e) {
+                                        console.error(e);
+                                    }
+                                \`).join('')}
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            } catch (err) {
+                showToast('حدث خطأ أثناء تصدير شيت الكروت');
+            }
         }

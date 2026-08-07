@@ -13,5 +13,7 @@ router.use(rbacMiddleware(['SUPER_ADMIN']));
 router.get('/centers', superadminController.getCenters);
 router.post('/centers', superadminController.createCenter);
 router.post('/centers/:id/prepaid-cards', superadminController.generatePrepaidCards);
+router.get('/centers/:id/prepaid-cards', superadminController.getPrepaidCards);
+router.post('/generate-codes', superadminController.generatePrepaidCodes);
 
 module.exports = router;
