@@ -1,6 +1,19 @@
 // Core Application Logic - Shared interceptors, headers, and UI alerts
 window.API_BASE_URL = window.location.origin + '/api';
 
+window.formatTime12H = (timeStr) => {
+  if (!timeStr) return '';
+  const parts = timeStr.split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1];
+  if (isNaN(hours)) return timeStr;
+  const ampm = hours >= 12 ? 'م' : 'ص';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  return `${hours}:${minutes} ${ampm}`;
+};
+
 window.fetchWithCenter = async (resource, config = {}) => {
   return window.fetch(resource, config);
 };

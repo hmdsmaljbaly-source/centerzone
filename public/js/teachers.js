@@ -265,7 +265,7 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                 const teacherName = group.teacher?.name ?? 'غير محدد';
                 const subject = group.teacher?.subject ?? 'عام';
                 const hallName = group.hall?.name ?? 'بدون قاعة';
-                const scheduleText = `${group.dayOfWeek ?? ''} ${group.startTime ? `(${group.startTime} - ${group.endTime})` : ''}`.trim() || 'مواعيد غير محددة';
+                const scheduleText = `${group.dayOfWeek ?? ''} ${group.startTime ? `(${window.formatTime12H(group.startTime)} - ${window.formatTime12H(group.endTime)})` : ''}`.trim() || 'مواعيد غير محددة';
                 const enrolled = group.enrolledCount ?? 0;
                 const price = group.price ?? 0;
 
@@ -334,7 +334,7 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                             <div onclick="openGroupProfileModal('${g.id}')" class="bg-slate-900 border border-sky-500/30 hover:border-sky-400 p-2 rounded-xl text-right my-1 cursor-pointer shadow transition-all">
                                 <div class="font-bold text-white text-[11px] truncate">${g.name ?? 'مجموعة'}</div>
                                 <div class="text-[10px] text-purple-400 font-bold">${g.teacher?.name ?? 'مدرس'}</div>
-                                ${g.startTime ? `<div class="text-[10px] font-mono text-emerald-400 mt-0.5"><i class="fa-regular fa-clock ml-1"></i>${g.startTime} - ${g.endTime}</div>` : ''}
+                                ${g.startTime ? `<div class="text-[10px] font-mono text-emerald-400 mt-0.5"><i class="fa-regular fa-clock ml-1"></i>${window.formatTime12H(g.startTime)} - ${window.formatTime12H(g.endTime)}</div>` : ''}
                             </div>
                         `).join('');
                     }
@@ -460,6 +460,7 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             const sessionsPerMonth = parseInt(document.getElementById('groupSessionsInput')?.value) || 4;
             const startTime = document.getElementById('groupStartTimeInput')?.value?.trim() || '';
             const endTime = document.getElementById('groupEndTimeInput')?.value?.trim() || '';
+            const grade = document.getElementById('groupGradeSelect')?.value || '';
             const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => cb.value);
 
             try {
@@ -474,7 +475,8 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                         sessionsPerMonth,
                         dayOfWeek: selectedDays.join(' - '),
                         startTime,
-                        endTime
+                        endTime,
+                        grade
                     })
                 });
 

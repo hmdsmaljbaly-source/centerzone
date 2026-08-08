@@ -364,6 +364,19 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">السنة الدراسية (المرحلة) *</label>
+                    <select id="groupGradeSelect" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none focus:border-purple-500 cursor-pointer">
+                        <option value="">اختر السنة الدراسية...</option>
+                        <option value="الصف الأول الإعدادي">الصف الأول الإعدادي</option>
+                        <option value="الصف الثاني الإعدادي">الصف الثاني الإعدادي</option>
+                        <option value="الصف الثالث الإعدادي">الصف الثالث الإعدادي</option>
+                        <option value="الصف الأول الثانوي">الصف الأول الثانوي</option>
+                        <option value="الصف الثاني الثانوي">الصف الثاني الثانوي</option>
+                        <option value="الصف الثالث الثانوي">الصف الثالث الثانوي</option>
+                    </select>
+                </div>
+
+                <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">اسم المجموعة *</label>
                     <input type="text" id="groupNameInput" required placeholder="مجموعة السبت والأربعاء - 4 عصراً" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs outline-none">
                 </div>
@@ -398,12 +411,12 @@
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت البدء (مثال 16:00)</label>
-                        <input type="text" id="groupStartTimeInput" placeholder="16:00" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
+                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت البدء *</label>
+                        <input type="time" id="groupStartTimeInput" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none cursor-pointer">
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت الإنتهاء (مثال 18:00)</label>
-                        <input type="text" id="groupEndTimeInput" placeholder="18:00" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none">
+                        <label class="block text-xs font-bold text-slate-300 mb-1">وقت الإنتهاء *</label>
+                        <input type="time" id="groupEndTimeInput" required class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2 text-xs font-mono outline-none cursor-pointer">
                     </div>
                 </div>
 

@@ -283,7 +283,7 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             }
 
             filteredGroups.forEach(g => {
-                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} (${g.startTime || ''})</option>`);
+                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} (${window.formatTime12H(g.startTime)})</option>`);
             });
         }
 
@@ -323,11 +323,8 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             }
 
             // Prefix formatting logic
-            let finalCode = rawCode;
-            if (/^\d+$/.test(rawCode)) {
-                // If only digits are entered, automatically prepend CENZ-
-                finalCode = `CENZ-${rawCode}`;
-            }
+            // The input field has a locked static prefix 'CENZ-', so we always prepend it
+            let finalCode = `CENZ-${rawCode.replace(/^CENZ-/i, '')}`;
 
             const discountType = document.getElementById('inputDiscountType')?.value || null;
             const discountValue = parseFloat(document.getElementById('inputDiscountValue')?.value) || 0;

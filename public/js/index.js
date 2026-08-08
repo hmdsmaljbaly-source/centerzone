@@ -97,7 +97,7 @@ function getActiveCenterHeader() {
                                         </div>
                                         <div class="space-y-1.5 text-[11px] text-slate-400">
                                             <div><i class="fa-solid fa-chalkboard-user ml-1.5 text-slate-500"></i>المدرس: <span class="text-slate-300">${g.teacher?.name || 'غير محدد'}</span></div>
-                                            <div><i class="fa-solid fa-clock ml-1.5 text-slate-500"></i>الموعد: <span class="text-slate-300 font-mono">${g.startTime || ''} - ${g.endTime || ''}</span></div>
+                                            <div><i class="fa-solid fa-clock ml-1.5 text-slate-500"></i>الموعد: <span class="text-slate-300 font-mono">${window.formatTime12H(g.startTime)} - ${window.formatTime12H(g.endTime)}</span></div>
                                             <div><i class="fa-solid fa-location-dot ml-1.5 text-slate-500"></i>القاعة: <span class="text-slate-300">${g.hall?.name || 'غير محدد'}</span></div>
                                         </div>
                                     </div>

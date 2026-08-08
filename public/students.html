@@ -199,7 +199,10 @@
 
                 <div>
                     <label class="block text-xs font-bold text-slate-300 mb-1">كود كارت التسجيل (مسبق الدفع) *</label>
-                    <input type="text" id="inputPrepaidCode" required placeholder="مثال: 1001 أو CENZ-1001" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs outline-none">
+                    <div class="flex items-center rounded-xl bg-slate-950 border border-slate-700 overflow-hidden focus-within:border-sky-500" style="direction: ltr;">
+                        <span class="bg-slate-900 text-slate-400 text-xs font-black px-3.5 py-2.5 border-r border-slate-800 select-none">CENZ-</span>
+                        <input type="text" id="inputPrepaidCode" required placeholder="1001" class="flex-1 bg-transparent text-slate-100 px-3.5 py-2.5 text-xs outline-none font-mono">
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
