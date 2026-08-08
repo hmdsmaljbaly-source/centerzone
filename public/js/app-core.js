@@ -6,7 +6,7 @@ window.fetchWithCenter = async (resource, config = {}) => {
 };
 
 window.getActiveCenterHeader = () => {
-  return localStorage.getItem('active_center_id') || '';
+  return localStorage.getItem('active_center_id') || localStorage.getItem('centerId') || localStorage.getItem('x-center-id') || localStorage.getItem('currentCenterId') || '';
 };
 
 // Global Fetch Interceptor to inject JWT and x-center-id
@@ -29,7 +29,7 @@ window.fetch = async (...args) => {
   }
   
   // Inject Authorization Bearer Token
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') || localStorage.getItem('centerzone_token');
   if (token && !config.headers['Authorization']) {
     config.headers['Authorization'] = `Bearer ${token}`;
   }

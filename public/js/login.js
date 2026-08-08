@@ -18,9 +18,11 @@ async function executeLogin(e) {
 
                 if (response.ok && resData.success && resData.data) {
                     const { token, userRole, centerId } = resData.data;
+                    localStorage.setItem('token', token);
                     localStorage.setItem('centerzone_token', token);
                     localStorage.setItem('userRole', userRole);
                     if (centerId) {
+                        localStorage.setItem('active_center_id', centerId);
                         localStorage.setItem('x-center-id', centerId);
                         localStorage.setItem('centerId', centerId);
                         localStorage.setItem('currentCenterId', centerId);
