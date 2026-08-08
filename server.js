@@ -31,21 +31,6 @@ const bcrypt = require('bcryptjs');
 // Seeding Super Admin & Default Center for testing
 async function seedSuperAdmin() {
   try {
-    const defaultCenter = await prisma.center.findFirst({
-      where: { OR: [{ id: 'center-101' }, { centerId: 'center-101' }, { code: 'center-101' }] }
-    });
-    if (!defaultCenter) {
-      await prisma.center.create({
-        data: {
-          id: 'center-101',
-          centerId: 'center-101',
-          code: 'center-101',
-          name: 'سنتر النخبة التعليمي',
-          allowedStudentCodes: 1000
-        }
-      });
-      console.log('✅ Default test center center-101 created');
-    }
 
     const hashedPassword = await bcrypt.hash('gebo777', 10);
     const existingAdmin = await prisma.superAdmin.findFirst({
