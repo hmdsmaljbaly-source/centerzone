@@ -19,40 +19,21 @@ async function main() {
 
   console.log('🧹 تم تصفير كافة بيانات الجداول الفرعية والتأكد من نظافتها.');
 
-  // 2. Seed Default Center
-  const center = await prisma.center.create({
+  // 2. Seed Default Super Admin Account
+  const bcrypt = require('bcrypt');
+  const hashedPassword = await bcrypt.hash('gebo777', 10);
+  
+  await prisma.user.create({
     data: {
-      id: 'center-101',
-      name: 'سنتر النخبة التعليمي',
-      email: 'center101@center-saas.com',
-      password_hash: 'center123', // In production use bcrypt hash
-      phone: '01099998888',
-      subscription_status: 'ACTIVE',
-      expires_at: new Date('2026-12-31')
+      id: 'u-super-admin',
+      username: 'super_admain',
+      password: hashedPassword,
+      role: 'SUPER_ADMIN',
+      centerId: null
     }
   });
 
-  // 3. Seed Default Users
-  await prisma.user.createMany({
-    data: [
-      {
-        id: 'u-super-admin',
-        username: 'superadmin',
-        password: 'admin123',
-        role: 'SUPER_ADMIN',
-        centerId: null
-      },
-      {
-        id: 'u-center-admin',
-        username: 'center101',
-        password: 'center123',
-        role: 'CENTER_ADMIN',
-        centerId: center.id
-      }
-    ]
-  });
-
-  console.log('✅ تم تصفير قاعدة البيانات وإعداد حسابات الدخول والسنتر الرئيسي بنجاح!');
+  console.log('✅ تم تصفير قاعدة البيانات وإعداد حساب السوبر أدمن super_admain بنجاح!');
 }
 
 main()
