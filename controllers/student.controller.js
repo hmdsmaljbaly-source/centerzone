@@ -4,13 +4,27 @@ exports.registerStudent = async (req, res) => {
   try {
     const { name, phone, parentPhone, grade, groupId, code, discountType, discountValue } = req.body;
     
+    // Extract raw serial digits from code input (e.g. "1001", "CENZ-1001", "CENZ-001-1001")
+    let serial = (code || '').toString().trim();
+    serial = serial.replace(/^CENZ-/i, ''); // Remove CENZ-
+    serial = serial.replace(/^\d{3}-/, ''); // Remove 3-digit center prefix
+    
     // Validate Prepaid Code using Atomic Transaction
     const result = await prisma.$transaction(async (tx) => {
+      // Determine center index rank to build prefix
+      const allCenters = await tx.center.findMany({
+        orderBy: { createdAt: 'asc' }
+      });
+      const centerIndex = allCenters.findIndex(c => c.id === req.tenantId) + 1;
+      const centerPrefix = String(centerIndex).padStart(3, '0');
+      
+      const finalCode = `CENZ-${centerPrefix}-${serial}`;
+
       // 1. Find the prepaid card
       const card = await tx.centerPrepaidCard.findFirst({
         where: {
           centerId: req.tenantId,
-          code: code,
+          code: finalCode,
           status: 'UNUSED'
         }
       });
@@ -30,8 +44,8 @@ exports.registerStudent = async (req, res) => {
       const student = await tx.student.create({
         data: {
           centerId: req.tenantId,
-          code: code,
-          barcode: code,
+          code: finalCode,
+          barcode: finalCode,
           name,
           grade: grade || "",
           studentPhone: phone,

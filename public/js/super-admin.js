@@ -325,9 +325,8 @@ tailwind.config = {
             e.preventDefault();
             const centerId = document.getElementById('genCenterSelect').value;
             const quantity = parseInt(document.getElementById('genQuantity').value) || 0;
-            const startIndex = parseInt(document.getElementById('genStartIndex').value) || 0;
 
-            if (!centerId || quantity <= 0 || startIndex <= 0) {
+            if (!centerId || quantity <= 0) {
                 showToast('يرجى ملء جميع الحقول بشكل صحيح');
                 return;
             }
@@ -336,7 +335,7 @@ tailwind.config = {
                 const response = await fetch('/api/super-admin/generate-codes', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ centerId, quantity, startIndex })
+                    body: JSON.stringify({ centerId, quantity })
                 });
 
                 const data = await response.json();

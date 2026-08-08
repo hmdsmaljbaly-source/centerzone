@@ -112,10 +112,9 @@ function renderCenterDetails(data) {
 async function handleProfileGenerateCodes(e) {
     e.preventDefault();
     const quantity = parseInt(document.getElementById('profileGenQuantity').value) || 0;
-    const startIndex = parseInt(document.getElementById('profileGenStartIndex').value) || 0;
 
-    if (quantity <= 0 || startIndex <= 0) {
-        showToast('يرجى كتابة كمية ومسلسل بدء صحيحين');
+    if (quantity <= 0) {
+        showToast('يرجى كتابة كمية صحيحة للتوليد');
         return;
     }
 
@@ -123,7 +122,7 @@ async function handleProfileGenerateCodes(e) {
         const response = await fetch('/api/super-admin/generate-codes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ centerId: centerDbId, quantity, startIndex })
+            body: JSON.stringify({ centerId: centerDbId, quantity })
         });
 
         const data = await response.json();

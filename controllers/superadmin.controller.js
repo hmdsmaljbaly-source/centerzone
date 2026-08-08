@@ -126,11 +126,10 @@ exports.generatePrepaidCards = async (req, res) => {
 
 exports.generatePrepaidCodes = async (req, res) => {
   try {
-    const { centerId, quantity, startIndex } = req.body;
+    const { centerId, quantity } = req.body;
     const numCards = parseInt(quantity);
-    const startIdx = parseInt(startIndex);
 
-    if (!centerId || isNaN(numCards) || isNaN(startIdx)) {
+    if (!centerId || isNaN(numCards) || numCards <= 0) {
       return res.status(400).json({ success: false, message: 'بيانات غير مكتملة لتوليد الأكواد' });
     }
 
@@ -154,8 +153,29 @@ exports.generatePrepaidCodes = async (req, res) => {
       });
     }
 
+    // Determine the center prefix based on its index
+    const allCenters = await prisma.center.findMany({
+      orderBy: { createdAt: 'asc' }
+    });
+    const centerIndex = allCenters.findIndex(c => c.id === centerId) + 1;
+    const centerPrefix = String(centerIndex).padStart(3, '0');
+
+    // Automatically determine starting index
+    let startIdx = 1001;
+    const lastCard = await prisma.centerPrepaidCard.findFirst({
+      where: { centerId },
+      orderBy: { createdAt: 'desc' }
+    });
+    if (lastCard && lastCard.code) {
+      const parts = lastCard.code.split('-');
+      const lastNum = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastNum)) {
+        startIdx = lastNum + 1;
+      }
+    }
+
     const cardsToCreate = [];
-    const prefix = 'CENZ-';
+    const prefix = `CENZ-${centerPrefix}-`;
     for (let i = 0; i < numCards; i++) {
       const code = `${prefix}${startIdx + i}`;
       cardsToCreate.push({
@@ -173,7 +193,7 @@ exports.generatePrepaidCodes = async (req, res) => {
 
     res.status(201).json({ 
       success: true, 
-      message: `تم توليد عدد ${created.count} كود بنجاح بالبادئة CENZ-`,
+      message: `تم توليد عدد ${created.count} كود بنجاح بالبادئة ${prefix}`,
       data: { count: created.count }
     });
   } catch (err) {
