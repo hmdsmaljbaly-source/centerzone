@@ -27,28 +27,32 @@
     </style>
     <!-- Auth Guard & Global Fetch Interceptor -->
     <script src="js/app-core.js"></script>
+    <!-- Collapsible Sidebar Styles & Navigation Script -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="js/sidebar-navigation.js"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased bg-grid-pattern">
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased bg-grid-pattern flex">
 
-    <!-- Header / Navbar -->
-    <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-lg shadow-sky-500/20">
-                    <i class="fa-solid fa-graduation-cap"></i>
+    <div id="main-wrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300">
+        <!-- Header / Navbar -->
+        <header class="bg-slate-900/90 border-b border-slate-800 sticky top-0 z-50 backdrop-blur-md">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-lg font-black shadow-lg shadow-sky-500/20">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-sm font-black text-white">منظومة إدارة السنتر</h1>
+                        <span class="text-[11px] text-slate-400 block" id="currentCenterBadge">السنتر الحالي</span>
+                    </div>
                 </div>
-                <div>
-                    <h1 class="text-sm font-black text-white">منظومة إدارة السنتر</h1>
-                    <span class="text-[11px] text-slate-400 block" id="currentCenterBadge">السنتر الحالي</span>
-                </div>
+    
+                <button onclick="handleLogout()" class="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>تسجيل الخروج</span>
+                </button>
             </div>
-
-            <button onclick="handleLogout()" class="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-all flex items-center gap-2">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>تسجيل الخروج</span>
-            </button>
-        </div>
-    </header>
+        </header>
 
     <!-- Main Dashboard Body -->
     <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -104,136 +108,23 @@
             </div>
         </section>
 
-        <!-- Apps Cards Grid -->
-        <section class="space-y-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-black text-white tracking-tight flex items-center gap-2">
-                        <i class="fa-solid fa-cubes text-sky-400"></i>
-                        منظومة تطبيقات السنتر
-                    </h2>
-                    <p class="text-xs text-slate-400 mt-0.5">انقر على أي تطبيق لفتحه مباشرة</p>
+        <!-- Today's Groups schedule section -->
+        <section class="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center text-sm">
+                        <i class="fa-solid fa-calendar-day"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">جدول مجموعات اليوم الدراسي الحالية</h3>
                 </div>
             </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-
-                <!-- APP 1: scanner.html -->
-                <a href="scanner.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-sky-500 hover:border-sky-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-sky-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-qrcode"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
-                                ماسح سريع
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-sky-400 transition-colors">الحضور والغياب (QR)</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">شاشة تحضير الطلاب بالكاميرا السريعة، إظهار المديونيات، والتنبيهات.</p>
-                    </div>
-                </a>
-
-                <!-- APP 2: assessments.html -->
-                <a href="assessments.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-blue-500 hover:border-blue-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-blue-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-file-signature"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                                الامتحانات
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-blue-400 transition-colors">التسميعات والامتحانات</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">إدارة التسميعات والكويزات، رصد درجات الطلاب، وحساب النسب المئوية تلقائياً.</p>
-                    </div>
-                </a>
-
-                <!-- APP 3: students.html -->
-                <a href="students.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-indigo-500 hover:border-indigo-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-indigo-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-id-card"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
-                                سجل الطلاب
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">إدارة الطلاب والبروفايل</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">تكويد الطلاب، طباعة كروت الباركوود، استعراض السجل الشامل للحضور.</p>
-                    </div>
-                </a>
-
-                <!-- APP 4: teachers.html -->
-                <a href="teachers.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-purple-500 hover:border-purple-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-purple-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-chalkboard-user"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-500/10 text-purple-300 border border-purple-500/20">
-                                إدارة السنتر
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-purple-400 transition-colors">إدارة السنتر والمجموعات</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">إدارة المدرسين، المجموعات الدراسية، جدول القاعات، وحساب التسويات.</p>
-                    </div>
-                </a>
-
-                <!-- APP 5: inventory.html -->
-                <a href="inventory.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-amber-500 hover:border-amber-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-amber-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-boxes-stacked"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/20">
-                                المخزن
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-amber-400 transition-colors">المطبوعات والملازم</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة الكميات بالمخزن، بيع الكتب والملازم وتسجيل المقبوضات.</p>
-                    </div>
-                </a>
-
-                <!-- APP 6: financials.html -->
-                <a href="financials.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-pink-500 hover:border-pink-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-pink-600 to-rose-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-pink-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-solid fa-money-bill-transfer"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-pink-500/10 text-pink-300 border border-pink-500/20">
-                                المالية
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-pink-400 transition-colors">الحسابات والتسويات</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">متابعة حسابات السنتر، الإيرادات والمصروفات، والإغلاق المالي الشهري.</p>
-                    </div>
-                </a>
-
-                <!-- APP 7: settings.html -->
-                <a href="settings.html" class="app-card block bg-slate-900/80 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between relative overflow-hidden group border-t-4 border-t-emerald-500 hover:border-emerald-400 hover:bg-slate-800/80 transition-all cursor-pointer">
-                    <div>
-                        <div class="flex items-start justify-between mb-4">
-                            <div class="app-icon-wrapper w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white text-2xl shadow-xl shadow-emerald-500/30 group-hover:scale-110 transition-transform">
-                                <i class="fa-brands fa-whatsapp"></i>
-                            </div>
-                            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                إشعارات الواتساب
-                            </span>
-                        </div>
-                        <h3 class="text-lg font-bold text-white mb-1 group-hover:text-emerald-400 transition-colors">الإعدادات والواتساب</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">ضبط بيانات السنتر، إعداد قوالب الرسائل التلقائية للأهالي والملاحظات.</p>
-                    </div>
-                </a>
-
+            <div id="todayGroupsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <p class="text-xs text-slate-400 col-span-full text-center py-4">جاري تحميل جدول اليوم...</p>
             </div>
         </section>
     </main>
+
+    </div><!-- End of #main-wrapper -->
 
     <script src="js/index.js"></script>
 </body>

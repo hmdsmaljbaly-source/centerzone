@@ -2,7 +2,7 @@ const prisma = require('../config/prisma');
 
 exports.registerStudent = async (req, res) => {
   try {
-    const { name, phone, parentPhone, grade, groupId, code } = req.body;
+    const { name, phone, parentPhone, grade, groupId, code, discountType, discountValue } = req.body;
     
     // Validate Prepaid Code using Atomic Transaction
     const result = await prisma.$transaction(async (tx) => {
@@ -35,7 +35,9 @@ exports.registerStudent = async (req, res) => {
           name,
           grade: grade || "",
           studentPhone: phone,
-          parentPhone: parentPhone
+          parentPhone: parentPhone,
+          discountType: discountType || null,
+          discountValue: discountValue ? parseFloat(discountValue) : 0.0
         }
       });
 
@@ -142,7 +144,7 @@ exports.payFees = async (req, res) => {
           amount: parseFloat(amount),
           paymentType: 'MONTHLY',
           monthYear: month || new Date().toISOString().slice(0, 7),
-          secretaryName: req.user.username,
+          secretaryName: req.user?.username || 'secretary',
         }
       });
 

@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="js/app-core.js"></script>
+    <!-- Collapsible Sidebar Styles & Navigation Script -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="js/sidebar-navigation.js"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
@@ -18,10 +21,11 @@
         }
     </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex bg-grid-pattern">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+    <div id="main-wrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300">
+        <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <a href="teachers.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700">
@@ -191,24 +195,38 @@
                 const response = await window.fetchWithCenter(`${window.API_BASE_URL}/groups`);
                 const resData = await response.json();
                 
+                const loadingEl = document.getElementById('loading');
                 if (response.ok && resData.success) {
                     const selector = document.getElementById('groupSelector');
                     selector.innerHTML = '<option value="">-- اختر مجموعة --</option>';
                     
-                    (resData.data || []).forEach(g => {
+                    const groups = resData.data || [];
+                    groups.forEach(g => {
                         const isSelected = g.id === activeGroupId ? 'selected' : '';
                         selector.insertAdjacentHTML('beforeend', `<option value="${g.id}" ${isSelected}>${g.name}</option>`);
                     });
 
                     // Auto-select first group if no active ID
-                    if (!activeGroupId && resData.data.length > 0) {
-                        switchActiveGroup(resData.data[0].id);
+                    if (!activeGroupId && groups.length > 0) {
+                        switchActiveGroup(groups[0].id);
                     } else if (activeGroupId) {
                         fetchSessionHubData();
+                    } else {
+                        if (loadingEl) {
+                            loadingEl.innerText = "لا توجد مجموعات مسجلة في هذا السنتر حالياً.";
+                        }
+                    }
+                } else {
+                    if (loadingEl) {
+                        loadingEl.innerText = "فشل في تحميل المجموعات المتاحة من الخادم";
                     }
                 }
             } catch (err) {
                 window.showToast?.("فشل في تحميل المجموعات المتاحة", "error");
+                const loadingEl = document.getElementById('loading');
+                if (loadingEl) {
+                    loadingEl.innerText = "حدث خطأ في الاتصال بالخادم لجلب المجموعات";
+                }
             }
         }
 
@@ -219,6 +237,7 @@
         }
 
         async function fetchSessionHubData() {
+            const loadingEl = document.getElementById('loading');
             try {
                 const response = await window.fetchWithCenter(`${window.API_BASE_URL}/groups/${activeGroupId}/session-hub`);
                 const resData = await response.json();
@@ -231,8 +250,9 @@
                 renderSessionHub();
             } catch (err) {
                 window.showToast?.("تعذر تحميل لوحة تحكم الحصة الحالية", "error");
-                const loadingEl = document.getElementById('loading');
-                if (loadingEl) loadingEl.innerText = "حدث خطأ أثناء تحميل بيانات المجموعة";
+                if (loadingEl) {
+                    loadingEl.innerText = "فشل في تحميل بيانات المجموعة الحالية أو المجموعة غير موجودة";
+                }
             }
         }
 
@@ -421,5 +441,6 @@
             }
         }
     </script>
+    </div><!-- End of #main-wrapper -->
 </body>
 </html>

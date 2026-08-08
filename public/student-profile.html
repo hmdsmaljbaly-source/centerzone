@@ -9,6 +9,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/custom.css">
     <script src="js/app-core.js"></script>
+    <!-- Collapsible Sidebar Styles & Navigation Script -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="js/sidebar-navigation.js"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
@@ -19,10 +22,11 @@
         }
     </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern min-h-screen">
+<body class="h-full bg-slate-950 text-slate-100 antialiased flex bg-grid-pattern min-h-screen">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+    <div id="main-wrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300">
+        <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
             
             <div class="flex items-center gap-2.5">
@@ -162,7 +166,7 @@
             <div class="space-y-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1.5">المجموعة المستهدفة *</label>
-                    <select id="chargeGroup" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner transition-all">
+                    <select id="chargeGroup" onchange="calculateNetPrice()" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner transition-all">
                         <option value="">اختر المجموعة...</option>
                     </select>
                 </div>
@@ -178,8 +182,9 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-400 mb-1.5">ملاحظات / خصم (اختياري)</label>
-                    <input type="text" id="chargeDiscount" placeholder="مثال: خصم 10% أخ" class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner transition-all">
+                    <input type="text" id="chargeDiscount" placeholder="مثال: قسط أول، مذكرة عربي..." class="w-full bg-slate-950 border border-slate-700 text-slate-100 rounded-xl px-3.5 py-2.5 text-xs focus:ring-2 focus:ring-emerald-500 outline-none shadow-inner transition-all">
                 </div>
+                <div id="priceBreakdown" class="hidden bg-slate-950/50 border border-slate-800/80 p-3 rounded-2xl text-[11px] text-slate-300 space-y-1"></div>
             </div>
             <div class="mt-6 flex gap-3">
                 <button onclick="submitRecharge()" class="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-2.5 rounded-xl transition-all shadow-lg shadow-emerald-500/20 text-sm">تأكيد الشحن</button>
@@ -329,9 +334,74 @@
             }
         }
 
+        function calculateNetPrice() {
+            const groupSelect = document.getElementById('chargeGroup');
+            const breakdownEl = document.getElementById('priceBreakdown');
+            const amountInput = document.getElementById('chargeAmount');
+            
+            if (!groupSelect || !currentStudentData) return;
+            
+            const selectedGroupId = groupSelect.value;
+            if (!selectedGroupId) {
+                if (breakdownEl) breakdownEl.classList.add('hidden');
+                if (amountInput) amountInput.value = '';
+                return;
+            }
+            
+            const enrollment = (currentStudentData.enrollments || []).find(en => en.groupId === selectedGroupId);
+            if (!enrollment || !enrollment.group) {
+                if (breakdownEl) breakdownEl.classList.add('hidden');
+                return;
+            }
+            
+            const basePrice = enrollment.group.price || 0;
+            const discType = currentStudentData.discountType || '';
+            const discVal = currentStudentData.discountValue || 0;
+            
+            let discountAmount = 0;
+            let discountLabel = '';
+            
+            if (discType === '%' || discType === 'PERCENTAGE') {
+                discountAmount = (basePrice * discVal) / 100;
+                discountLabel = `${discVal}%`;
+            } else if (discType === 'Fixed EGP' || discType === 'FIXED') {
+                discountAmount = discVal;
+                discountLabel = `${discVal} ج.م`;
+            }
+            
+            const finalPayable = Math.max(0, basePrice - discountAmount);
+            
+            if (amountInput) {
+                amountInput.value = finalPayable;
+            }
+            
+            if (breakdownEl) {
+                breakdownEl.classList.remove('hidden');
+                if (discountAmount > 0) {
+                    breakdownEl.innerHTML = `
+                        <div class="flex justify-between"><span>سعر المجموعة الأساسي:</span> <span class="font-bold text-white">${basePrice} ج.م</span></div>
+                        <div class="flex justify-between text-rose-450"><span>الخصم المطبق (${discountLabel}):</span> <span>-${discountAmount} ج.م</span></div>
+                        <div class="flex justify-between border-t border-slate-800 pt-1.5 font-bold text-emerald-400"><span>المبلغ المستحق للدفع:</span> <span>${finalPayable} ج.م</span></div>
+                    `;
+                } else {
+                    breakdownEl.innerHTML = `
+                        <div class="flex justify-between"><span>سعر المجموعة الأساسي:</span> <span class="font-bold text-white">${basePrice} ج.م</span></div>
+                        <div class="flex justify-between text-slate-400"><span>الخصم المطبق:</span> <span>لا يوجد خصم دائم</span></div>
+                        <div class="flex justify-between border-t border-slate-800 pt-1.5 font-bold text-emerald-400"><span>المبلغ المستحق للدفع:</span> <span>${finalPayable} ج.م</span></div>
+                    `;
+                }
+            }
+        }
+
         function openRechargeModal() {
             const modal = document.getElementById('rechargeModal');
             if (modal) modal.classList.remove('hidden');
+            
+            const breakdownEl = document.getElementById('priceBreakdown');
+            if (breakdownEl) breakdownEl.classList.add('hidden');
+            
+            const amountInput = document.getElementById('chargeAmount');
+            if (amountInput) amountInput.value = '';
             
             const groupSelect = document.getElementById('chargeGroup');
             if (groupSelect && currentStudentData) {
@@ -386,5 +456,6 @@
             }
         }
     </script>
+    </div><!-- End of #main-wrapper -->
 </body>
 </html>

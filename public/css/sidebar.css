@@ -1,0 +1,36 @@
+/* Sidebar transition styling */
+#sidebar-wrapper {
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 16rem; /* 256px */
+}
+
+/* Collapsed state styling */
+#sidebar-wrapper.sidebar-collapsed {
+  width: 5rem !important; /* 80px */
+}
+
+/* Hide labels inside collapsed sidebar */
+#sidebar-wrapper.sidebar-collapsed .logo-text,
+#sidebar-wrapper.sidebar-collapsed .menu-text,
+#sidebar-wrapper.sidebar-collapsed .user-details,
+#sidebar-wrapper.sidebar-collapsed .badge-text {
+  display: none !important;
+}
+
+/* Center menu item content when collapsed */
+#sidebar-wrapper.sidebar-collapsed .menu-item {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  font-size: 1.25rem;
+}
+
+/* Make toggle button arrow rotate when collapsed */
+#sidebar-wrapper.sidebar-collapsed #toggle-icon {
+  transform: rotate(180deg);
+}
+
+/* Transition for main wrapper if any custom elements need it */
+#main-wrapper {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

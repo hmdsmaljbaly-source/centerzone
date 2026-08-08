@@ -286,6 +286,22 @@ exports.getSessionHub = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      group: {
+        id: group.id,
+        name: group.name,
+        teacherName: group.teacher?.name,
+        hallName: group.hall?.name,
+        dayOfWeek: group.dayOfWeek,
+        startTime: group.startTime,
+        endTime: group.endTime,
+        price: group.price,
+        grade: group.grade
+      },
+      students: enrolledStudents,
+      totalStudents,
+      presentCount,
+      absentCount,
+      attendanceRate,
       data: {
         group: {
           id: group.id,
@@ -295,7 +311,8 @@ exports.getSessionHub = async (req, res) => {
           dayOfWeek: group.dayOfWeek,
           startTime: group.startTime,
           endTime: group.endTime,
-          price: group.price
+          price: group.price,
+          grade: group.grade
         },
         students: enrolledStudents,
         stats: {
@@ -310,3 +327,5 @@ exports.getSessionHub = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+exports.getSessionHubData = exports.getSessionHub;

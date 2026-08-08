@@ -256,13 +256,14 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             document.getElementById('addStudentForm').reset();
         }
 
-        function handleGradeChange() {
+        function updateCascadingGroups() {
             const selectedStage = document.getElementById('inputStudentGrade')?.value;
+            const selectedTeacherId = document.getElementById('studentTeacherSelect')?.value;
             const groupSelect = document.getElementById('studentGroupSelect');
             if (!groupSelect) return;
 
-            if (!selectedStage) {
-                groupSelect.innerHTML = '<option value="">اختر السنة الدراسية أولاً...</option>';
+            if (!selectedStage || !selectedTeacherId) {
+                groupSelect.innerHTML = '<option value="">اختر السنة الدراسية والمعلم أولاً...</option>';
                 groupSelect.disabled = true;
                 return;
             }
@@ -270,38 +271,28 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
             groupSelect.disabled = false;
             groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
 
-            const selectedTeacherId = document.getElementById('studentTeacherSelect')?.value;
-            let filteredGroups = allGroupsList.filter(g => g.grade === selectedStage);
-            if (selectedTeacherId) {
-                filteredGroups = filteredGroups.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId));
-            }
+            const filteredGroups = allGroupsList.filter(g => 
+                (g.grade === selectedStage) && 
+                (g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId))
+            );
 
-            filteredGroups.forEach(g => {
-                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.teacher ? g.teacher.name : ''} (${g.dayOfWeek || ''})</option>`);
-            });
-        }
-
-        function handleTeacherSelectChange() {
-            const selectedTeacherId = document.getElementById('studentTeacherSelect').value;
-            const selectedStage = document.getElementById('inputStudentGrade')?.value;
-            const groupSelect = document.getElementById('studentGroupSelect');
-            if (!groupSelect) return;
-
-            if (!selectedStage) {
-                groupSelect.innerHTML = '<option value="">اختر السنة الدراسية أولاً...</option>';
+            if (filteredGroups.length === 0) {
+                groupSelect.innerHTML = '<option value="">لا توجد مجموعات مطابقة لهذين الاختيارين</option>';
                 groupSelect.disabled = true;
                 return;
             }
 
-            groupSelect.innerHTML = '<option value="">اختر المجموعة...</option>';
-            let filteredGroups = allGroupsList.filter(g => g.grade === selectedStage);
-            if (selectedTeacherId) {
-                filteredGroups = filteredGroups.filter(g => g.teacherId === selectedTeacherId || (g.teacher && g.teacher.id === selectedTeacherId));
-            }
-
             filteredGroups.forEach(g => {
-                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} (${g.teacher ? g.teacher.name : ''})</option>`);
+                groupSelect.insertAdjacentHTML('beforeend', `<option value="${g.id}">${g.name} - ${g.dayOfWeek || ''} (${g.startTime || ''})</option>`);
             });
+        }
+
+        function handleGradeChange() {
+            updateCascadingGroups();
+        }
+
+        function handleTeacherSelectChange() {
+            updateCascadingGroups();
         }
 
         async function handleCreateStudent(e) {
@@ -338,6 +329,9 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                 finalCode = `CENZ-${rawCode}`;
             }
 
+            const discountType = document.getElementById('inputDiscountType')?.value || null;
+            const discountValue = parseFloat(document.getElementById('inputDiscountValue')?.value) || 0;
+
             try {
                 const payload = { 
                     name, 
@@ -350,7 +344,9 @@ tailwind.config = { theme: { extend: { fontFamily: { sans: ['Cairo', 'Inter', 's
                     code: finalCode,
                     notes: alertNote,
                     alertNote: alertNote,
-                    alertStatus: alertNote ? 'WARNING' : 'NORMAL' 
+                    alertStatus: alertNote ? 'WARNING' : 'NORMAL',
+                    discountType,
+                    discountValue
                 };
 
                 const response = await fetch('/api/students', {

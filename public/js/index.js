@@ -78,6 +78,40 @@ function getActiveCenterHeader() {
                 if (grpData?.success && Array.isArray(grpData.data)) {
                     const el = document.getElementById('kpiActiveGroups');
                     if (el) el.textContent = grpData.data.length;
+
+                    const listEl = document.getElementById('todayGroupsList');
+                    if (listEl) {
+                        if (grpData.data.length === 0) {
+                            listEl.innerHTML = `
+                                <div class="col-span-full text-center py-6 bg-slate-950/40 rounded-2xl border border-slate-800/80">
+                                    <i class="fa-solid fa-mug-hot text-2xl text-slate-550 mb-2 block"></i>
+                                    <span class="text-xs text-slate-400 font-medium">لا توجد مجموعات مجدولة اليوم في السنتر.</span>
+                                </div>`;
+                        } else {
+                            listEl.innerHTML = grpData.data.map(g => `
+                                <div class="bg-slate-950 p-4 rounded-2xl border border-slate-850 flex flex-col justify-between hover:border-sky-500/40 transition-colors">
+                                    <div>
+                                        <div class="flex justify-between items-start mb-2">
+                                            <span class="text-xs font-bold text-white">${g.name}</span>
+                                            <span class="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 text-[10px] font-bold">${g.grade || 'عام'}</span>
+                                        </div>
+                                        <div class="space-y-1.5 text-[11px] text-slate-400">
+                                            <div><i class="fa-solid fa-chalkboard-user ml-1.5 text-slate-500"></i>المدرس: <span class="text-slate-300">${g.teacher?.name || 'غير محدد'}</span></div>
+                                            <div><i class="fa-solid fa-clock ml-1.5 text-slate-500"></i>الموعد: <span class="text-slate-300 font-mono">${g.startTime || ''} - ${g.endTime || ''}</span></div>
+                                            <div><i class="fa-solid fa-location-dot ml-1.5 text-slate-500"></i>القاعة: <span class="text-slate-300">${g.hall?.name || 'غير محدد'}</span></div>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-slate-900 flex justify-between items-center">
+                                        <span class="text-[10px] text-purple-400 font-bold"><i class="fa-solid fa-money-bill-1 ml-1"></i>${g.price || 0} ج.م</span>
+                                        <a href="group-profile.html?id=${g.id}" class="text-[10px] bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 font-bold">
+                                            <span>لوحة الحصة</span>
+                                            <i class="fa-solid fa-chevron-left text-[8px]"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            `).join('');
+                        }
+                    }
                 }
 
                 const tchRes = await fetch('/api/teachers');

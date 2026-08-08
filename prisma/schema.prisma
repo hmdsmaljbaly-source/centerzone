@@ -200,6 +200,8 @@ model Student {
   hasFinancialWarning Boolean  @default(false)
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
+  discountType        String?  @map("discount_type")
+  discountValue       Float?   @map("discount_value")
 
   center      Center              @relation(fields: [centerId], references: [id], onDelete: Cascade)
   attendances Attendance[]
