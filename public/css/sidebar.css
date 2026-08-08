@@ -2,6 +2,21 @@
 #sidebar-wrapper {
   transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 16rem; /* 256px */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+#sidebar-wrapper nav {
+  flex: 1 1 auto;
+  overflow-y: auto; /* Scroll links independently */
+}
+
+#sidebar-wrapper .user-footer {
+  flex-shrink: 0; /* Freeze user details at bottom */
 }
 
 /* Collapsed state styling */

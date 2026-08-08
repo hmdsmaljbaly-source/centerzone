@@ -58,7 +58,7 @@
         </nav>
 
         <!-- Sidebar Footer -->
-        <div class="p-4 border-t border-slate-800/80 bg-slate-950/20 flex flex-col gap-3">
+        <div class="p-4 border-t border-slate-800/80 bg-slate-950/20 flex flex-col gap-3 user-footer">
             <div class="flex items-center gap-3 user-info px-2">
                 <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-purple-400 text-xs font-bold border border-slate-700">
                     <i class="fa-solid fa-user-tie"></i>
@@ -168,6 +168,21 @@
                     history.pushState({ url }, '', url);
                 }
                 
+                // Harmonize token and centerId variants to ensure app-core interceptor and local scripts match
+                const activeCenterId = localStorage.getItem('active_center_id') || localStorage.getItem('centerId') || localStorage.getItem('x-center-id') || localStorage.getItem('currentCenterId');
+                if (activeCenterId) {
+                    localStorage.setItem('active_center_id', activeCenterId);
+                    localStorage.setItem('centerId', activeCenterId);
+                    localStorage.setItem('x-center-id', activeCenterId);
+                    localStorage.setItem('currentCenterId', activeCenterId);
+                }
+                
+                const token = localStorage.getItem('token') || localStorage.getItem('centerzone_token');
+                if (token) {
+                    localStorage.setItem('token', token);
+                    localStorage.setItem('centerzone_token', token);
+                }
+                
                 highlightActiveSidebarLink(url);
                 
                 // Reset window.onload to ensure clean slate for page scripts
@@ -223,9 +238,22 @@
                 const navEvent = new CustomEvent('cz-navigated', { detail: { url } });
                 window.dispatchEvent(navEvent);
                 
+                // Trigger window.onload
                 if (typeof window.onload === 'function') {
                     window.onload();
                 }
+                
+                // Automatically re-trigger page fetchers using window.fetchWithCenter if window.onload didn't fully trigger them
+                const fetchers = ['loadStudents', 'loadGroups', 'fetchFilteredStudents', 'loadFilterDropdowns', 'loadTeachers', 'fetchStudentData', 'loadCenterData', 'loadFinancials', 'loadInventory', 'fetchAssessments'];
+                fetchers.forEach(fetcher => {
+                    if (typeof window[fetcher] === 'function') {
+                        try {
+                            window[fetcher]();
+                        } catch (e) {
+                            console.warn(`Failed to auto-trigger fetcher ${fetcher}:`, e);
+                        }
+                    }
+                });
             } else {
                 window.location.href = url;
             }

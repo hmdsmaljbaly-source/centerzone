@@ -8,21 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/custom.css">
+    <!-- Auth Guard & Global Fetch Interceptor -->
     <script src="js/app-core.js"></script>
-    <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .bg-grid-pattern {
-            background-size: 30px 30px;
-            background-image: 
-                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-        }
-    </style>
+    <!-- Collapsible Sidebar Styles & Navigation Script -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="js/sidebar-navigation.js"></script>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern min-h-screen">
+<body class="bg-[#0B0F19] text-gray-100 flex min-h-screen antialiased overflow-x-hidden">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+    <div id="main-wrapper" class="main-transition flex-1 flex flex-col min-h-screen mr-64 p-6">
+        <div id="main-content-area" class="w-full h-full">
+            <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg rounded-2xl mb-6">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
             
             <div class="flex items-center gap-2.5">
@@ -132,6 +129,9 @@
         </div>
     </div>
 
+        </div><!-- End of #main-content-area -->
+    </div><!-- End of #main-wrapper -->
+    
     <script src="js/assessments.js"></script>
 </body>
 </html>
