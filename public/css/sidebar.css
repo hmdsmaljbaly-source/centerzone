@@ -30,7 +30,10 @@
   transform: rotate(180deg);
 }
 
-/* Transition for main wrapper if any custom elements need it */
 #main-wrapper {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-right: 16rem;
+  transition: margin-right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#sidebar-wrapper.sidebar-collapsed + #main-wrapper {
+  margin-right: 5rem !important;
 }

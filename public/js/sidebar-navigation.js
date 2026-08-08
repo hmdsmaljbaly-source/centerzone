@@ -120,15 +120,146 @@
 
         // Highlight Active Link
         const path = window.location.pathname;
+        highlightActiveSidebarLink(path);
+    }
+
+    function highlightActiveSidebarLink(path) {
         const menuLinks = document.querySelectorAll('.menu-item');
         menuLinks.forEach(link => {
-            const linkPath = link.getAttribute('data-path');
-            if (linkPath && (path === linkPath || path.endsWith(linkPath) || (linkPath === '/index.html' && path === '/'))) {
-                link.classList.remove('text-slate-300', 'hover:bg-slate-850');
-                link.classList.add('bg-purple-600', 'text-white', 'shadow-md', 'shadow-purple-600/15');
+            const linkPath = link.getAttribute('data-path') || link.getAttribute('href');
+            if (linkPath) {
+                // Clear active styles
+                link.classList.remove('bg-purple-600', 'text-white', 'shadow-md', 'shadow-purple-600/15');
+                link.classList.add('text-slate-300', 'hover:bg-slate-850');
+                
+                // Set active styles if matches
+                if (path === linkPath || path.endsWith(linkPath) || (linkPath === '/index.html' && (path === '/' || path === ''))) {
+                    link.classList.remove('text-slate-300', 'hover:bg-slate-850');
+                    link.classList.add('bg-purple-600', 'text-white', 'shadow-md', 'shadow-purple-600/15');
+                }
             }
         });
     }
+
+    async function navigateToPage(url, pushState = true) {
+        const mainContent = document.getElementById('main-content-area');
+        if (!mainContent) {
+            window.location.href = url;
+            return;
+        }
+        
+        try {
+            mainContent.style.opacity = '0.5';
+            
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const htmlText = await response.text();
+            
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            
+            const targetContentArea = doc.getElementById('main-content-area');
+            if (targetContentArea) {
+                document.title = doc.title || document.title;
+                mainContent.innerHTML = targetContentArea.innerHTML;
+                
+                if (pushState) {
+                    history.pushState({ url }, '', url);
+                }
+                
+                highlightActiveSidebarLink(url);
+                
+                // Reset window.onload to ensure clean slate for page scripts
+                window.onload = null;
+                
+                const pageScripts = doc.querySelectorAll('script');
+                for (const script of pageScripts) {
+                    const src = script.getAttribute('src') || '';
+                    if (src.includes('app-core.js') || src.includes('sidebar-navigation.js') || src.includes('tailwind.config')) continue;
+                    
+                    let scriptContent = '';
+                    if (script.src) {
+                        try {
+                            const res = await fetch(script.src);
+                            scriptContent = await res.text();
+                        } catch (e) {
+                            console.error('Failed to fetch script src:', script.src, e);
+                            continue;
+                        }
+                    } else {
+                        scriptContent = script.textContent;
+                    }
+                    
+                    if (!scriptContent.trim()) continue;
+                    
+                    // Extract function declarations to dynamically register them on the window object
+                    const functionRegex = /(?:async\s+)?function\s+([a-zA-Z0-9_]+)\s*\(/g;
+                    const functionNames = [];
+                    let match;
+                    while ((match = functionRegex.exec(scriptContent)) !== null) {
+                        functionNames.push(match[1]);
+                    }
+                    
+                    const exposureCode = functionNames.map(name => `window.${name} = ${name};`).join('\n');
+                    const wrappedCode = `
+(function() {
+    try {
+        ${scriptContent}
+        
+        // Expose functions to window for HTML event handlers
+        ${exposureCode}
+    } catch(err) {
+        console.error("Error executing script:", err);
+    }
+})();
+                    `;
+                    
+                    const newScript = document.createElement('script');
+                    newScript.textContent = wrappedCode;
+                    document.body.appendChild(newScript);
+                }
+                
+                const navEvent = new CustomEvent('cz-navigated', { detail: { url } });
+                window.dispatchEvent(navEvent);
+                
+                if (typeof window.onload === 'function') {
+                    window.onload();
+                }
+            } else {
+                window.location.href = url;
+            }
+        } catch (err) {
+            console.error('SPA Routing Error - falling back to full reload:', err);
+            window.location.href = url;
+        } finally {
+            mainContent.style.opacity = '1';
+        }
+    }
+
+    // Intercept navigation link clicks globally
+    document.addEventListener('click', (e) => {
+        const link = e.target.closest('a');
+        if (!link) return;
+        
+        const href = link.getAttribute('href');
+        if (!href) return;
+        
+        if (href.startsWith('http') || href.startsWith('#') || href.startsWith('javascript:') || link.target === '_blank') {
+            return;
+        }
+
+        if (href.includes('login.html')) return;
+        
+        e.preventDefault();
+        navigateToPage(href);
+    });
+
+    // Handle history popstate events
+    window.addEventListener('popstate', (e) => {
+        const url = (e.state && e.state.url) ? e.state.url : window.location.pathname;
+        navigateToPage(url, false);
+    });
 
     // Global Logout function fallback
     window.handleLogout = () => {

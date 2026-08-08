@@ -21,11 +21,12 @@
         }
     </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex bg-grid-pattern">
+<body class="bg-[#0B0F19] text-gray-100 flex min-h-screen antialiased overflow-x-hidden">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
 
-    <div id="main-wrapper" class="flex-1 flex flex-col min-h-screen transition-all duration-300">
-        <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
+    <div id="main-wrapper" class="main-transition flex-1 flex flex-col min-h-screen mr-64 p-6">
+        <div id="main-content-area" class="w-full h-full">
+            <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg rounded-2xl mb-6">
         <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
             <div class="flex items-center gap-2.5">
                 <a href="teachers.html" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition-all border border-slate-700">
@@ -441,6 +442,7 @@
             }
         }
     </script>
+        </div><!-- End of #main-content-area -->
     </div><!-- End of #main-wrapper -->
 </body>
 </html>

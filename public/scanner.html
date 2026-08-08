@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="js/app-core.js"></script>
+    <!-- Collapsible Sidebar Styles & Navigation Script -->
+    <link rel="stylesheet" href="css/sidebar.css">
+    <script src="js/sidebar-navigation.js"></script>
     <style>
         body { font-family: 'Cairo', sans-serif; }
         .bg-grid-pattern {
@@ -20,8 +23,11 @@
         .kpi-card:hover { transform: translateY(-5px); }
     </style>
 </head>
-<body class="h-full bg-slate-950 text-slate-100 antialiased flex flex-col bg-grid-pattern">
+<body class="bg-[#0B0F19] text-gray-100 flex min-h-screen antialiased overflow-x-hidden">
     <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <div id="main-wrapper" class="main-transition flex-1 flex flex-col min-h-screen mr-64 p-6">
+        <div id="main-content-area" class="w-full h-full">
 
     <!-- Header Navigation -->
     <header class="bg-slate-900/90 border-b border-slate-800/80 backdrop-blur-md sticky top-0 z-40 shadow-lg">
@@ -132,7 +138,8 @@
             </div>
         </div>
 
-    </main>
+        </div><!-- End of #main-content-area -->
+    </div><!-- End of #main-wrapper -->
     
     <script src="js/scanner.js"></script>
 </body>
