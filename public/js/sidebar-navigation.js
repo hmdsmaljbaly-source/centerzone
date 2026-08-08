@@ -116,6 +116,8 @@
 
         if (role === 'SUPER_ADMIN') {
             document.getElementById('sidebar-superadmin-link').classList.remove('hidden');
+        } else {
+            document.getElementById('sidebar-superadmin-link').classList.add('hidden');
         }
 
         // Highlight Active Link
